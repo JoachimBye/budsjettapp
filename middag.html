@@ -139,71 +139,6 @@
     .empty-icon { font-size: 64px; color: #5a7a6d; margin-bottom: 16px; }
     .empty-title { font-size: 20px; font-weight: 600; color: #2d5f4d; margin-bottom: 8px; }
     .empty-text { font-size: 14px; color: #5a7a6d; margin-bottom: 20px; }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45,95,77,0.5);
-      display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #ffffff; border-radius: 24px; padding: 28px; max-width: 600px; width: 100%;
-      max-height: 90%; overflow-y: auto; box-shadow: 0 8px 32px rgba(45,95,77,0.2);
-    }
-    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .modal-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 12px; }
-    .modal-close {
-      width: 32px; height: 32px; border: none; background: #f0f0f0; border-radius: 50%; cursor: pointer;
-      font-size: 18px; color: #5a7a6d; display: flex; align-items: center; justify-content: center;
-    }
-    .modal-close:hover { background: #e0e0e0; }
-    .modal-close:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .modal-price { font-size: 20px; font-weight: 700; color: #4caf50; margin-bottom: 20px; }
-
-    .accordion { border: 1px solid rgba(76,175,80,0.2); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
-    .accordion-header {
-      padding: 16px 20px; background: #f8fffe; cursor: pointer; display: flex; justify-content: space-between;
-      align-items: center; font-weight: 600; color: #2d5f4d; user-select: none;
-    }
-    .accordion-header:hover { background: #f0f9f4; }
-    .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-    .accordion.open .accordion-content { max-height: 500px; }
-    .accordion-body { padding: 20px; }
-
-    .ingredient-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
-    .ingredient-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
-    .ingredient-checkbox { width: 18px; height: 18px; accent-color: #4caf50; }
-    .ingredient-text { font-size: 14px; color: #2d5f4d; }
-
-    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-    .step-item { display: flex; gap: 12px; }
-    .step-number {
-      width: 24px; height: 24px; background: #4caf50; color: white; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;
-    }
-    .step-text { font-size: 14px; color: #2d5f4d; line-height: 1.5; }
-    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
-
-    /* FAB */
-    .fab {
-      position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
-      background: #4caf50; color: white; border: none; font-size: 24px; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(76,175,80,0.4); display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; z-index: 50;
-    }
-    .fab:hover { background: #45a049; transform: scale(1.05); }
-    .fab:focus { outline: 3px solid #4caf50; outline-offset: 3px; }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .container { padding: 16px; }
-      .page-title { font-size: 28px; }
-      .budget-card { flex-direction: column; text-align: center; }
-      .filter-row { flex-direction: column; align-items: stretch; }
-      .price-input { width: 100%; }
-      .recipe-grid { grid-template-columns: 1fr; }
-      .fab { bottom: 16px; right: 16px; }
-    }
   </style>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
@@ -293,8 +228,7 @@
     </div>
   </div>
 
-  <button class="fab" id="randomFab" aria-label="Tilfeldig middag">🎲</button>
-
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" role="dialog" aria-labelledby="modalTitle">
       <div class="modal-header">
@@ -345,7 +279,7 @@
       font_size: 16
     };
 
-    // ---------- Mock data (kan byttes ut senere) ----------
+    // ---------- Mock data ----------
     const mockRecipes = [
       { navn:"Kylling i form", prisPerMåltid:65, porsjoner:4, tidMin:45, vanskelighetsgrad:"Lett", kalorier:420, kategori:"kylling", allergener:["ingen"], bilde:"🍗",
         ingredienser:["4 kyllingfileter","2 paprika","1 løk","400g poteter","2 ss olivenolje","Salt og pepper"],
@@ -383,15 +317,20 @@
     let currentFilters = { maxPrice: 70, people: 2, categories: [], allergies: [], quickOnly: false };
     let budgetData = { total: 3000, used: 0, remaining: 3000 };
 
-    // ---------- Uke-hjelpere ----------
-    function getCurrentWeekMonday(d = new Date()) {
-      const copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      const weekday = (copy.getDay() + 6) % 7; // mandag=0
-      copy.setDate(copy.getDate() - weekday);
-      copy.setHours(12,0,0,0);
-      return copy;
+    // ---------- Uke-hjelpere (samme som app.html) ----------
+    function mondayAtNoon(d = new Date()){
+      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const day = (x.getDay()+6)%7; // 0=man
+      x.setDate(x.getDate()-day);
+      x.setHours(12,0,0,0);
+      return x;
     }
-    function mondayISO() { return getCurrentWeekMonday().toISOString().slice(0,10); }
+    function getActiveWeekISO(){
+      const pinned = localStorage.getItem('activeWeekISO');
+      if (pinned) return pinned;
+      return mondayAtNoon().toISOString().slice(0,10);
+    }
+    function mondayISO(){ return getActiveWeekISO(); }
 
     // ---------- Budsjett ----------
     function loadBudgetData() {
@@ -444,8 +383,10 @@
     function suggestDefaultMaxPrice() {
       const maxPriceInput = document.getElementById('maxPrice');
       // grovt anslag: 6 middager igjen denne uka -> per-middag-budsjett
-      const daysLeft = Math.max(1, 7 - (new Date().getDay() || 7)); // søndag=7
-      const mealsLeft = Math.max(3, Math.min(7, daysLeft)); // konservativt intervall
+      const today = new Date();
+      const dow = today.getDay() || 7; // søndag = 7
+      const daysLeft = Math.max(1, 7 - dow);
+      const mealsLeft = Math.max(3, Math.min(7, daysLeft));
       const perMealTotal = budgetData.remaining / mealsLeft;
       const suggestedPerPerson = Math.max(20, Math.min(120, Math.floor(perMealTotal / Math.max(1, currentFilters.people))));
       if (!maxPriceInput.dataset.userEdited) {
@@ -523,7 +464,6 @@
           e.preventDefault(); e.target.click();
         }
         if (e.key === 'Backspace' && document.activeElement === document.body) {
-          // gjør Backspace til "tilbake" når ingen input er i fokus
           goBack();
         }
       });
@@ -531,16 +471,10 @@
 
     function filterRecipes() {
       return mockRecipes.filter(recipe => {
-        // makspris pr. person
         if (recipe.prisPerMåltid > currentFilters.maxPrice) return false;
-
-        // kategori
         if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(recipe.kategori)) return false;
-
-        // rask
         if (currentFilters.quickOnly && recipe.tidMin > 25) return false;
 
-        // allergi: avvis dersom *noen* valgte allergener finnes i recipe.allergener
         if (currentFilters.allergies.length > 0) {
           const allergens = recipe.allergener || [];
           const isAllergenFree = (allergens.length === 0) || (allergens.length === 1 && allergens[0] === 'ingen');
@@ -601,7 +535,6 @@
         </div>
       `;
 
-      // knapper
       card.querySelector('[data-open]').addEventListener('click', () => openRecipeModal(recipe.navn));
       card.querySelector('[data-new]').addEventListener('click', suggestNewRecipe);
 
@@ -613,7 +546,6 @@
       const recipe = mockRecipes.find(r => r.navn === recipeName);
       if (!recipe) return;
 
-      const modal = document.getElementById('modalOverlay');
       const modalTitle = document.getElementById('modalTitle');
       const modalChips = document.getElementById('modalChips');
       const modalPrice = document.getElementById('modalPrice');
@@ -665,29 +597,41 @@
       document.getElementById('modalClose').focus();
     }
 
+    // Legg til i handleliste for AKTIV uke (samme struktur som handleliste.html)
     function addIngredientsToShoppingList(recipe) {
       try {
-        const key = 'shoppingList';
-        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        const key = `shoppingList_${mondayISO()}`;
+        const stored = JSON.parse(localStorage.getItem(key) || 'null');
 
-        // merk ingredienser med rettens navn for enkel filtrering i handleliste
-        const items = recipe.ingredienser.map(txt => ({ text: txt, from: recipe.navn, checked: false }));
+        // hvis ingen liste finnes: opprett minimal standardstruktur
+        const categories = Array.isArray(stored) ? stored : [
+          { name: "Matvarer", open: true,  items: [] },
+          { name: "Snacks/drikke", open: false, items: [] },
+          { name: "Husholdning", open: false, items: [] },
+          { name: "Annet", open: false, items: [] }
+        ];
 
-        // slå sammen like linjer (enkel dedupe på text)
-        const merged = [...list];
-        items.forEach(item => {
-          const idx = merged.findIndex(x => x.text.toLowerCase() === item.text.toLowerCase());
-          if (idx >= 0) {
-            // bevar første forekomst, men kan telle/annotere om ønskelig
-            // (her bare lar vi én linje stå)
-          } else {
-            merged.push(item);
+        // Finn (eller opprett) Matvarer
+        let matIndex = categories.findIndex(c => c.name === "Matvarer");
+        if (matIndex === -1) {
+          categories.unshift({ name: "Matvarer", open: true, items: [] });
+          matIndex = 0;
+        }
+
+        // Dedupliser på varenavn (case-insensitive)
+        const existingNames = new Set(categories[matIndex].items.map(i => i.name.toLowerCase()));
+        recipe.ingredienser.forEach(txt => {
+          const name = String(txt).trim();
+          if (!name) return;
+          if (!existingNames.has(name.toLowerCase())) {
+            categories[matIndex].items.push({ name, quantity: 1, price: 0, checked: false });
+            existingNames.add(name.toLowerCase());
           }
         });
 
-        localStorage.setItem(key, JSON.stringify(merged));
+        localStorage.setItem(key, JSON.stringify(categories));
       } catch (e) {
-        console.error('Kunne ikke lagre handleliste', e);
+        console.error('Kunne ikke lagre til handleliste for aktiv uke', e);
       }
     }
 
@@ -761,7 +705,7 @@
         suggestBtn.style.background = config.primary_color || defaultConfig.primary_color;
       }
 
-      document.querySelectorAll('.stepper-btn, .fab, .btn-primary').forEach(el => {
+      document.querySelectorAll('.stepper-btn, .btn-primary').forEach(el => {
         el.style.background = config.primary_color || defaultConfig.primary_color;
       });
 
@@ -811,14 +755,6 @@
       displayRecipes(filterRecipes());
     });
 
-    document.getElementById('randomFab').addEventListener('click', () => {
-      const filtered = filterRecipes();
-      if (filtered.length > 0) {
-        const randomRecipe = filtered[Math.floor(Math.random() * filtered.length)];
-        openRecipeModal(randomRecipe.navn);
-      }
-    });
-
     document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
 
     document.getElementById('modalOverlay').addEventListener('click', (e) => {
@@ -844,7 +780,6 @@
       setupFilters();
       displayRecipes(filterRecipes());
     }
-
     window.addEventListener('DOMContentLoaded', initPage);
     window.addEventListener('pageshow', initPage);
 
