@@ -144,6 +144,14 @@
     .step-number { width: 24px; height: 24px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
     .step-text { font-size: 14px; color: #2d5f4d; line-height: 1.5; }
     .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-note { font-size: 12px; color: #5a7a6d; margin-top: 8px; }
+
+    /* ------ Toast ------ */
+    .toast {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background: #4caf50; color: #fff; padding: 10px 14px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.12); z-index: 1000; font-weight: 600;
+    }
 
     /* ------ FAB ------ */
     .fab {
@@ -263,6 +271,7 @@
           <h2 class="modal-title" id="modalTitle">Oppskrift</h2>
           <div class="recipe-chips" id="modalChips"></div>
           <div class="modal-price" id="modalPrice">Pris for 2 personer: – kr</div>
+          <div class="modal-note">Fjern avkrysning på ingredienser du allerede har – kun krysset blir lagt til i handlelista.</div>
         </div>
         <button class="modal-close" id="modalClose" aria-label="Lukk modal">×</button>
       </div>
@@ -283,6 +292,7 @@
 
       <div class="modal-actions">
         <button class="btn btn-primary" id="addToShoppingBtn">Legg til i handlelista</button>
+        <button class="btn btn-secondary" id="goToListBtn">Åpne handlelista</button>
         <button class="btn btn-secondary" id="closeModalBtn">Lukk</button>
       </div>
     </div>
@@ -338,7 +348,6 @@
         el.style.background = config.surface_color || defaultConfig.surface_color;
       });
 
-      // Sizes
       const title = document.getElementById('pageTitle');
       if (title) title.style.fontSize = `${baseSize * 2}px`;
       const subtitle = document.getElementById('pageSubtitle');
@@ -373,7 +382,7 @@
     }
 
     /* =========================
-       Uke-/budsjett-nøkler (SAMME som onboarding)
+       Uke-/budsjett-nøkler
        ========================= */
     function getCurrentWeekMondayISO(dateObj = new Date()) {
       const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
@@ -391,7 +400,7 @@
     }
 
     /* =========================
-       Mock oppskrifter (enkle, konsistente)
+       Mock oppskrifter
        ========================= */
     const mockRecipes = [
       { navn:"Kylling i form", prisPerMåltid:65, porsjoner:4, tidMin:45, vanskelighetsgrad:"Lett", kalorier:420, kategori:"kylling", allergener:["ingen"], bilde:"🍗",
@@ -434,7 +443,7 @@
         maxPrice: 70,
         people: 2,
         categories: [],
-        allergies: [], // "gluten" => vis glutenfri (dvs. ekskluder oppskrifter som inneholder gluten)
+        allergies: [], // "gluten" => ekskluder oppskrifter som inneholder gluten
         quickOnly: false,
       },
       budget: { total: 0, used: 0, remaining: 0 },
@@ -455,7 +464,6 @@
             return sum + (isFinite(n) ? n : 0);
           }
           if (typeof item === 'object') {
-            // vanlige feltnavn
             const keys = ['amount','sum','price','value','kostnad'];
             for (const k of keys) {
               const v = item[k];
@@ -489,7 +497,7 @@
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) used = safeSumPurchases(parsed);
         }
-      } catch { /* ignore */ }
+      } catch {}
 
       const remaining = Math.max(0, total - used);
       state.budget = { total, used, remaining };
@@ -511,7 +519,6 @@
       progressRing.style.strokeDashoffset = `${circumference * (1 - pct/100)}`;
       progressText.innerHTML = `${Math.round(pct)}%<br>igjen`;
 
-      // Enkelt tips basert på nivå
       let showTip = false, tip = '';
       if (pct <= 25) { showTip = true; tip = 'Tips: Velg vegetar/gryter for å presse prisen ned resten av uka.'; }
       else if (pct <= 50) { showTip = true; tip = 'Tips: Planlegg 1–2 billige middager (≤ 40 kr/pers) for å holde budsjettet.'; }
@@ -578,7 +585,6 @@
         peopleCount.textContent = String(state.filters.people);
       });
 
-      // Tastatur-toggle for chips
       document.addEventListener('keydown', (e) => {
         const target = e.target;
         const isChip = target.classList && target.classList.contains('chip');
@@ -596,13 +602,9 @@
       const quick = state.filters.quickOnly;
 
       return mockRecipes.filter(r => {
-        // pris per PERS
         if (r.prisPerMåltid > maxPrice) return false;
-        // kategori
         if (selCats.length && !selCats.includes(r.kategori)) return false;
-        // rask
         if (quick && r.tidMin > 25) return false;
-        // allergi: Hvis bruker velger "gluten" => vis glutenFRI, dvs. ekskluder oppskrifter som inneholder "gluten"
         if (selAllergies.length) {
           if (!r.allergener.includes('ingen')) {
             if (selAllergies.some(a => r.allergener.includes(a))) return false;
@@ -653,7 +655,6 @@
       resultsSection.style.display = 'block';
 
       recipeGrid.innerHTML = '';
-      // Litt hyggelig sortering: billigst først, så raskest
       recipes
         .slice()
         .sort((a,b) => (a.prisPerMåltid - b.prisPerMåltid) || (a.tidMin - b.tidMin))
@@ -693,7 +694,7 @@
         const li = document.createElement('li');
         li.className = 'ingredient-item';
         li.innerHTML = `
-          <input type="checkbox" class="ingredient-checkbox" aria-label="Merk ${ing}">
+          <input type="checkbox" class="ingredient-checkbox" checked aria-label="Merk ${ing}">
           <span class="ingredient-text">${ing}</span>
         `;
         ingredientsList.appendChild(li);
@@ -716,33 +717,61 @@
       state.currentRecipe = null;
     }
 
+    function showToast(text) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = text;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2000);
+    }
+
+    // Legg valgte (krysset av) ingredienser i INBOX for aktiv uke – samme nøkkel som handleliste.html forventer
     function addCurrentRecipeToShoppingList() {
       const recipe = state.currentRecipe;
       if (!recipe) return;
 
       const weekISO = state.activeWeekISO;
-      const key = `shoppingList_${weekISO}`;
+      const inboxKey = `shoppingList_inbox_${weekISO}`;
 
-      let list = [];
+      let inbox = [];
       try {
-        const raw = localStorage.getItem(key);
-        if (raw) list = JSON.parse(raw);
-        if (!Array.isArray(list)) list = [];
-      } catch { list = []; }
+        const raw = localStorage.getItem(inboxKey);
+        if (raw) inbox = JSON.parse(raw);
+        if (!Array.isArray(inbox)) inbox = [];
+      } catch { inbox = []; }
 
-      // lagre som STRINGS for max kompatibilitet (du hadde ryddet disse ved ny onboarding)
-      const existing = new Set(list.map(x => (typeof x === 'string' ? x.trim().toLowerCase() : '')));
-      const toAdd = recipe.ingredienser.filter(ing => !existing.has(ing.trim().toLowerCase()));
+      // hvilke ingredienser er valgt?
+      const chosen = Array.from(document.querySelectorAll('#ingredientsList .ingredient-item'))
+        .filter(li => li.querySelector('.ingredient-checkbox')?.checked)
+        .map(li => li.querySelector('.ingredient-text')?.textContent?.trim())
+        .filter(Boolean);
 
-      const newList = list.concat(toAdd);
-      localStorage.setItem(key, JSON.stringify(newList));
+      if (!chosen.length) {
+        showToast('Ingen ingredienser valgt.');
+        return;
+      }
 
-      // enkel feedback
+      // unngå duplikater (case-insensitive på streng)
+      const existing = new Set(inbox.map(x => String(x || '').trim().toLowerCase()));
+      let added = 0;
+      chosen.forEach(ing => {
+        const key = ing.toLowerCase();
+        if (!existing.has(key)) {
+          inbox.push(ing);
+          existing.add(key);
+          added++;
+        }
+      });
+
+      localStorage.setItem(inboxKey, JSON.stringify(inbox));
+
       const btn = document.getElementById('addToShoppingBtn');
       const old = btn.textContent;
-      btn.textContent = 'Lagt til!';
+      btn.textContent = added > 0 ? `Lagt til ${added}` : 'Alt fantes fra før';
       btn.disabled = true;
       setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1200);
+
+      showToast(added > 0 ? `La til ${added} varer i handleliste` : 'Ingen nye varer lagt til');
     }
 
     /* =========================
@@ -779,6 +808,13 @@
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('closeModalBtn').addEventListener('click', closeModal);
     document.getElementById('addToShoppingBtn').addEventListener('click', addCurrentRecipeToShoppingList);
+
+    // Åpne handleliste med toast-parameter (brukes av handleliste.html for å vise "la til X varer fra …")
+    document.getElementById('goToListBtn').addEventListener('click', () => {
+      const name = encodeURIComponent(state.currentRecipe?.navn || 'oppskrift');
+      location.href = `handleliste.html?added=${name}`;
+    });
+
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 
     // Accordion
@@ -798,16 +834,10 @@
     /* =========================
        Init
        ========================= */
-    // Start med folketall fra onboarding (householdCount)
     initPeopleFromHousehold();
-    // Les budsjett/forbruk for aktiv uke
     loadBudgetData();
-    // Sett opp filterkontroller
     setupFilters();
-    // Første visning
     displayRecipes(filterRecipes());
-
-    // Kjør tema-applying lokalt om elementSdk ikke leverer config
     applyConfig(defaultConfig);
   </script>
 
