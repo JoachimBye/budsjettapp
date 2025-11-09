@@ -122,13 +122,13 @@
   const maxBudget = 8000;
   const step = 100;
 
-  // FIX: Mandag kl. 12:00 lokal tid → ISO (UTC) slice(0,10) blir riktig dato uansett DST
+  // Mandag kl. 12:00 lokal tid → ISO (UTC) → slice(0,10) gir YYYY-MM-DD stabilt (DST-safe)
   function getCurrentWeekMondayISO(dateObj = new Date()) {
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
     const day = (d.getDay() + 6) % 7; // 0=mandag
     d.setDate(d.getDate() - day);
-    d.setHours(12,0,0,0); // <-- viktig!
-    return d.toISOString().slice(0, 10);
+    d.setHours(12,0,0,0);
+    return d.toISOString().slice(0, 10); // "YYYY-MM-DD"
   }
 
   function recommendedRange(n) {
@@ -213,6 +213,7 @@
     descElement.style.fontSize = `${baseSize}px`;
 
     const recElement = document.getElementById('recommendationText');
+    // Vi beholder dynamisk beregnet tekst fra updateRecommendation()
     recElement.style.color = textColor;
     recElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
 
@@ -284,15 +285,27 @@
       button.style.transform = '';
 
       // 1) Normaliser og lagre globalt budsjett
-      const budgetInt = Math.max(minBudget, Math.min(maxBudget, parseInt(String(currentBudget).replace(/\s|kr/g,''), 10) || 0));
+      const budgetInt = Math.max(
+        minBudget,
+        Math.min(
+          maxBudget,
+          parseInt(String(currentBudget).replace(/\s|kr/g,''), 10) || 0
+        )
+      );
       localStorage.setItem('weeklyBudget', String(budgetInt));
 
       // 2) Finn ISO for aktiv uke (mandag 12:00) og sett som aktiv
       const mondayISO = getCurrentWeekMondayISO();
-      localStorage.setItem('activeWeekISO', mondayISO); // <-- FIX: sett aktiv uke
+      localStorage.setItem('activeWeekISO', mondayISO); // aktiv uke som YYYY-MM-DD
 
       // 3) Lagre uke-spesifikt budsjett for aktiv uke
       localStorage.setItem(`weeklyBudget_${mondayISO}`, String(budgetInt));
+
+      /* --- NYTT: start helt fresh for denne uken hvis brukeren kjører onboarding på nytt --- */
+      ['purchases_', 'shoppingList_'].forEach(prefix => {
+        localStorage.removeItem(`${prefix}${mondayISO}`);
+      });
+      localStorage.removeItem('budget_total'); // tving ny beregning i app/rapport
 
       // 4) Videre i onboarding
       location.href = 'onboarding3.html';
