@@ -14,7 +14,7 @@
     .budget-overview{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:40px;animation:fadeInUp .8s ease-out .2s both;}
     .budget-circle{position:relative;width:280px;height:280px;margin-bottom:30px;}
     .circle-bg{width:100%;height:100%;border-radius:50%;background:#e8f5f0;position:relative;overflow:hidden;}
-    .circle-progress{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;background:conic-gradient(#4caf50 0deg,#4caf50 216deg,transparent 216deg);transition:all .8s ease-out;}
+    .circle-progress{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;background:conic-gradient(#4caf50 0deg,#4caf50 0deg,transparent 0deg);transition:all .8s ease-out;}
     .circle-content{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:10;}
     .spent-amount{font-size:36px;font-weight:800;color:#2d5f4d;margin-bottom:8px;}
     .total-budget{font-size:20px;color:#5a7a6d;margin-bottom:15px;}
@@ -32,7 +32,7 @@
     .pulse{animation:pulse 2s ease-in-out infinite;}
     @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+    @keyframes pulse{0%,100{transform:scale(1);}50%{transform:scale(1.02);}}
     @media (max-width:768px){
       .container{padding:20px;}
       .budget-circle{width:240px;height:240px;}
@@ -100,7 +100,7 @@
     secondary_text_color: "#5a7a6d",
     font_family: "Inter",
     font_size: 18,
-    week_text: "Uke 45 – 4.–10. november",
+    week_text: "", // vi setter dynamisk
     spent_text: "Du har brukt",
     remaining_text: "igjen denne uka",
     add_purchase_text: "Legg til kjøp",
@@ -109,54 +109,113 @@
     status_message: "Bra kontroll så langt 💪"
   };
 
-  // Budget data
-  let budgetData = {
-    total: 3000,
-    spent: 1850,     // vil bli overskrevet av loadFromStorage()
-    remaining: 1150  // vil bli overskrevet av loadFromStorage()
-  };
-
-  // ---- NYTT: hent/summer kjøp fra localStorage for gjeldende uke ----
-  function getCurrentWeekMondayISO(dateObj = new Date()) {
-    // Mandag = 0
+  // ---------- Dato/uke-hjelpere ----------
+  function getCurrentWeekMonday(dateObj = new Date()) {
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const day = (d.getDay() + 6) % 7; // 0=mandag, 6=søndag
+    const day = (d.getDay() + 6) % 7; // 0=mandag
     d.setDate(d.getDate() - day);
-    return d.toISOString().slice(0, 10);
+    d.setHours(12,0,0,0); // unngå DST-flikking
+    return d;
   }
 
-  function loadFromStorage() {
-    const mondayISO = getCurrentWeekMondayISO();
-    const key = `purchases_${mondayISO}`;
-    const purchases = JSON.parse(localStorage.getItem(key) || '[]');
-    const spent = purchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  function mondayISO(dateObj = new Date()) {
+    return getCurrentWeekMonday(dateObj).toISOString().slice(0,10);
+  }
 
-    budgetData.spent = spent;
+  function formatRangeNoNO(fromDate, toDate) {
+    const optsDayMonth = { day:'numeric', month:'long' };
+    const optsDay = { day:'numeric' };
+    const from = fromDate.toLocaleDateString('no-NO', optsDayMonth);
+    const to = toDate.toLocaleDateString('no-NO', (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth));
+    return `${from}–${to}`;
+  }
+
+  function isoWeekNumber(date = new Date()) {
+    // ISO 8601 uke
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  }
+
+  function setWeekHeader() {
+    const mon = getCurrentWeekMonday();
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const weekNo = isoWeekNumber(mon);
+    document.getElementById('weekInfo').textContent =
+      `Uke ${weekNo} – ${formatRangeNoNO(mon, sun)}`;
+  }
+
+  // ---------- Budsjett/kjøp ----------
+  let budgetData = { total: 0, spent: 0, remaining: 0 };
+
+  function readWeeklyBudgetForThisWeek() {
+    const keyWeek = `weeklyBudget_${mondayISO()}`;
+    const byWeek = parseInt(localStorage.getItem(keyWeek) || '', 10);
+    if (!isNaN(byWeek) && byWeek > 0) return byWeek;
+
+    const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
+    if (!isNaN(global) && global > 0) return global;
+
+    return 3000; // siste fallback
+  }
+
+  function sumPurchasesForThisWeek() {
+    const key = `purchases_${mondayISO()}`;
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    return arr.reduce((acc, p) => acc + (Number(p.amount)||0), 0);
+  }
+
+  function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
+
+  function updateBudgetDisplay() {
+    const spentElement = document.getElementById('spentAmount');
+    const totalElement = document.getElementById('totalBudget');
+    const remainingElement = document.getElementById('remainingAmount');
+    const circleProgress = document.getElementById('circleProgress');
+
+    spentElement.textContent   = `${formatAmount(budgetData.spent)} kr`;
+    totalElement.textContent   = `av ${formatAmount(budgetData.total)} kr`;
+    remainingElement.textContent = `${formatAmount(budgetData.remaining)} kr`;
+
+    const deg = (budgetData.total > 0 ? (budgetData.spent / budgetData.total) : 0) * 360;
+    circleProgress.style.background =
+      `conic-gradient(#4caf50 0deg, #4caf50 ${Math.min(360, Math.max(0,deg))}deg, transparent ${Math.min(360, Math.max(0,deg))}deg)`;
+
+    [spentElement, remainingElement].forEach(el => {
+      el.classList.add('pulse'); setTimeout(()=>el.classList.remove('pulse'), 2000);
+    });
+  }
+
+  function recalcFromStorage() {
+    budgetData.total = readWeeklyBudgetForThisWeek();
+    budgetData.spent = sumPurchasesForThisWeek();
     budgetData.remaining = Math.max(0, budgetData.total - budgetData.spent);
     updateBudgetDisplay();
   }
-  // -------------------------------------------------------------------
+
+  // ---------- UI farger fra config ----------
+  function adjustColor(color, percent) {
+    const num = parseInt(color.replace('#',''),16), amt=Math.round(2.55*percent);
+    const R=Math.max(0,Math.min(255,(num>>16)+amt));
+    const G=Math.max(0,Math.min(255,((num>>8)&0x00FF)+amt));
+    const B=Math.max(0,Math.min(255,((num)&0x0000FF)+amt));
+    return '#'+(0x1000000+R*0x10000+G*0x100+B).toString(16).slice(1);
+  }
 
   async function onConfigChange(config) {
-    const backgroundColor = config.background_color || defaultConfig.background_color;
-    const surfaceColor = config.surface_color || defaultConfig.surface_color;
-    const textColor = config.text_color || defaultConfig.text_color;
-    const primaryActionColor = config.primary_action_color || defaultConfig.primary_action_color;
-    const secondaryTextColor = config.secondary_text_color || defaultConfig.secondary_text_color;
-    const customFont = config.font_family || defaultConfig.font_family;
-    const baseSize = config.font_size || defaultConfig.font_size;
+    const backgroundColor   = config.background_color   || defaultConfig.background_color;
+    const surfaceColor      = config.surface_color      || defaultConfig.surface_color;
+    const textColor         = config.text_color         || defaultConfig.text_color;
+    const primaryActionColor= config.primary_action_color|| defaultConfig.primary_action_color;
+    const secondaryTextColor= config.secondary_text_color|| defaultConfig.secondary_text_color;
+    const customFont        = config.font_family        || defaultConfig.font_family;
+    const baseSize          = config.font_size          || defaultConfig.font_size;
 
-    document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor, -2)} 100%)`;
-    
-    // Update text content
-    document.getElementById('weekInfo').textContent = config.week_text || defaultConfig.week_text;
-    document.getElementById('remainingText').textContent = config.remaining_text || defaultConfig.remaining_text;
-    document.getElementById('addPurchaseText').textContent = config.add_purchase_text || defaultConfig.add_purchase_text;
-    document.getElementById('shoppingListText').textContent = config.shopping_list_text || defaultConfig.shopping_list_text;
-    document.getElementById('weekReportText').textContent = config.week_report_text || defaultConfig.week_report_text;
-    document.getElementById('statusMessage').textContent = config.status_message || defaultConfig.status_message;
+    document.body.style.background =
+      `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor,-2)} 100%)`;
 
-    // Update fonts and colors
     const elements = [
       { id: 'weekInfo', size: baseSize * 1.11, color: secondaryTextColor },
       { id: 'spentAmount', size: baseSize * 2, color: textColor },
@@ -165,137 +224,39 @@
       { id: 'remainingText', size: baseSize * 0.89, color: textColor },
       { id: 'statusMessage', size: baseSize, color: secondaryTextColor }
     ];
-
     elements.forEach(el => {
-      const element = document.getElementById(el.id);
-      element.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      element.style.fontSize = `${el.size}px`;
-      element.style.color = el.color;
+      const node = document.getElementById(el.id);
+      node.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      node.style.fontSize = `${el.size}px`;
+      node.style.color = el.color;
     });
 
-    // Update action buttons
-    const actionTexts = document.querySelectorAll('.action-text');
-    actionTexts.forEach(text => {
-      text.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      text.style.color = textColor;
+    document.querySelectorAll('.action-text').forEach(t=>{
+      t.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      t.style.color = textColor;
+    });
+    document.querySelectorAll('.action-button').forEach(b=>{
+      b.style.background = surfaceColor;
+      b.style.borderColor = adjustColor(primaryActionColor, 60);
     });
 
-    const actionButtons = document.querySelectorAll('.action-button');
-    actionButtons.forEach(button => {
-      button.style.background = surfaceColor;
-      button.style.borderColor = adjustColor(primaryActionColor, 60);
-    });
-
-    // Update circle colors
-    const circleBg = document.querySelector('.circle-bg');
-    circleBg.style.background = adjustColor(primaryActionColor, 85);
-
-    const circleProgress = document.getElementById('circleProgress');
-    const percentage = (budgetData.spent / budgetData.total) * 360;
-    circleProgress.style.background = `conic-gradient(${primaryActionColor} 0deg, ${primaryActionColor} ${percentage}deg, transparent ${percentage}deg)`;
-
-    // Update remaining info background
-    const remainingInfo = document.querySelector('.remaining-info');
-    remainingInfo.style.background = `${primaryActionColor}1a`;
-
-    // Update status bar
-    const statusBar = document.querySelector('.status-bar');
-    statusBar.style.background = `${surfaceColor}b3`;
-  }
-
-  function adjustColor(color, percent) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
-    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-  }
-
-  function formatAmount(amount) {
-    return amount.toLocaleString('no-NO');
-  }
-
-  function updateBudgetDisplay() {
-    const spentElement = document.getElementById('spentAmount');
-    const totalElement = document.getElementById('totalBudget');
-    const remainingElement = document.getElementById('remainingAmount');
-    const circleProgress = document.getElementById('circleProgress');
-
-    spentElement.textContent = `${formatAmount(budgetData.spent)} kr`;
-    totalElement.textContent = `av ${formatAmount(budgetData.total)} kr`;
-    remainingElement.textContent = `${formatAmount(budgetData.remaining)} kr`;
-
-    const percentage = (budgetData.total > 0 ? (budgetData.spent / budgetData.total) : 0) * 360;
-    circleProgress.style.background = `conic-gradient(#4caf50 0deg, #4caf50 ${percentage}deg, transparent ${percentage}deg)`;
-    
-    [spentElement, remainingElement].forEach(el => {
-      el.classList.add('pulse');
-      setTimeout(() => el.classList.remove('pulse'), 2000);
-    });
+    document.querySelector('.circle-bg').style.background = adjustColor(primaryActionColor, 85);
+    document.querySelector('.remaining-info').style.background = `${primaryActionColor}1a`;
+    document.querySelector('.status-bar').style.background = `${surfaceColor}b3`;
   }
 
   function mapToCapabilities(config) {
     return {
       recolorables: [
-        {
-          get: () => config.background_color || defaultConfig.background_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ background_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.surface_color || defaultConfig.surface_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ surface_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.text_color || defaultConfig.text_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ text_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.primary_action_color || defaultConfig.primary_action_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ primary_action_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ secondary_text_color: value });
-            }
-          }
-        }
+        { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk && window.elementSdk.setConfig({ background_color: v }) },
+        { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk && window.elementSdk.setConfig({ surface_color: v }) },
+        { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk && window.elementSdk.setConfig({ text_color: v }) },
+        { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: v => window.elementSdk && window.elementSdk.setConfig({ primary_action_color: v }) },
+        { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk && window.elementSdk.setConfig({ secondary_text_color: v }) },
       ],
       borderables: [],
-      fontEditable: {
-        get: () => config.font_family || defaultConfig.font_family,
-        set: (value) => {
-          if (window.elementSdk) {
-            window.elementSdk.setConfig({ font_family: value });
-          }
-        }
-      },
-      fontSizeable: {
-        get: () => config.font_size || defaultConfig.font_size,
-        set: (value) => {
-          if (window.elementSdk) {
-            window.elementSdk.setConfig({ font_size: value });
-          }
-        }
-      }
+      fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk && window.elementSdk.setConfig({ font_family: v }) },
+      fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk && window.elementSdk.setConfig({ font_size: v }) }
     };
   }
 
@@ -311,26 +272,26 @@
     ]);
   }
 
-  // ---- ENDREDE lyttere ----
-  // Gå til "Legg til kjøp"
+  // ---------- Navigasjon ----------
   document.getElementById('addPurchaseBtn').addEventListener('click', () => {
     location.href = 'add-purchase.html';
   });
-
   document.getElementById('shoppingListBtn').addEventListener('click', () => {
-    console.log('Opening shopping list');
+    console.log('Open shopping list (coming soon)');
   });
-
   document.getElementById('weekReportBtn').addEventListener('click', () => {
     location.href = 'week-report.html';
   });
-  // --------------------------
 
-  // Init: last data fra storage og tegn
-  loadFromStorage();
+  // ---------- Init / refresh ----------
+  function init() {
+    setWeekHeader();
+    recalcFromStorage();
+  }
 
-  // Oppdater når siden vises (også fra historikk)
-  window.addEventListener('pageshow', loadFromStorage);
+  // Kjør ved load og når siden vises igjen (fra historikk)
+  window.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('pageshow', init);
 
   if (window.elementSdk) {
     window.elementSdk.init({
@@ -341,6 +302,5 @@
     });
   }
 </script>
-
- </body>
+</body>
 </html>
