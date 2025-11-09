@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Onboarding 1 – Antall personer</title>
+
+  <!-- Samme font som velkomstsiden -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f0f9f4 0%, #e8f5f0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2d5f4d;
+    }
+    .container {
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      padding: 40px;
+      animation: fadeInUp 0.8s ease-out both;
+    }
+    .title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .description {
+      font-size: 18px;
+      color: #5a7a6d;
+      margin-bottom: 30px;
+    }
+    .input-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+    .number-input {
+      font-size: 26px;
+      text-align: center;
+      width: 80px;
+      border: 2px solid #4caf50;
+      border-radius: 10px;
+      padding: 10px;
+      outline: none;
+    }
+    .button {
+      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+      color: white;
+      border: none;
+      border-radius: 40px;
+      padding: 14px 40px;
+      font-size: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(76,175,80,0.3);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin: 8px;
+    }
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(76,175,80,0.4);
+    }
+    .button.secondary {
+      background: transparent;
+      border: 2px solid #5a7a6d;
+      color: #5a7a6d;
+      box-shadow: none;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1 class="title">Hvor mange personer er dere i husholdningen?</h1>
+    <p class="description">Vi bruker dette til å foreslå et realistisk ukesbudsjett som passer for dere.</p>
+
+    <div class="input-box">
+      <button class="button secondary" id="minusBtn">−</button>
+      <input type="number" id="personCount" class="number-input" min="1" max="10" value="2">
+      <button class="button secondary" id="plusBtn">+</button>
+    </div>
+
+    <div>
+      <button class="button secondary" id="backBtn">Tilbake</button>
+      <button class="button" id="nextBtn">Neste</button>
+    </div>
+  </main>
+
+  <script>
+    const countInput = document.getElementById('personCount');
+    document.getElementById('minusBtn').addEventListener('click', () => {
+      countInput.stepDown();
+    });
+    document.getElementById('plusBtn').addEventListener('click', () => {
+      countInput.stepUp();
+    });
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      const val = parseInt(countInput.value, 10);
+      if (isNaN(val) || val < 1) {
+        alert('Skriv inn et gyldig antall personer.');
+        return;
+      }
+      localStorage.setItem('householdCount', val);
+      window.location.href = 'onboarding2.html';
+    });
+  </script>
+</body>
+</html>
