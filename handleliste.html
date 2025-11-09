@@ -1,4 +1,4 @@
-<!doctype html>
+  <!doctype html>
 <html lang="no">
 <head>
   <meta charset="UTF-8">
@@ -240,6 +240,7 @@
     font_family: "Inter",
     font_size: 16
   };
+  let currentConfig = { ...defaultConfig };
 
   // ---------- Utils ----------
   const fmt = (n) => (Number(n)||0).toLocaleString('no-NO');
@@ -252,7 +253,6 @@
     return x.toISOString().slice(0,10);
   }
   function getActiveWeekISO(){
-    // Viktig: bruk samme "pinned" uke som app/week-report om satt
     return localStorage.getItem('activeWeekISO') || mondayISO12();
   }
   const isoLocalToday = ()=>{
@@ -265,16 +265,27 @@
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
   // ---------- Nøkler ----------
-  const WEEK_ISO = getActiveWeekISO(); // <— samme uke-nøkkel som resten av appen
+  const WEEK_ISO = getActiveWeekISO();
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
   const PURCHASES_KEY = `purchases_${WEEK_ISO}`;
 
   // ---------- Budsjettoppslag ----------
+  function parseMoneyStr(s){
+    if (s == null) return NaN;
+    const n = String(s).replace(/\s|kr/g,'').replace(',','.');
+    const v = parseFloat(n);
+    return isNaN(v) ? NaN : v;
+  }
   function readWeeklyBudgetFor(isoMonday){
-    const byWeek = parseFloat(localStorage.getItem(`weeklyBudget_${isoMonday}`));
+    // Tillat både rene tall og "3 000 kr"
+    const byWeekRaw = localStorage.getItem(`weeklyBudget_${isoMonday}`);
+    const byWeek = parseMoneyStr(byWeekRaw);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
-    const global = parseFloat(localStorage.getItem('weeklyBudget'));
+
+    const globalRaw = localStorage.getItem('weeklyBudget');
+    const global = parseMoneyStr(globalRaw);
     if (!isNaN(global) && global > 0) return global;
+
     return 3000;
   }
 
@@ -314,7 +325,7 @@
   const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
   $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
 
-  // ---------- Purchases helpers (oppdaterer app.html sin sum) ----------
+  // ---------- Purchases helpers ----------
   function getPurchases(){ return get(PURCHASES_KEY, []); }
   function setPurchases(arr){ set(PURCHASES_KEY, arr); }
 
@@ -493,7 +504,7 @@
 
   function toggleCategory(index) {
     categories[index].open = !categories[index].open;
-    const card = document.querySelector(`[data-category-index="${index}"]`);
+    const card = document.querySelector(`.category-card[data-category-index="${index}"]`);
     if (card) {
       card.classList.toggle('open');
       card.querySelector('.category-header')?.setAttribute('aria-expanded', String(categories[index].open));
@@ -502,7 +513,7 @@
   }
 
   function updateItemBookedBadge(ci, ii){
-    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
     const nameEl = card?.querySelector('.item-name');
     if (!nameEl) return;
     const it = categories[ci].items[ii];
@@ -513,7 +524,7 @@
     const it = categories[ci].items[ii];
     it.checked = !it.checked;
 
-    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
     card?.classList.toggle('checked');
 
     // Bokfør/angre kjøp når man haker av/på
@@ -531,7 +542,7 @@
   function updateQuantity(ci, ii, delta) {
     const it = categories[ci].items[ii];
     it.quantity = Math.max(1, it.quantity + delta);
-    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
     const stepperValue = card.querySelector('.stepper-value');
     const itemTotal = card.querySelector('.item-total');
     stepperValue.textContent = it.quantity;
@@ -546,7 +557,7 @@
   function updatePrice(ci, ii, value) {
     const it = categories[ci].items[ii];
     it.price = parseFloat(value) || 0;
-    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
     const itemTotal = card.querySelector('.item-total');
     itemTotal.textContent = `${fmt(it.quantity * it.price)} kr`;
     itemTotal.classList.add('pulse');
@@ -575,7 +586,7 @@
       if (pulse) { estimatedSum.classList.add('pulse'); setTimeout(()=>estimatedSum.classList.remove('pulse'), 400); }
     }
     if (footerTotal) {
-      const label = window.elementSdk?.config?.total_label || defaultConfig.total_label;
+      const label = currentConfig.total_label || defaultConfig.total_label;
       footerTotal.textContent = `${label}: ${fmt(total)} kr`;
     }
   }
@@ -647,40 +658,42 @@
 
   // ---------- Canva element SDK (styling) ----------
   async function onConfigChange(config) {
-    const customFont = config.font_family || defaultConfig.font_family;
-    const baseSize = config.font_size || defaultConfig.font_size;
+    currentConfig = { ...currentConfig, ...config };
+
+    const customFont = currentConfig.font_family || defaultConfig.font_family;
+    const baseSize = currentConfig.font_size || defaultConfig.font_size;
     const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
     document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
-    document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
+    document.body.style.background = `linear-gradient(135deg, ${currentConfig.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
 
     const pageTitle = $('#pageTitle');
     if (pageTitle) {
-      pageTitle.textContent = config.page_title || defaultConfig.page_title;
+      pageTitle.textContent = currentConfig.page_title || defaultConfig.page_title;
       pageTitle.style.fontSize = `${baseSize * 2}px`;
-      pageTitle.style.color = config.text_color || defaultConfig.text_color;
+      pageTitle.style.color = currentConfig.text_color || defaultConfig.text_color;
     }
 
     const pageSubtitle = $('#pageSubtitle');
     if (pageSubtitle) {
-      pageSubtitle.textContent = config.page_subtitle || defaultConfig.page_subtitle;
+      pageSubtitle.textContent = currentConfig.page_subtitle || defaultConfig.page_subtitle;
       pageSubtitle.style.fontSize = `${baseSize}px`;
-      pageSubtitle.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
+      pageSubtitle.style.color = currentConfig.secondary_text_color || defaultConfig.secondary_text_color;
     }
 
-    $('#budgetLabel').textContent = config.budget_label || defaultConfig.budget_label;
-    $('#estimatedLabel').textContent = config.estimated_label || defaultConfig.estimated_label;
-    $('#markAllBtn').textContent = config.mark_all_button || defaultConfig.mark_all_button;
-    $('#clearBtn').textContent = config.clear_button || defaultConfig.clear_button;
+    $('#budgetLabel').textContent = currentConfig.budget_label || defaultConfig.budget_label;
+    $('#estimatedLabel').textContent = currentConfig.estimated_label || defaultConfig.estimated_label;
+    $('#markAllBtn').textContent = currentConfig.mark_all_button || defaultConfig.mark_all_button;
+    $('#clearBtn').textContent = currentConfig.clear_button || defaultConfig.clear_button;
 
     const footerTotal = $('#footerTotal');
     if (footerTotal) {
-      const currentTotal = footerTotal.textContent.split(': ').slice(1).join(': ') || `${fmt(0)} kr`;
-      footerTotal.textContent = `${config.total_label || defaultConfig.total_label}: ${currentTotal}`;
+      const totalNumber = footerTotal.textContent.replace(/[^\d,.-]/g,'').replace(',','.');
+      footerTotal.textContent = `${currentConfig.total_label || defaultConfig.total_label}: ${fmt(parseFloat(totalNumber)||0)} kr`;
     }
 
-    $$('.btn-primary, .fab, .stepper-btn').forEach(el => { el.style.background = config.primary_color || defaultConfig.primary_color; });
-    $$('.budget-card, .category-card, .modal').forEach(el => { el.style.background = config.surface_color || defaultConfig.surface_color; });
+    $$('.btn-primary, .fab, .stepper-btn').forEach(el => { el.style.background = currentConfig.primary_color || defaultConfig.primary_color; });
+    $$('.budget-card, .category-card, .modal').forEach(el => { el.style.background = currentConfig.surface_color || defaultConfig.surface_color; });
   }
 
   if (window.elementSdk) {
