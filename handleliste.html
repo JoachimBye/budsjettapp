@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="no">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Handleliste</title>
@@ -152,74 +152,74 @@
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
+</head>
+<body>
   <div class="container">
-   <header class="header">
-    <button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
-    <h1 class="page-title" id="pageTitle">Handleliste</h1>
-    <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
-   </header>
+    <header class="header">
+      <button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
+      <h1 class="page-title" id="pageTitle">Handleliste</h1>
+      <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
+    </header>
 
-   <div class="budget-card">
-    <div class="budget-item">
-      <span class="budget-label" id="budgetLabel">Ukas budsjett</span>
-      <span class="budget-amount" id="budgetAmount">3 000 kr</span>
+    <div class="budget-card">
+      <div class="budget-item">
+        <span class="budget-label" id="budgetLabel">Ukas budsjett</span>
+        <span class="budget-amount" id="budgetAmount">3 000 kr</span>
+      </div>
+      <div class="budget-item">
+        <span class="budget-label" id="estimatedLabel">Estimert sum i liste</span>
+        <span class="budget-amount" id="estimatedSum">0 kr</span>
+      </div>
     </div>
-    <div class="budget-item">
-      <span class="budget-label" id="estimatedLabel">Estimert sum i liste</span>
-      <span class="budget-amount" id="estimatedSum">0 kr</span>
-    </div>
-   </div>
 
-   <div id="categoriesContainer"></div>
+    <div id="categoriesContainer"></div>
   </div>
 
   <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
 
   <div class="modal-overlay" id="modalOverlay">
-   <div class="modal" role="dialog" aria-labelledby="modalTitle">
-    <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
-    <form id="addItemForm">
-     <div class="form-group">
-       <label for="itemName" class="form-label">Varenavn</label>
-       <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
-     </div>
-     <div class="form-group">
-       <label for="itemCategory" class="form-label">Kategori</label>
-       <select id="itemCategory" class="form-select">
-         <option value="Matvarer">Matvarer</option>
-         <option value="Snacks/drikke">Snacks/drikke</option>
-         <option value="Husholdning">Husholdning</option>
-         <option value="Annet">Annet</option>
-       </select>
-     </div>
-     <div class="form-group">
-       <label for="itemQuantity" class="form-label">Antall</label>
-       <div class="stepper">
-         <button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button>
-         <span class="stepper-value" id="modalQuantity">1</span>
-         <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
-       </div>
-     </div>
-     <div class="form-group">
-       <label for="itemPrice" class="form-label">Estimert pris (kr)</label>
-       <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
-     </div>
-     <div class="modal-actions">
-       <button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button>
-       <button type="submit" class="btn btn-primary">Legg til</button>
-     </div>
-    </form>
-   </div>
+    <div class="modal" role="dialog" aria-labelledby="modalTitle">
+      <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
+      <form id="addItemForm">
+        <div class="form-group">
+          <label for="itemName" class="form-label">Varenavn</label>
+          <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
+        </div>
+        <div class="form-group">
+          <label for="itemCategory" class="form-label">Kategori</label>
+          <select id="itemCategory" class="form-select">
+            <option value="Matvarer">Matvarer</option>
+            <option value="Snacks/drikke">Snacks/drikke</option>
+            <option value="Husholdning">Husholdning</option>
+            <option value="Annet">Annet</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="itemQuantity" class="form-label">Antall</label>
+          <div class="stepper">
+            <button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button>
+            <span class="stepper-value" id="modalQuantity">1</span>
+            <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="itemPrice" class="form-label">Estimert pris (kr)</label>
+          <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button>
+          <button type="submit" class="btn btn-primary">Legg til</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <footer class="footer">
-   <div class="footer-total" id="footerTotal">Totalt i handlelista: 0 kr</div>
-   <div class="footer-actions">
-     <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
-     <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
-   </div>
+    <div class="footer-total" id="footerTotal">Totalt i handlelista: 0 kr</div>
+    <div class="footer-actions">
+      <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
+      <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
+    </div>
   </footer>
 
 <script>
@@ -248,8 +248,12 @@
     const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const day = (x.getDay()+6)%7; // 0=man
     x.setDate(x.getDate()-day);
-    x.setHours(12,0,0,0); // 12:00 for DST-sikkerhet (matcher app/middag/add-purchase)
+    x.setHours(12,0,0,0); // 12:00 for DST
     return x.toISOString().slice(0,10);
+  }
+  function getActiveWeekISO(){
+    // Viktig: bruk samme "pinned" uke som app/week-report om satt
+    return localStorage.getItem('activeWeekISO') || mondayISO12();
   }
   const isoLocalToday = ()=>{
     const d=new Date();
@@ -261,9 +265,9 @@
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
   // ---------- Nøkler ----------
-  const WEEK_ISO = mondayISO12();
-  const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`; // uke-spesifikk handleliste
-  const PURCHASES_KEY = `purchases_${WEEK_ISO}`;    // ukas registrerte kjøp
+  const WEEK_ISO = getActiveWeekISO(); // <— FIX: samme nøkkel som app.html
+  const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
+  const PURCHASES_KEY = `purchases_${WEEK_ISO}`;
 
   // ---------- Budsjettoppslag ----------
   function readWeeklyBudgetFor(isoMonday){
@@ -307,9 +311,56 @@
   $('#markAllBtn').textContent = defaultConfig.mark_all_button;
   $('#clearBtn').textContent = defaultConfig.clear_button;
 
-  // Vis riktig uke-budsjett
   const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
   $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
+
+  // ---------- Purchases helpers (oppdaterer app.html sin sum) ----------
+  function getPurchases(){ return get(PURCHASES_KEY, []); }
+  function setPurchases(arr){ set(PURCHASES_KEY, arr); }
+
+  function lineId(ci, ii){ return `hl_${ci}_${ii}`; }
+
+  function upsertPurchaseForLine(ci, ii){
+    const cat = categories[ci];
+    const it  = cat.items[ii];
+    const amount = Number(it.quantity) * Number(it.price || 0);
+    const lid = lineId(ci, ii);
+    const todayISO = isoLocalToday();
+
+    const purchases = getPurchases();
+    const idx = purchases.findIndex(p => p.lineId === lid);
+
+    const payload = {
+      lineId: lid,
+      amount,
+      dateISO: todayISO,
+      category: cat.name || 'Uten kategori',
+      note: `${it.name} (x${it.quantity})`,
+      source: 'handleliste'
+    };
+
+    if (idx >= 0){
+      purchases[idx] = payload;
+    } else {
+      purchases.push(payload);
+    }
+    setPurchases(purchases);
+    it.booked = true; // markert som bokført i lista
+  }
+
+  function removePurchaseForLine(ci, ii){
+    const lid = lineId(ci, ii);
+    const purchases = getPurchases().filter(p => p.lineId !== lid);
+    setPurchases(purchases);
+    const it = categories[ci].items[ii];
+    if (it) it.booked = false;
+  }
+
+  // Når bokført vare endres i antall/pris – synk kjøpet
+  function resyncIfBooked(ci, ii){
+    const it = categories[ci].items[ii];
+    if (it?.booked){ upsertPurchaseForLine(ci, ii); }
+  }
 
   // ---------- Rendering ----------
   function renderCategories() {
@@ -354,7 +405,7 @@
       container.appendChild(card);
     });
 
-    updateTotals(false); // ikke puls ved full render
+    updateTotals(false);
   }
 
   function createItemCard(item, categoryIndex, itemIndex) {
@@ -450,11 +501,30 @@
     persist();
   }
 
+  function updateItemBookedBadge(ci, ii){
+    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const nameEl = card?.querySelector('.item-name');
+    if (!nameEl) return;
+    const it = categories[ci].items[ii];
+    nameEl.textContent = it.name + (it.booked ? ' • (bokført)' : '');
+  }
+
   function toggleItemChecked(ci, ii) {
     const it = categories[ci].items[ii];
     it.checked = !it.checked;
+
     const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
     card?.classList.toggle('checked');
+
+    // Bokfør/angre kjøp når man haker av/på
+    if (it.checked) {
+      upsertPurchaseForLine(ci, ii);
+    } else {
+      // Hvis den var bokført og man angrer, fjern kjøpet
+      if (it.booked) removePurchaseForLine(ci, ii);
+    }
+    updateItemBookedBadge(ci, ii);
+
     persist();
     updateTotals();
   }
@@ -470,6 +540,8 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
+    // Hvis bokført, oppdater kjøpet så budsjettet er korrekt
+    resyncIfBooked(ci, ii);
     updateTotals();
   }
 
@@ -482,10 +554,15 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
+    // Hvis bokført, oppdater kjøpet så budsjettet er korrekt
+    resyncIfBooked(ci, ii);
     updateTotals();
   }
 
   function deleteItem(ci, ii) {
+    // Hvis bokført: fjern kjøpet først
+    const it = categories[ci].items[ii];
+    if (it?.booked) removePurchaseForLine(ci, ii);
     categories[ci].items.splice(ii, 1);
     persist();
     renderCategories();
@@ -543,40 +620,26 @@
     closeModal();
   });
 
-  // ---------- Handle “Merk alle som kjøpt” ----------
+  // ---------- “Merk alle som kjøpt” ----------
   $('#markAllBtn').addEventListener('click', () => {
-    // 1) Marker alle som kjøpt
-    categories.forEach(c => c.items.forEach(i => { i.checked = true; }));
-    // 2) Les eksisterende ukes-kjøp
-    const purchases = get(PURCHASES_KEY, []);
     const todayISO = isoLocalToday();
-
-    // 3) Lag kjøpslinjer for alle elementer som ikke er bokført tidligere
-    categories.forEach(cat => {
-      cat.items.forEach(item => {
-        if (item.booked) return; // unngå dobbelpostering
-        const amount = Number(item.quantity) * Number(item.price || 0);
-        // registrer alle (0 påvirker ikke budsjett, men er ok å ha)
-        purchases.push({
-          amount,
-          dateISO: todayISO,
-          category: cat.name || 'Uten kategori',
-          note: `${item.name} (x${item.quantity})`
-        });
-        item.booked = true; // marker som bokført
+    categories.forEach((cat, ci) => {
+      cat.items.forEach((it, ii) => {
+        it.checked = true;
+        // Opprett/oppdater kjøp for alle linjer
+        upsertPurchaseForLine(ci, ii);
       });
     });
-
-    // 4) Lagre kjøp + liste
-    set(PURCHASES_KEY, purchases);
     persist();
-
-    // 5) Re-render (viser “(bokført)” bak navn)
-    renderCategories();
+    renderCategories(); // viser (bokført)
   });
 
   // ---------- Tøm kjøpte ----------
   $('#clearBtn').addEventListener('click', () => {
+    // Fjern kjøp for alle markerte før vi sletter fra lista
+    categories.forEach((c, ci) => {
+      c.items.forEach((i, ii) => { if (i.checked && i.booked) removePurchaseForLine(ci, ii); });
+    });
     categories.forEach(c => { c.items = c.items.filter(i => !i.checked); });
     persist();
     renderCategories();
