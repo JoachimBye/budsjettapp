@@ -31,16 +31,10 @@
     .status-message{font-size:18px;color:#5a7a6d;font-weight:500;margin:0;}
     .pulse{animation:pulse 2s ease-in-out;}
     .mini-fab{
-      position:fixed;
-      right:18px;
-      bottom:96px;
-      width:54px;height:54px;border-radius:50%;
-      border:none;background:#4caf50;color:#fff;
-      font-size:22px;cursor:pointer;
-      box-shadow:0 6px 18px rgba(76,175,80,.35);
-      display:flex;align-items:center;justify-content:center;
-      transition:transform .15s ease, box-shadow .15s ease;
-      z-index:60;
+      position:fixed; right:18px; bottom:96px; width:54px;height:54px;border-radius:50%;
+      border:none;background:#4caf50;color:#fff; font-size:22px;cursor:pointer;
+      box-shadow:0 6px 18px rgba(76,175,80,.35); display:flex;align-items:center;justify-content:center;
+      transition:transform .15s ease, box-shadow .15s ease; z-index:60;
     }
     .mini-fab:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(76,175,80,.45);}
     .mini-fab:active{transform:translateY(0);}
@@ -127,21 +121,13 @@
     status_message: "Bra kontroll så langt 💪"
   };
 
-  // ---------- Dato/uke-hjelpere ----------
-  function getCurrentWeekMonday(dateObj = new Date()) {
-    const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const day = (d.getDay() + 6) % 7; // 0=mandag
-    d.setDate(d.getDate() - day);
-    d.setHours(12,0,0,0); // unngå DST-flikking
-    return d;
-  }
-  function mondayISO(dateObj = new Date()) { return getCurrentWeekMonday(dateObj).toISOString().slice(0,10); }
-  function formatRangeNoNO(fromDate, toDate) {
-    const optsDayMonth = { day:'numeric', month:'long' };
-    const optsDay = { day:'numeric' };
-    const from = fromDate.toLocaleDateString('no-NO', optsDayMonth);
-    const to = toDate.toLocaleDateString('no-NO', (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth));
-    return `${from}–${to}`;
+  // ---------- Uke-hjelpere ----------
+  function mondayAtNoon(d = new Date()){
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = (x.getDay()+6)%7; // 0=man
+    x.setDate(x.getDate()-day);
+    x.setHours(12,0,0,0); // 12:00 for DST-sikkerhet
+    return x;
   }
   function isoWeekNumber(date = new Date()) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -150,29 +136,46 @@
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
+  function formatRangeNoNO(fromDate, toDate) {
+    const optsDayMonth = { day:'numeric', month:'long' };
+    const optsDay = { day:'numeric' };
+    const from = fromDate.toLocaleDateString('no-NO', optsDayMonth);
+    const to = toDate.toLocaleDateString('no-NO', (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth));
+    return `${from}–${to}`;
+  }
+
+  // ---- NYTT: aktiv uke (kan settes av week-report) ----
+  function getActiveWeekISO(){
+    const pinned = localStorage.getItem('activeWeekISO');
+    if (pinned) return pinned;
+    return mondayAtNoon().toISOString().slice(0,10);
+  }
+  function getActiveMondayDate(){
+    const iso = getActiveWeekISO();
+    const [y,m,d] = iso.split('-').map(Number);
+    return new Date(y, m-1, d, 12, 0, 0, 0);
+  }
+
   function setWeekHeader() {
-    const mon = getCurrentWeekMonday();
+    const mon = getActiveMondayDate();
     const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
     const weekNo = isoWeekNumber(mon);
     document.getElementById('weekInfo').textContent = `Uke ${weekNo} – ${formatRangeNoNO(mon, sun)}`;
   }
 
-  // ---------- Budsjett/kjøp ----------
+  // ---------- Budsjett/kjøp (for aktiv uke) ----------
   let budgetData = { total: 0, spent: 0, remaining: 0 };
 
-  function readWeeklyBudgetForThisWeek() {
-    const keyWeek = `weeklyBudget_${mondayISO()}`;
-    const byWeek = parseInt(localStorage.getItem(keyWeek) || '', 10);
+  function readWeeklyBudgetFor(isoMonday){
+    const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
-
     const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
     if (!isNaN(global) && global > 0) return global;
-
-    return 3000; // fallback
+    return 3000;
   }
 
-  function sumPurchasesForThisWeek() {
-    const key = `purchases_${mondayISO()}`;
+  function sumPurchasesFor(isoMonday) {
+    const key = `purchases_${isoMonday}`;
     const arr = JSON.parse(localStorage.getItem(key) || '[]');
     return arr.reduce((acc, p) => acc + (Number(p.amount)||0), 0);
   }
@@ -200,9 +203,10 @@
   }
 
   function recalcFromStorage() {
-    budgetData.total = readWeeklyBudgetForThisWeek();
+    const weekISO = getActiveWeekISO();
+    budgetData.total = readWeeklyBudgetFor(weekISO);
     localStorage.setItem('budget_total', String(budgetData.total)); // for week-report o.l.
-    budgetData.spent = sumPurchasesForThisWeek();
+    budgetData.spent = sumPurchasesFor(weekISO);
     budgetData.remaining = Math.max(0, budgetData.total - budgetData.spent);
     updateBudgetDisplay();
   }
@@ -303,7 +307,6 @@
     setWeekHeader();
     recalcFromStorage();
   }
-
   window.addEventListener('DOMContentLoaded', init);
   window.addEventListener('pageshow', init);
 
