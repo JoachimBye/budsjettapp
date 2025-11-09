@@ -17,7 +17,6 @@
     }
     .container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 
-    /* Header */
     .header { margin-bottom: 24px; }
     .back-button {
       display: inline-flex; align-items: center; gap: 6px;
@@ -29,7 +28,6 @@
     .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 8px 0; }
     .page-subtitle { font-size: 16px; color: #5a7a6d; }
 
-    /* Budget Card */
     .budget-card {
       background: #ffffff; border-radius: 20px; padding: 24px; margin-bottom: 24px;
       box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08); display: flex; align-items: center; gap: 20px;
@@ -48,7 +46,6 @@
       font-size: 12px; font-weight: 600; color: #2d5f4d; text-align: center;
     }
 
-    /* Filter Panel */
     .filter-panel {
       background: #ffffff; border-radius: 20px; padding: 24px; margin-bottom: 24px;
       box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
@@ -90,7 +87,6 @@
       transition: all 0.2s; user-select: none;
     }
     .toggle-chip:hover { border-color: rgba(76,175,80,0.4); }
-    .toggle-chip.active { background: #4caf50; color: white; border-color: #4caf50; }
 
     .suggest-btn {
       padding: 14px 28px; background: #4caf50; color: white; border: none; border-radius: 12px; font-size: 16px;
@@ -99,7 +95,6 @@
     .suggest-btn:hover { background: #45a049; transform: translateY(-1px); }
     .suggest-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
 
-    /* Tips */
     .tip-card {
       background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 12px; padding: 16px; margin-bottom: 20px;
       display: flex; align-items: center; gap: 12px;
@@ -107,7 +102,6 @@
     .tip-icon { font-size: 20px; }
     .tip-text { font-size: 14px; color: #856404; }
 
-    /* Results */
     .results-section { margin-bottom: 24px; }
     .results-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 20px; }
     .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -131,7 +125,6 @@
     .btn-secondary:hover { background: #e0e0e0; }
     .btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
 
-    /* Empty State */
     .empty-state {
       text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 20px;
       box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
@@ -228,7 +221,6 @@
     </div>
   </div>
 
-  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" role="dialog" aria-labelledby="modalTitle">
       <div class="modal-header">
@@ -262,6 +254,9 @@
   </div>
 
   <script>
+    // --- Sikkerhetsnett for feil så ikke hele siden dør ---
+    function safe(fn){ try{ fn(); }catch(e){ console.error(e); } }
+
     // ---------- Konfig ----------
     const defaultConfig = {
       page_title: "Middagsanbefaling",
@@ -317,7 +312,7 @@
     let currentFilters = { maxPrice: 70, people: 2, categories: [], allergies: [], quickOnly: false };
     let budgetData = { total: 3000, used: 0, remaining: 3000 };
 
-    // ---------- Uke-hjelpere (samme som app.html) ----------
+    // ---------- Uke-hjelpere ----------
     function mondayAtNoon(d = new Date()){
       const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const day = (x.getDay()+6)%7; // 0=man
@@ -327,33 +322,29 @@
     }
     function getActiveWeekISO(){
       const pinned = localStorage.getItem('activeWeekISO');
-      if (pinned) return pinned;
-      return mondayAtNoon().toISOString().slice(0,10);
+      return pinned || mondayAtNoon().toISOString().slice(0,10);
     }
-    function mondayISO(){ return getActiveWeekISO(); }
+    const weekISO = getActiveWeekISO();
 
     // ---------- Budsjett ----------
     function loadBudgetData() {
-      try {
-        // uke-spesifikt budsjett > global fallback
-        const weeklyKey = `weeklyBudget_${mondayISO()}`;
+      safe(() => {
+        const weeklyKey = `weeklyBudget_${weekISO}`;
         const weeklyBudget = parseFloat(localStorage.getItem(weeklyKey));
         const globalBudget = parseFloat(localStorage.getItem('weeklyBudget'));
         const total = !isNaN(weeklyBudget) ? weeklyBudget : (!isNaN(globalBudget) ? globalBudget : 3000);
 
-        const purchasesKey = `purchases_${mondayISO()}`;
+        const purchasesKey = `purchases_${weekISO}`;
         const purchases = JSON.parse(localStorage.getItem(purchasesKey) || '[]');
         const used = purchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
         budgetData.total = total > 0 ? total : 3000;
         budgetData.used = Math.max(0, used);
         budgetData.remaining = Math.max(0, budgetData.total - budgetData.used);
-      } catch (e) {
-        console.warn('Fallback budsjett brukes', e);
-        budgetData = { total: 3000, used: 0, remaining: 3000 };
-      }
-      updateBudgetDisplay();
-      suggestDefaultMaxPrice();
+
+        updateBudgetDisplay();
+        suggestDefaultMaxPrice();
+      });
     }
 
     function updateBudgetDisplay() {
@@ -379,10 +370,8 @@
       }
     }
 
-    // Sett fornuftig startverdi for makspris basert på budsjett/person
     function suggestDefaultMaxPrice() {
       const maxPriceInput = document.getElementById('maxPrice');
-      // grovt anslag: 6 middager igjen denne uka -> per-middag-budsjett
       const today = new Date();
       const dow = today.getDay() || 7; // søndag = 7
       const daysLeft = Math.max(1, 7 - dow);
@@ -396,7 +385,7 @@
       }
     }
 
-    // ---------- Filtre ----------
+    // ---------- Filtre & UI ----------
     function setupFilters() {
       const categoryChips = document.getElementById('categoryChips');
       const allergyChips = document.getElementById('allergyChips');
@@ -406,27 +395,28 @@
       const incrementBtn = document.getElementById('incrementPeople');
       const peopleCount = document.getElementById('peopleCount');
 
+      // Event delegation + guard
       categoryChips.addEventListener('click', (e) => {
-        if (e.target.classList.contains('chip')) {
-          const category = e.target.dataset.category;
-          e.target.classList.toggle('active');
-          if (currentFilters.categories.includes(category)) {
-            currentFilters.categories = currentFilters.categories.filter(c => c !== category);
-          } else {
-            currentFilters.categories.push(category);
-          }
+        const chip = e.target.closest('.chip[data-category]');
+        if (!chip) return;
+        const category = chip.dataset.category;
+        chip.classList.toggle('active');
+        if (currentFilters.categories.includes(category)) {
+          currentFilters.categories = currentFilters.categories.filter(c => c !== category);
+        } else {
+          currentFilters.categories.push(category);
         }
       });
 
       allergyChips.addEventListener('click', (e) => {
-        if (e.target.classList.contains('chip')) {
-          const allergy = e.target.dataset.allergy;
-          e.target.classList.toggle('active');
-          if (currentFilters.allergies.includes(allergy)) {
-            currentFilters.allergies = currentFilters.allergies.filter(a => a !== allergy);
-          } else {
-            currentFilters.allergies.push(allergy);
-          }
+        const chip = e.target.closest('.chip[data-allergy]');
+        if (!chip) return;
+        const allergy = chip.dataset.allergy;
+        chip.classList.toggle('active');
+        if (currentFilters.allergies.includes(allergy)) {
+          currentFilters.allergies = currentFilters.allergies.filter(a => a !== allergy);
+        } else {
+          currentFilters.allergies.push(allergy);
         }
       });
 
@@ -457,15 +447,8 @@
       });
 
       document.addEventListener('keydown', (e) => {
-        if (e.target.classList.contains('chip') && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault(); e.target.click();
-        }
-        if (e.target.id === 'quickToggle' && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault(); e.target.click();
-        }
-        if (e.key === 'Backspace' && document.activeElement === document.body) {
-          goBack();
-        }
+        if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+        if (e.key === 'Backspace') goBack();
       });
     }
 
@@ -474,7 +457,6 @@
         if (recipe.prisPerMåltid > currentFilters.maxPrice) return false;
         if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(recipe.kategori)) return false;
         if (currentFilters.quickOnly && recipe.tidMin > 25) return false;
-
         if (currentFilters.allergies.length > 0) {
           const allergens = recipe.allergener || [];
           const isAllergenFree = (allergens.length === 0) || (allergens.length === 1 && allergens[0] === 'ingen');
@@ -487,7 +469,6 @@
       });
     }
 
-    // ---------- Render ----------
     function displayRecipes(recipes) {
       const resultsSection = document.getElementById('resultsSection');
       const recipeGrid = document.getElementById('recipeGrid');
@@ -511,9 +492,7 @@
     function createRecipeCard(recipe) {
       const card = document.createElement('div');
       card.className = 'recipe-card';
-
       const totalPrice = recipe.prisPerMåltid * currentFilters.people;
-
       card.innerHTML = `
         <div class="recipe-image">${recipe.bilde}</div>
         <div class="recipe-content">
@@ -534,115 +513,91 @@
           </div>
         </div>
       `;
-
       card.querySelector('[data-open]').addEventListener('click', () => openRecipeModal(recipe.navn));
       card.querySelector('[data-new]').addEventListener('click', suggestNewRecipe);
-
       return card;
     }
 
-    // ---------- Modal & handleliste ----------
     function openRecipeModal(recipeName) {
       const recipe = mockRecipes.find(r => r.navn === recipeName);
       if (!recipe) return;
 
-      const modalTitle = document.getElementById('modalTitle');
-      const modalChips = document.getElementById('modalChips');
-      const modalPrice = document.getElementById('modalPrice');
-      const ingredientsList = document.getElementById('ingredientsList');
-      const stepsList = document.getElementById('stepsList');
-
-      modalTitle.textContent = recipe.navn;
-
-      modalChips.innerHTML = `
+      document.getElementById('modalTitle').textContent = recipe.navn;
+      document.getElementById('modalChips').innerHTML = `
         <span class="recipe-chip price">${recipe.prisPerMåltid} kr/pers</span>
         <span class="recipe-chip">Totalt: ${recipe.prisPerMåltid * currentFilters.people} kr</span>
         <span class="recipe-chip">${recipe.tidMin} min</span>
         <span class="recipe-chip">${recipe.vanskelighetsgrad}</span>
         <span class="recipe-chip">${recipe.kalorier} kcal</span>
       `;
+      document.getElementById('modalPrice').textContent =
+        \`Pris for ${currentFilters.people} ${currentFilters.people === 1 ? 'person' : 'personer'}: ${recipe.prisPerMåltid * currentFilters.people} kr\`;
 
-      modalPrice.textContent = \`Pris for ${currentFilters.people} ${currentFilters.people === 1 ? 'person' : 'personer'}: ${recipe.prisPerMåltid * currentFilters.people} kr\`;
-
+      const ingredientsList = document.getElementById('ingredientsList');
       ingredientsList.innerHTML = '';
       recipe.ingredienser.forEach(ingredient => {
         const li = document.createElement('li');
         li.className = 'ingredient-item';
-        li.innerHTML = \`
-          <input type="checkbox" class="ingredient-checkbox" aria-label="Merk \${ingredient}">
-          <span class="ingredient-text">\${ingredient}</span>
-        \`;
+        li.innerHTML = `
+          <input type="checkbox" class="ingredient-checkbox" aria-label="Merk ${ingredient}">
+          <span class="ingredient-text">${ingredient}</span>
+        `;
         ingredientsList.appendChild(li);
       });
 
+      const stepsList = document.getElementById('stepsList');
       stepsList.innerHTML = '';
-      recipe.steg.forEach((step, index) => {
+      recipe.steg.forEach((step, i) => {
         const li = document.createElement('li');
         li.className = 'step-item';
-        li.innerHTML = \`
-          <div class="step-number">\${index + 1}</div>
-          <div class="step-text">\${step}</div>
-        \`;
+        li.innerHTML = `
+          <div class="step-number">${i+1}</div>
+          <div class="step-text">${step}</div>
+        `;
         stepsList.appendChild(li);
       });
 
-      // add to shopping
       const addBtn = document.getElementById('addToShoppingBtn');
-      addBtn.onclick = () => {
-        addIngredientsToShoppingList(recipe);
-        closeModal();
-      };
+      addBtn.onclick = () => { addIngredientsToShoppingList(recipe); closeModal(); };
 
       document.getElementById('modalOverlay').classList.add('open');
       document.getElementById('modalClose').focus();
     }
 
-    // Legg til i handleliste for AKTIV uke (samme struktur som handleliste.html)
     function addIngredientsToShoppingList(recipe) {
-      try {
-        const key = `shoppingList_${mondayISO()}`;
+      safe(() => {
+        const key = `shoppingList_${weekISO}`;
         const stored = JSON.parse(localStorage.getItem(key) || 'null');
-
-        // hvis ingen liste finnes: opprett minimal standardstruktur
         const categories = Array.isArray(stored) ? stored : [
           { name: "Matvarer", open: true,  items: [] },
           { name: "Snacks/drikke", open: false, items: [] },
           { name: "Husholdning", open: false, items: [] },
           { name: "Annet", open: false, items: [] }
         ];
-
-        // Finn (eller opprett) Matvarer
-        let matIndex = categories.findIndex(c => c.name === "Matvarer");
-        if (matIndex === -1) {
-          categories.unshift({ name: "Matvarer", open: true, items: [] });
-          matIndex = 0;
-        }
-
-        // Dedupliser på varenavn (case-insensitive)
-        const existingNames = new Set(categories[matIndex].items.map(i => i.name.toLowerCase()));
+        let idx = categories.findIndex(c => c.name === "Matvarer");
+        if (idx === -1) { categories.unshift({ name: "Matvarer", open: true, items: [] }); idx = 0; }
+        const existing = new Set(categories[idx].items.map(i => (i.name||'').toLowerCase()));
         recipe.ingredienser.forEach(txt => {
-          const name = String(txt).trim();
+          const name = String(txt||'').trim();
           if (!name) return;
-          if (!existingNames.has(name.toLowerCase())) {
-            categories[matIndex].items.push({ name, quantity: 1, price: 0, checked: false });
-            existingNames.add(name.toLowerCase());
+          if (!existing.has(name.toLowerCase())) {
+            categories[idx].items.push({ name, quantity: 1, price: 0, checked: false });
+            existing.add(name.toLowerCase());
           }
         });
-
         localStorage.setItem(key, JSON.stringify(categories));
-      } catch (e) {
-        console.error('Kunne ikke lagre til handleliste for aktiv uke', e);
-      }
+      });
     }
 
     function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('open');
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.remove('open');
     }
 
     function suggestNewRecipe() {
       const filtered = filterRecipes();
       if (filtered.length > 0) {
-        const shuffled = filtered.sort(() => 0.5 - Math.random()).slice(0, 6);
+        const shuffled = filtered.slice().sort(() => 0.5 - Math.random()).slice(0, 6);
         displayRecipes(shuffled);
       } else {
         displayRecipes([]);
@@ -662,76 +617,57 @@
     }
 
     // ---------- Konfig-styling ----------
-    async function onConfigChange(config) {
-      const customFont = config.font_family || defaultConfig.font_family;
-      const baseSize = config.font_size || defaultConfig.font_size;
-      const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    function onConfigChange(config = {}) {
+      safe(() => {
+        const customFont = config.font_family || defaultConfig.font_family;
+        const baseSize = config.font_size || defaultConfig.font_size;
+        const pageTitle = document.getElementById('pageTitle');
+        const pageSubtitle = document.getElementById('pageSubtitle');
 
-      document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
-      document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
+        document.body.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
 
-      const pageTitle = document.getElementById('pageTitle');
-      if (pageTitle) {
-        pageTitle.textContent = config.page_title || defaultConfig.page_title;
-        pageTitle.style.fontSize = `${baseSize * 2}px`;
-        pageTitle.style.color = config.text_color || defaultConfig.text_color;
-      }
+        if (pageTitle) {
+          pageTitle.textContent = config.page_title || defaultConfig.page_title;
+          pageTitle.style.fontSize = `${baseSize * 2}px`;
+          pageTitle.style.color = config.text_color || defaultConfig.text_color;
+        }
+        if (pageSubtitle) {
+          pageSubtitle.textContent = config.page_subtitle || defaultConfig.page_subtitle;
+          pageSubtitle.style.fontSize = `${baseSize}px`;
+          pageSubtitle.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
+        }
 
-      const pageSubtitle = document.getElementById('pageSubtitle');
-      if (pageSubtitle) {
-        pageSubtitle.textContent = config.page_subtitle || defaultConfig.page_subtitle;
-        pageSubtitle.style.fontSize = `${baseSize}px`;
-        pageSubtitle.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
-      }
-
-      const budgetRemainingLabel = document.getElementById('budgetRemainingLabel');
-      if (budgetRemainingLabel) {
-        budgetRemainingLabel.textContent = config.budget_remaining_label || defaultConfig.budget_remaining_label;
-      }
-
-      const maxPriceLabel = document.getElementById('maxPriceLabel');
-      if (maxPriceLabel) {
-        maxPriceLabel.textContent = config.max_price_label || defaultConfig.max_price_label;
-      }
-
-      const peopleCountLabel = document.getElementById('peopleCountLabel');
-      if (peopleCountLabel) {
-        peopleCountLabel.textContent = config.people_count_label || defaultConfig.people_count_label;
-      }
-
-      const suggestBtn = document.getElementById('suggestBtn');
-      if (suggestBtn) {
-        suggestBtn.textContent = config.suggest_button || defaultConfig.suggest_button;
-        suggestBtn.style.background = config.primary_color || defaultConfig.primary_color;
-      }
-
-      document.querySelectorAll('.stepper-btn, .btn-primary').forEach(el => {
-        el.style.background = config.primary_color || defaultConfig.primary_color;
-      });
-
-      document.querySelectorAll('.budget-card, .filter-panel, .recipe-card, .modal').forEach(el => {
-        el.style.background = config.surface_color || defaultConfig.surface_color;
+        const maxPriceLabel = document.getElementById('maxPriceLabel');
+        if (maxPriceLabel) maxPriceLabel.textContent = config.max_price_label || defaultConfig.max_price_label;
+        const peopleCountLabel = document.getElementById('peopleCountLabel');
+        if (peopleCountLabel) peopleCountLabel.textContent = config.people_count_label || defaultConfig.people_count_label;
+        const suggestBtn = document.getElementById('suggestBtn');
+        if (suggestBtn) {
+          suggestBtn.textContent = config.suggest_button || defaultConfig.suggest_button;
+          suggestBtn.style.background = config.primary_color || defaultConfig.primary_color;
+        }
+        document.querySelectorAll('.stepper-btn, .btn-primary').forEach(el => {
+          el.style.background = config.primary_color || defaultConfig.primary_color;
+        });
+        document.querySelectorAll('.budget-card, .filter-panel, .recipe-card, .modal').forEach(el => {
+          el.style.background = config.surface_color || defaultConfig.surface_color;
+        });
       });
     }
 
     function mapToCapabilities(config) {
       return {
         recolorables: [
-          { get: () => config.background_color || defaultConfig.background_color, set: (v) => window.elementSdk.setConfig({ background_color: v }) },
-          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => window.elementSdk.setConfig({ surface_color: v }) },
-          { get: () => config.text_color || defaultConfig.text_color, set: (v) => window.elementSdk.setConfig({ text_color: v }) },
-          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => window.elementSdk.setConfig({ primary_color: v }) },
-          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: (v) => window.elementSdk.setConfig({ secondary_text_color: v }) },
+          { get: () => config.background_color || defaultConfig.background_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ background_color: v }) },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ surface_color: v }) },
+          { get: () => config.text_color || defaultConfig.text_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ text_color: v }) },
+          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ primary_color: v }) },
+          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ secondary_text_color: v }) },
         ],
         borderables: [],
-        fontEditable: {
-          get: () => config.font_family || defaultConfig.font_family,
-          set: (v) => window.elementSdk.setConfig({ font_family: v })
-        },
-        fontSizeable: {
-          get: () => config.font_size || defaultConfig.font_size,
-          set: (v) => window.elementSdk.setConfig({ font_size: v })
-        }
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => window.elementSdk && window.elementSdk.setConfig({ font_family: v }) },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => window.elementSdk && window.elementSdk.setConfig({ font_size: v }) }
       };
     }
 
@@ -748,49 +684,60 @@
 
     // ---------- Navigasjon ----------
     function goBack(){ location.href = 'app.html'; }
-    document.getElementById('backBtn').addEventListener('click', goBack);
-
-    // ---------- Event handlers ----------
-    document.getElementById('suggestBtn').addEventListener('click', () => {
-      displayRecipes(filterRecipes());
-    });
-
-    document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
-
-    document.getElementById('modalOverlay').addEventListener('click', (e) => {
-      if (e.target === document.getElementById('modalOverlay')) closeModal();
-    });
-    document.getElementById('modalClose').addEventListener('click', closeModal);
-    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && document.getElementById('modalOverlay').classList.contains('open')) closeModal();
-    });
-
-    document.getElementById('ingredientsAccordion').addEventListener('click', (e) => {
-      if (e.target.closest('.accordion-header')) {
-        const accordion = document.getElementById('ingredientsAccordion');
-        accordion.classList.toggle('open');
-      }
-    });
 
     // ---------- Init ----------
     function initPage() {
+      // Back-knapp
+      safe(() => {
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) backBtn.addEventListener('click', goBack);
+      });
+
+      // Budsjett og UI
       loadBudgetData();
       setupFilters();
+
+      // Foreslå-knapp
+      safe(() => {
+        const suggestBtn = document.getElementById('suggestBtn');
+        if (suggestBtn) suggestBtn.addEventListener('click', () => displayRecipes(filterRecipes()));
+      });
+
+      // Reset-knapp (finnes selv om seksjonen er skjult)
+      safe(() => {
+        const resetBtn = document.getElementById('resetFiltersBtn');
+        if (resetBtn) resetBtn.addEventListener('click', resetFilters);
+      });
+
+      // Modal lukking
+      safe(() => {
+        const overlay = document.getElementById('modalOverlay');
+        const xBtn = document.getElementById('modalClose');
+        const closeBtn = document.getElementById('closeModalBtn');
+        if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+        if (xBtn) xBtn.addEventListener('click', closeModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeModal(); });
+      });
+
+      // Startvisning
       displayRecipes(filterRecipes());
     }
+
     window.addEventListener('DOMContentLoaded', initPage);
     window.addEventListener('pageshow', initPage);
 
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
+    // Element SDK init – kun hvis tilstede
+    safe(() => {
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    });
   </script>
 </body>
 </html>
