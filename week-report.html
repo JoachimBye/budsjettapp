@@ -112,17 +112,13 @@
       <!-- Kategorier -->
       <section class="card categories-section">
         <h2 class="section-title">Kategorier</h2>
-        <div class="categories-grid" id="categoriesGrid">
-          <!-- fylles via JS -->
-        </div>
+        <div class="categories-grid" id="categoriesGrid"></div>
       </section>
 
       <!-- Innsikter -->
       <section class="card insights-section">
         <h2 class="section-title">Innsikter</h2>
-        <div class="insights-list" id="insightsList">
-          <!-- fylles via JS -->
-        </div>
+        <div class="insights-list" id="insightsList"></div>
       </section>
     </div>
 
@@ -148,14 +144,6 @@
     const m = mondayOf(dateObj);
     const s = new Date(m); s.setDate(m.getDate()+6); return s;
   }
-  function weekLabel(dateObj = new Date()){
-    const m = mondayOf(dateObj), s = sundayOf(dateObj);
-    const nfStart = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
-    const nfEnd   = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
-    const start = nfStart.format(m), end = nfEnd.format(s);
-    const wn = weekNumberISO(dateObj);
-    return `Uke ${wn} – ${start}–${end}`;
-  }
   function weekNumberISO(dateObj = new Date()){
     const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -163,12 +151,17 @@
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
+  function weekLabelFromISO(isoMonday){
+    const [y,m,d] = isoMonday.split('-').map(Number);
+    const mon = new Date(y, m-1, d, 12,0,0,0);
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    const nf = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
+    const wn = weekNumberISO(mon);
+    return `Uke ${wn} – ${nf.format(mon)}–${nf.format(sun)}`;
+  }
   function safeGet(key, fallback){
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
     catch { return fallback; }
-  }
-  function safeSet(key, value){
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
   function readWeeklyBudgetFor(isoMonday){
     const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
@@ -178,7 +171,7 @@
     return 3000;
   }
 
-  // ---------- Data (for aktiv uke = localStorage.activeWeekISO || denne uka) ----------
+  // ---------- Aktiv uke ----------
   function getActiveWeekISO(){
     return localStorage.getItem('activeWeekISO') || mondayOf().toISOString().slice(0,10);
   }
@@ -197,7 +190,9 @@
   }, {});
 
   // ---------- Render ----------
-  function renderHeader(){ document.getElementById('weekLabel').textContent = weekLabel(); }
+  function renderHeader(){
+    document.getElementById('weekLabel').textContent = weekLabelFromISO(thisMondayISO);
+  }
   function renderOverview(){
     document.getElementById('budgetAmount').textContent = `${formatAmount(totalBudget)} kr`;
     document.getElementById('spentAmount').textContent  = `${formatAmount(spent)} kr`;
@@ -230,9 +225,8 @@
       const percent = Math.round((value/total)*100);
       const item = document.createElement('div');
       item.className = 'category-item';
-      const icon = guessIcon(name);
       item.innerHTML = `
-        <span class="category-icon">${icon}</span>
+        <span class="category-icon">${guessIcon(name)}</span>
         <div class="category-name">${escapeHTML(name)}</div>
         <div class="category-bar"><div class="category-progress" style="width:${percent}%"></div></div>
         <div class="category-percentage">${percent}%</div>
@@ -286,28 +280,28 @@
       .replace(/'/g,'&#039;');
   }
 
-  // ---------- Start ny uke ----------
+  // ---------- Start ny uke (FIX: alltid overstyr budsjett og nullstill kjøp) ----------
   document.getElementById('startWeekButton').addEventListener('click', ()=>{
-    // Fra aktiv (eller denne) uke → sett neste uke aktiv
     const thisMon = new Date(thisMondayISO + 'T12:00:00');
     const nextMon = new Date(thisMon); nextMon.setDate(thisMon.getDate()+7);
     const nextISO = nextMon.toISOString().slice(0,10);
 
-    // Kopier budsjett om neste uke ikke har eget
-    if (localStorage.getItem(`weeklyBudget_${nextISO}`) === null) {
-      localStorage.setItem(`weeklyBudget_${nextISO}`, String(totalBudget));
-    }
+    // Alltid sett neste ukes budsjett = denne ukas budsjett
+    localStorage.setItem(`weeklyBudget_${nextISO}`, String(totalBudget));
+    // Hold global fallback i sync
+    localStorage.setItem('weeklyBudget', String(totalBudget));
 
-    // Init tom kjøpsliste for neste uke (ikke nødvendig, men fint)
-    if (localStorage.getItem(`purchases_${nextISO}`) === null) {
-      localStorage.setItem(`purchases_${nextISO}`, '[]');
-    }
+    // Alltid nullstill kjøp for neste uke
+    localStorage.setItem(`purchases_${nextISO}`, '[]');
 
-    // Merk siste lukket uke + sett aktiv uke => app.html leser dette
+    // (Valgfritt) nullstill beregnede cache-verdier
+    localStorage.setItem('budget_total', String(totalBudget));
+
+    // Merk siste lukket uke + sett aktiv uke
     localStorage.setItem('lastClosedWeekISO', thisMondayISO);
     localStorage.setItem('activeWeekISO', nextISO);
 
-    // Naviger til hovedskjermen
+    // Til hovedskjerm
     window.location.href = 'app.html';
   });
 
@@ -317,7 +311,7 @@
 
   // ---------- Init ----------
   function init(){
-    document.getElementById('weekLabel').textContent = weekLabel();
+    renderHeader();
     renderOverview();
     renderCategories();
     renderInsights();
