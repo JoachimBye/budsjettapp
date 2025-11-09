@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.5">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!doctype html&gt;</p>
+<p class="p1">&lt;html lang="no"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8" /&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Onboarding 1 – Antall personer&lt;/title&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- Inter-font --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;style&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>:root{</p>
+<p class="p1"><span class="Apple-converted-space">      </span>--bg1: #f0f9f4; --bg2:#e8f5f0;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>--text:#2d5f4d; --muted:#5a7a6d;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>--primary:#4caf50; --primary-dark:#3f9a45; --white:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>html, body { height: 100%; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex; align-items: center; justify-content: center;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: var(--text);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.container { width: 92%; max-width: 720px; text-align: center; padding: 40px 20px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.title { font-size: 34px; font-weight: 700; margin: 0 0 12px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.subtitle { font-size: 18px; color: var(--muted); margin: 0 0 28px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.grid {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: grid; gap: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>grid-template-columns: repeat(3, minmax(0, 1fr));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>margin: 24px auto 32px; max-width: 640px;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.choice {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: var(--white);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border: 2px solid rgba(76, 175, 80, 0.25);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-radius: 16px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>padding: 20px 10px; cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 22px; font-weight: 700;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: var(--text);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 4px 12px rgba(76,175,80,.08);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>user-select: none;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.choice:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(76,175,80,.15); }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.choice[aria-pressed="true"] {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border-color: var(--primary);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 8px 22px rgba(76,175,80,.22);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>outline: 0;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.note { font-size: 14px; color: var(--muted); margin-top: -4px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.actions {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border: 0; border-radius: 40px; padding: 16px 28px;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>font-size: 18px; font-weight: 700; cursor: pointer;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>transition: transform .12s ease, box-shadow .12s ease, background .12s ease, opacity .12s ease;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-primary {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>color: #fff; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>box-shadow: 0 8px 20px rgba(76,175,80,.30);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(76,175,80,.38); }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.btn-ghost {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>background: transparent; color: var(--muted);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>border: 2px solid rgba(90,122,109,.3);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>@media (max-width: 720px){</p>
+<p class="p1"><span class="Apple-converted-space">      </span>.title{ font-size: 28px; }</p>
+<p class="p1"><span class="Apple-converted-space">      </span>.subtitle{ font-size: 16px; }</p>
+<p class="p1"><span class="Apple-converted-space">      </span>.grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }</p>
+<p class="p1"><span class="Apple-converted-space">      </span>.choice{ font-size: 20px; padding: 18px 10px; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>@keyframes fadeInUp { from{opacity:0; transform: translateY(16px);} to{opacity:1; transform:none;} }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>.enter { animation: fadeInUp .35s ease both; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>@media (prefers-reduced-motion: reduce){</p>
+<p class="p1"><span class="Apple-converted-space">      </span>.enter, .choice, .btn { animation: none !important; transition: none !important; }</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;main class="container enter"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1 class="title"&gt;Hvor mange personer er dere i husholdningen?&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p class="subtitle"&gt;Velg antall personer som bor i husholdningen. Dette hjelper oss å foreslå et realistisk ukesbudsjett.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;section class="grid" role="group" aria-label="Antall personer"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;!-- data-count lagres i localStorage --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="1" aria-pressed="false"&gt;1&amp;nbsp;👤&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="2" aria-pressed="false"&gt;2&amp;nbsp;👥&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="3" aria-pressed="false"&gt;3&amp;nbsp;👥&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="4" aria-pressed="false"&gt;4&amp;nbsp;👥&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="5" aria-pressed="false"&gt;5&amp;nbsp;👥&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="choice" data-count="6+" aria-pressed="false"&gt;6+&amp;nbsp;👥&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/section&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p class="note"&gt;Du kan endre dette senere i innstillinger.&lt;/p&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="actions"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="btn btn-ghost" id="backBtn" aria-label="Tilbake"&gt;Tilbake&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;button type="button" class="btn btn-primary" id="nextBtn" aria-label="Fortsett" disabled&gt;Fortsett&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/main&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;script&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Hent ev. tidligere valg</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const saved = localStorage.getItem('householdCount') || null;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const choices = Array.from(document.querySelectorAll('.choice'));</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const nextBtn = document.getElementById('nextBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const backBtn = document.getElementById('backBtn');</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let selected = saved;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>function setSelected(value){</p>
+<p class="p1"><span class="Apple-converted-space">      </span>selected = value;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Oppdater UI</p>
+<p class="p1"><span class="Apple-converted-space">      </span>choices.forEach(btn =&gt; btn.setAttribute('aria-pressed', btn.dataset.count === value ? 'true' : 'false'));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Aktiver Fortsett</p>
+<p class="p1"><span class="Apple-converted-space">      </span>nextBtn.disabled = !selected;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Init fra lagret verdi</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (saved) setSelected(saved);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Klikkvalg</p>
+<p class="p1"><span class="Apple-converted-space">    </span>choices.forEach(btn =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>btn.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>setSelected(btn.dataset.count);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Valgfritt: tastatur-støtte (Enter/Space)</p>
+<p class="p1"><span class="Apple-converted-space">      </span>btn.addEventListener('keydown', (e) =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">        </span>if (e.key === 'Enter' || e.key === ' ') {</p>
+<p class="p1"><span class="Apple-converted-space">          </span>e.preventDefault();</p>
+<p class="p1"><span class="Apple-converted-space">          </span>btn.click();</p>
+<p class="p1"><span class="Apple-converted-space">        </span>}</p>
+<p class="p1"><span class="Apple-converted-space">      </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// Tilbake og Fortsett</p>
+<p class="p1"><span class="Apple-converted-space">    </span>backBtn.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Gå tilbake til velkommen-siden</p>
+<p class="p1"><span class="Apple-converted-space">      </span>location.href = 'index.html';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>nextBtn.addEventListener('click', () =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>if (!selected) return;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Lagre valg</p>
+<p class="p1"><span class="Apple-converted-space">      </span>localStorage.setItem('householdCount', String(selected));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>// Videre til neste steg</p>
+<p class="p1"><span class="Apple-converted-space">      </span>location.href = 'onboarding2.html';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
