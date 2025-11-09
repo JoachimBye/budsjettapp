@@ -6,668 +6,147 @@
   <title>Handleliste</title>
   <script src="/_sdk/element_sdk.js"></script>
   <style>
-    body {
-      box-sizing: border-box;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-    }
-
+    body { box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; width: 100%; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
       color: #2d5f4d;
       overflow-x: hidden;
     }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      padding-bottom: 100px;
-    }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 
     /* Header */
-    .header {
-      margin-bottom: 24px;
-    }
-
+    .header { margin-bottom: 24px; }
     .back-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: none;
-      color: #5a7a6d;
-      font-size: 14px;
-      cursor: pointer;
-      padding: 8px 12px;
-      border-radius: 12px;
-      transition: background 0.2s;
-      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+      color: #5a7a6d; font-size: 14px; cursor: pointer; padding: 8px 12px; border-radius: 12px;
+      transition: background 0.2s; font-family: inherit;
     }
-
-    .back-button:hover {
-      background: rgba(76, 175, 80, 0.1);
-    }
-
-    .back-button:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .page-title {
-      font-size: 32px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin: 12px 0 8px 0;
-    }
-
-    .page-subtitle {
-      font-size: 16px;
-      color: #5a7a6d;
-    }
+    .back-button:hover { background: rgba(76, 175, 80, 0.1); }
+    .back-button:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 8px 0; }
+    .page-subtitle { font-size: 16px; color: #5a7a6d; }
 
     /* Budget Card */
     .budget-card {
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 24px;
+      background: #ffffff; border-radius: 20px; padding: 20px; margin-bottom: 24px;
       box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
     }
-
-    .budget-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .budget-label {
-      font-size: 13px;
-      color: #5a7a6d;
-      font-weight: 500;
-    }
-
-    .budget-amount {
-      font-size: 20px;
-      font-weight: 700;
-      color: #2d5f4d;
-      transition: transform 0.3s;
-    }
-
-    .budget-amount.pulse {
-      animation: pulse 0.4s ease;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
+    .budget-item { display: flex; flex-direction: column; gap: 4px; }
+    .budget-label { font-size: 13px; color: #5a7a6d; font-weight: 500; }
+    .budget-amount { font-size: 20px; font-weight: 700; color: #2d5f4d; transition: transform 0.3s; }
+    .budget-amount.pulse { animation: pulse 0.4s ease; }
+    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
 
     /* Category Cards */
-    .category-card {
-      background: #ffffff;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-      overflow: hidden;
-      transition: box-shadow 0.2s;
-    }
-
-    .category-card:hover {
-      box-shadow: 0 4px 12px rgba(45, 95, 77, 0.12);
-    }
-
-    .category-header {
-      padding: 20px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-      transition: background 0.2s;
-    }
-
-    .category-header:hover {
-      background: rgba(76, 175, 80, 0.05);
-    }
-
-    .category-header:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: -2px;
-    }
-
-    .category-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #2d5f4d;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .category-count {
-      font-size: 14px;
-      color: #5a7a6d;
-      font-weight: 400;
-    }
-
-    .category-chevron {
-      font-size: 20px;
-      color: #4caf50;
-      transition: transform 0.3s;
-    }
-
-    .category-card.open .category-chevron {
-      transform: rotate(180deg);
-    }
-
-    .category-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-      opacity: 0;
-    }
-
-    .category-card.open .category-content {
-      max-height: 2000px;
-      opacity: 1;
-    }
-
-    .category-items {
-      padding: 0 20px 20px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .category-card { background: #ffffff; border-radius: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(45,95,77,0.08); overflow: hidden; transition: box-shadow 0.2s; }
+    .category-card:hover { box-shadow: 0 4px 12px rgba(45,95,77,0.12); }
+    .category-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+    .category-header:hover { background: rgba(76, 175, 80, 0.05); }
+    .category-header:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
+    .category-title { font-size: 18px; font-weight: 600; color: #2d5f4d; display: flex; align-items: center; gap: 8px; }
+    .category-count { font-size: 14px; color: #5a7a6d; font-weight: 400; }
+    .category-chevron { font-size: 20px; color: #4caf50; transition: transform 0.3s; }
+    .category-card.open .category-chevron { transform: rotate(180deg); }
+    .category-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
+    .category-card.open .category-content { max-height: 2000px; opacity: 1; }
+    .category-items { padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
 
     /* Item Card */
-    .item-card {
-      background: #f8fffe;
-      border-radius: 15px;
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-      border: 1px solid rgba(76, 175, 80, 0.1);
-    }
-
-    .item-card.checked {
-      background: #f0f0f0;
-      opacity: 0.7;
-    }
-
-    .item-card:hover {
-      border-color: rgba(76, 175, 80, 0.3);
-    }
-
-    .item-checkbox {
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-      accent-color: #4caf50;
-      flex-shrink: 0;
-    }
-
-    .item-checkbox:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .item-details {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .item-name {
-      font-size: 16px;
-      font-weight: 500;
-      color: #2d5f4d;
-      transition: text-decoration 0.2s;
-    }
-
-    .item-card.checked .item-name {
-      text-decoration: line-through;
-    }
-
-    .item-controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .stepper {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 4px;
-      border: 1px solid rgba(76, 175, 80, 0.2);
-    }
-
+    .item-card { background: #f8fffe; border-radius: 15px; padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border: 1px solid rgba(76,175,80,0.1); }
+    .item-card.checked { background: #f0f0f0; opacity: 0.7; }
+    .item-card:hover { border-color: rgba(76,175,80,0.3); }
+    .item-checkbox { width: 24px; height: 24px; cursor: pointer; accent-color: #4caf50; flex-shrink: 0; }
+    .item-checkbox:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .item-details { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+    .item-name { font-size: 16px; font-weight: 500; color: #2d5f4d; transition: text-decoration 0.2s; }
+    .item-card.checked .item-name { text-decoration: line-through; }
+    .item-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .stepper { display: flex; align-items: center; gap: 8px; background: #ffffff; border-radius: 12px; padding: 4px; border: 1px solid rgba(76,175,80,0.2); }
     .stepper-btn {
-      width: 28px;
-      height: 28px;
-      border: none;
-      background: #4caf50;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-      flex-shrink: 0;
+      width: 28px; height: 28px; border: none; background: #4caf50; color: white; border-radius: 8px; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0;
     }
+    .stepper-btn:hover { background: #45a049; }
+    .stepper-btn:active { background: #3d8b40; }
+    .stepper-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .stepper-value { min-width: 30px; text-align: center; font-weight: 600; color: #2d5f4d; font-size: 14px; }
+    .price-input { width: 80px; padding: 6px 10px; border: 1px solid rgba(76,175,80,0.2); border-radius: 10px; font-size: 14px; font-family: inherit; color: #2d5f4d; background: #ffffff; }
+    .price-input:focus { outline: 2px solid #4caf50; outline-offset: 0; border-color: #4caf50; }
+    .item-total { font-size: 16px; font-weight: 700; color: #4caf50; min-width: 70px; text-align: right; transition: transform 0.3s; }
+    .item-total.pulse { animation: pulse 0.4s ease; }
 
-    .stepper-btn:hover {
-      background: #45a049;
-    }
-
-    .stepper-btn:active {
-      background: #3d8b40;
-    }
-
-    .stepper-btn:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .stepper-value {
-      min-width: 30px;
-      text-align: center;
-      font-weight: 600;
-      color: #2d5f4d;
-      font-size: 14px;
-    }
-
-    .price-input {
-      width: 80px;
-      padding: 6px 10px;
-      border: 1px solid rgba(76, 175, 80, 0.2);
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-      color: #2d5f4d;
-      background: #ffffff;
-    }
-
-    .price-input:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 0;
-      border-color: #4caf50;
-    }
-
-    .item-total {
-      font-size: 16px;
-      font-weight: 700;
-      color: #4caf50;
-      min-width: 70px;
-      text-align: right;
-      transition: transform 0.3s;
-    }
-
-    .item-total.pulse {
-      animation: pulse 0.4s ease;
-    }
-
-    .item-menu-btn {
-      width: 32px;
-      height: 32px;
-      border: none;
-      background: none;
-      color: #5a7a6d;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .item-menu-btn:hover {
-      background: rgba(76, 175, 80, 0.1);
-    }
-
-    .item-menu-btn:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .item-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(45, 95, 77, 0.15);
-      padding: 8px;
-      min-width: 180px;
-      z-index: 100;
-      display: none;
-    }
-
-    .item-menu.open {
-      display: block;
-    }
-
-    .menu-item {
-      padding: 10px 12px;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #2d5f4d;
-      transition: background 0.2s;
-      display: block;
-      width: 100%;
-      text-align: left;
-      border: none;
-      background: none;
-      font-family: inherit;
-    }
-
-    .menu-item:hover {
-      background: rgba(76, 175, 80, 0.1);
-    }
-
-    .menu-item:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: -2px;
-    }
-
-    .menu-item.delete {
-      color: #d32f2f;
-    }
-
-    .menu-item.delete:hover {
-      background: rgba(211, 47, 47, 0.1);
-    }
+    .item-menu-btn { width: 32px; height: 32px; border: none; background: none; color: #5a7a6d; cursor: pointer; border-radius: 8px; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; position: relative; }
+    .item-menu-btn:hover { background: rgba(76,175,80,0.1); }
+    .item-menu-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .item-menu { position: absolute; top: 100%; right: 0; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 16px rgba(45,95,77,0.15); padding: 8px; min-width: 180px; z-index: 100; display: none; }
+    .item-menu.open { display: block; }
+    .menu-item { padding: 10px 12px; cursor: pointer; border-radius: 8px; font-size: 14px; color: #2d5f4d; transition: background 0.2s; display: block; width: 100%; text-align: left; border: none; background: none; font-family: inherit; }
+    .menu-item:hover { background: rgba(76,175,80,0.1); }
+    .menu-item:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
+    .menu-item.delete { color: #d32f2f; }
+    .menu-item.delete:hover { background: rgba(211,47,47,0.1); }
 
     /* FAB */
     .fab {
-      position: fixed;
-      bottom: 100px;
-      right: 24px;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #4caf50;
-      color: white;
-      border: none;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      z-index: 50;
+      position: fixed; bottom: 100px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
+      background: #4caf50; color: white; border: none; font-size: 28px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(76,175,80,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 50;
     }
-
-    .fab:hover {
-      background: #45a049;
-      transform: scale(1.05);
-      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
-    }
-
-    .fab:active {
-      transform: scale(0.95);
-    }
-
-    .fab:focus {
-      outline: 3px solid #4caf50;
-      outline-offset: 3px;
-    }
+    .fab:hover { background: #45a049; transform: scale(1.05); box-shadow: 0 6px 20px rgba(76,175,80,0.5); }
+    .fab:active { transform: scale(0.95); }
+    .fab:focus { outline: 3px solid #4caf50; outline-offset: 3px; }
 
     /* Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(45, 95, 77, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 200;
-      padding: 20px;
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45,95,77,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #ffffff; border-radius: 24px; padding: 28px; max-width: 500px; width: 100%; box-shadow: 0 8px 32px rgba(45,95,77,0.2); max-height: 90%; overflow-y: auto; }
+    .modal-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 24px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 600; color: #2d5f4d; margin-bottom: 8px; }
+    .form-input, .form-select {
+      width: 100%; padding: 12px 16px; border: 1px solid rgba(76,175,80,0.2); border-radius: 12px; font-size: 16px; font-family: inherit; color: #2d5f4d; background: #f8fffe; transition: border-color 0.2s;
     }
-
-    .modal-overlay.open {
-      display: flex;
-    }
-
-    .modal {
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
-      max-width: 500px;
-      width: 100%;
-      box-shadow: 0 8px 32px rgba(45, 95, 77, 0.2);
-      max-height: 90%;
-      overflow-y: auto;
-    }
-
-    .modal-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 24px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #2d5f4d;
-      margin-bottom: 8px;
-    }
-
-    .form-input,
-    .form-select {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid rgba(76, 175, 80, 0.2);
-      border-radius: 12px;
-      font-size: 16px;
-      font-family: inherit;
-      color: #2d5f4d;
-      background: #f8fffe;
-      transition: border-color 0.2s;
-    }
-
-    .form-input:focus,
-    .form-select:focus {
-      outline: none;
-      border-color: #4caf50;
-      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 28px;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .btn-primary {
-      background: #4caf50;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #45a049;
-    }
-
-    .btn-primary:active {
-      background: #3d8b40;
-    }
-
-    .btn-primary:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #5a7a6d;
-    }
-
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    .btn-secondary:focus {
-      outline: 2px solid #5a7a6d;
-      outline-offset: 2px;
-    }
+    .form-input:focus, .form-select:focus { outline: none; border-color: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,0.1); }
+    .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
+    .btn { flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn-primary { background: #4caf50; color: white; }
+    .btn-primary:hover { background: #45a049; }
+    .btn-primary:active { background: #3d8b40; }
+    .btn-primary:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .btn-secondary { background: #f0f0f0; color: #5a7a6d; }
+    .btn-secondary:hover { background: #e0e0e0; }
+    .btn-secondary:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
 
     /* Footer */
     .footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border-top: 1px solid rgba(76, 175, 80, 0.1);
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 -2px 8px rgba(45, 95, 77, 0.08);
-      flex-wrap: wrap;
-      z-index: 40;
+      position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid rgba(76,175,80,0.1);
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 -2px 8px rgba(45,95,77,0.08);
+      flex-wrap: wrap; z-index: 40;
     }
-
-    .footer-total {
-      font-size: 18px;
-      font-weight: 700;
-      color: #2d5f4d;
-    }
-
-    .footer-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .footer-btn {
-      padding: 10px 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .footer-btn.mark-all {
-      background: #4caf50;
-      color: white;
-    }
-
-    .footer-btn.mark-all:hover {
-      background: #45a049;
-    }
-
-    .footer-btn.mark-all:focus {
-      outline: 2px solid #4caf50;
-      outline-offset: 2px;
-    }
-
-    .footer-btn.clear {
-      background: #f0f0f0;
-      color: #5a7a6d;
-    }
-
-    .footer-btn.clear:hover {
-      background: #e0e0e0;
-    }
-
-    .footer-btn.clear:focus {
-      outline: 2px solid #5a7a6d;
-      outline-offset: 2px;
-    }
+    .footer-total { font-size: 18px; font-weight: 700; color: #2d5f4d; }
+    .footer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .footer-btn { padding: 10px 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .footer-btn.mark-all { background: #4caf50; color: white; }
+    .footer-btn.mark-all:hover { background: #45a049; }
+    .footer-btn.mark-all:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .footer-btn.clear { background: #f0f0f0; color: #5a7a6d; }
+    .footer-btn.clear:hover { background: #e0e0e0; }
+    .footer-btn.clear:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
 
     /* Responsive */
     @media (max-width: 600px) {
-      .container {
-        padding: 16px;
-      }
-
-      .page-title {
-        font-size: 28px;
-      }
-
-      .item-controls {
-        flex-direction: column;
-        align-items: flex-start;
-        width: 100%;
-      }
-
-      .price-input {
-        width: 100%;
-      }
-
-      .footer {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .footer-actions {
-        width: 100%;
-      }
-
-      .footer-btn {
-        flex: 1;
-      }
-
-      .fab {
-        bottom: 140px;
-        right: 16px;
-      }
+      .container { padding: 16px; }
+      .page-title { font-size: 28px; }
+      .item-controls { flex-direction: column; align-items: flex-start; width: 100%; }
+      .price-input { width: 100%; }
+      .footer { flex-direction: column; align-items: stretch; }
+      .footer-actions { width: 100%; }
+      .footer-btn { flex: 1; }
+      .fab { bottom: 140px; right: 16px; }
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
@@ -676,44 +155,73 @@
  </head>
  <body>
   <div class="container">
-   <header class="header"><button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
+   <header class="header">
+    <button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
     <h1 class="page-title" id="pageTitle">Handleliste</h1>
     <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
    </header>
+
    <div class="budget-card">
-    <div class="budget-item"><span class="budget-label" id="budgetLabel">Ukas budsjett</span> <span class="budget-amount">3 000 kr</span>
+    <div class="budget-item">
+      <span class="budget-label" id="budgetLabel">Ukas budsjett</span>
+      <span class="budget-amount" id="budgetAmount">3 000 kr</span>
     </div>
-    <div class="budget-item"><span class="budget-label" id="estimatedLabel">Estimert sum i liste</span> <span class="budget-amount" id="estimatedSum">0 kr</span>
+    <div class="budget-item">
+      <span class="budget-label" id="estimatedLabel">Estimert sum i liste</span>
+      <span class="budget-amount" id="estimatedSum">0 kr</span>
     </div>
    </div>
+
    <div id="categoriesContainer"></div>
-  </div><button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
+  </div>
+
+  <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
+
   <div class="modal-overlay" id="modalOverlay">
    <div class="modal" role="dialog" aria-labelledby="modalTitle">
     <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
     <form id="addItemForm">
-     <div class="form-group"><label for="itemName" class="form-label">Varenavn</label> <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
+     <div class="form-group">
+       <label for="itemName" class="form-label">Varenavn</label>
+       <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
      </div>
-     <div class="form-group"><label for="itemCategory" class="form-label">Kategori</label> <select id="itemCategory" class="form-select"> <option value="Matvarer">Matvarer</option> <option value="Snacks/drikke">Snacks/drikke</option> <option value="Husholdning">Husholdning</option> <option value="Annet">Annet</option> </select>
+     <div class="form-group">
+       <label for="itemCategory" class="form-label">Kategori</label>
+       <select id="itemCategory" class="form-select">
+         <option value="Matvarer">Matvarer</option>
+         <option value="Snacks/drikke">Snacks/drikke</option>
+         <option value="Husholdning">Husholdning</option>
+         <option value="Annet">Annet</option>
+       </select>
      </div>
-     <div class="form-group"><label for="itemQuantity" class="form-label">Antall</label>
-      <div class="stepper"><button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button> <span class="stepper-value" id="modalQuantity">1</span> <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
-      </div>
+     <div class="form-group">
+       <label for="itemQuantity" class="form-label">Antall</label>
+       <div class="stepper">
+         <button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button>
+         <span class="stepper-value" id="modalQuantity">1</span>
+         <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
+       </div>
      </div>
-     <div class="form-group"><label for="itemPrice" class="form-label">Estimert pris (kr)</label> <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
+     <div class="form-group">
+       <label for="itemPrice" class="form-label">Estimert pris (kr)</label>
+       <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
      </div>
-     <div class="modal-actions"><button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button> <button type="submit" class="btn btn-primary">Legg til</button>
+     <div class="modal-actions">
+       <button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button>
+       <button type="submit" class="btn btn-primary">Legg til</button>
      </div>
     </form>
    </div>
   </div>
+
   <footer class="footer">
-   <div class="footer-total" id="footerTotal">
-    Totalt i handlelista: 0 kr
-   </div>
-   <div class="footer-actions"><button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button> <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
+   <div class="footer-total" id="footerTotal">Totalt i handlelista: 0 kr</div>
+   <div class="footer-actions">
+     <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
+     <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
    </div>
   </footer>
+
 <script>
   // ---------- Konfig ----------
   const defaultConfig = {
@@ -735,25 +243,38 @@
 
   // ---------- Utils ----------
   const fmt = (n) => (Number(n)||0).toLocaleString('no-NO');
-  const mondayISO = (d = new Date()) => {
+
+  function mondayISO12(d = new Date()){
     const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const day = (x.getDay()+6)%7; // 0=man
     x.setDate(x.getDate()-day);
-    x.setHours(0,0,0,0);
+    x.setHours(12,0,0,0); // 12:00 for DST-sikkerhet (matcher app/middag/add-purchase)
     return x.toISOString().slice(0,10);
+  }
+  const isoLocalToday = ()=>{
+    const d=new Date();
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
   };
-  const get = (k, fb) => {
-    try { return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(fb)); } catch { return fb; }
-  };
+
+  const get = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(fb)); } catch { return fb; } };
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-  // ---------- Nøkkel for ukevis lagring ----------
-  const WEEK_KEY = `shoppingList_${mondayISO()}`;
+  // ---------- Nøkler ----------
+  const WEEK_ISO = mondayISO12();
+  const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`; // uke-spesifikk handleliste
+  const PURCHASES_KEY = `purchases_${WEEK_ISO}`;    // ukas registrerte kjøp
 
-  // ---------- Last budsjett ----------
-  const weeklyBudget = Number(localStorage.getItem('weeklyBudget')) || 3000;
+  // ---------- Budsjettoppslag ----------
+  function readWeeklyBudgetFor(isoMonday){
+    const byWeek = parseFloat(localStorage.getItem(`weeklyBudget_${isoMonday}`));
+    if (!isNaN(byWeek) && byWeek > 0) return byWeek;
+    const global = parseFloat(localStorage.getItem('weeklyBudget'));
+    if (!isNaN(global) && global > 0) return global;
+    return 3000;
+  }
 
-  // ---------- Default data (brukes første gang) ----------
+  // ---------- Default data ----------
   const defaultCategories = [
     { name: "Matvarer", open: true,  items: [
       { name: "Melk 1L",   quantity: 1, price: 22, checked: false },
@@ -770,8 +291,8 @@
     { name: "Annet", open: false, items: [] }
   ];
 
-  // ---------- State (last fra storage eller fallback) ----------
-  let categories = get(WEEK_KEY, defaultCategories);
+  // ---------- State ----------
+  let categories = get(WEEK_LIST_KEY, defaultCategories);
   let modalQuantity = 1;
 
   // ---------- DOM helpers ----------
@@ -786,8 +307,9 @@
   $('#markAllBtn').textContent = defaultConfig.mark_all_button;
   $('#clearBtn').textContent = defaultConfig.clear_button;
 
-  // Vis budsjett fra localStorage
-  document.querySelector('.budget-card .budget-item .budget-amount').textContent = `${fmt(weeklyBudget)} kr`;
+  // Vis riktig uke-budsjett
+  const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
+  $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
 
   // ---------- Rendering ----------
   function renderCategories() {
@@ -853,7 +375,7 @@
 
     const nameEl = document.createElement('div');
     nameEl.className = 'item-name';
-    nameEl.textContent = item.name;
+    nameEl.textContent = item.name + (item.booked ? ' • (bokført)' : '');
 
     const controls = document.createElement('div');
     controls.className = 'item-controls';
@@ -915,8 +437,8 @@
     return card;
   }
 
-  // ---------- Mutators (med lagring) ----------
-  function persist() { set(WEEK_KEY, categories); }
+  // ---------- Mutators ----------
+  function persist() { set(WEEK_LIST_KEY, categories); }
 
   function toggleCategory(index) {
     categories[index].open = !categories[index].open;
@@ -1021,29 +543,51 @@
     closeModal();
   });
 
-  // ---------- Markér/Tøm ----------
+  // ---------- Handle “Merk alle som kjøpt” ----------
   $('#markAllBtn').addEventListener('click', () => {
+    // 1) Marker alle som kjøpt
     categories.forEach(c => c.items.forEach(i => { i.checked = true; }));
+    // 2) Les eksisterende ukes-kjøp
+    const purchases = get(PURCHASES_KEY, []);
+    const todayISO = isoLocalToday();
+
+    // 3) Lag kjøpslinjer for alle elementer som ikke er bokført tidligere
+    categories.forEach(cat => {
+      cat.items.forEach(item => {
+        if (item.booked) return; // unngå dobbelpostering
+        const amount = Number(item.quantity) * Number(item.price || 0);
+        // registrer alle (0 påvirker ikke budsjett, men er ok å ha)
+        purchases.push({
+          amount,
+          dateISO: todayISO,
+          category: cat.name || 'Uten kategori',
+          note: `${item.name} (x${item.quantity})`
+        });
+        item.booked = true; // marker som bokført
+      });
+    });
+
+    // 4) Lagre kjøp + liste
+    set(PURCHASES_KEY, purchases);
     persist();
+
+    // 5) Re-render (viser “(bokført)” bak navn)
     renderCategories();
   });
+
+  // ---------- Tøm kjøpte ----------
   $('#clearBtn').addEventListener('click', () => {
     categories.forEach(c => { c.items = c.items.filter(i => !i.checked); });
     persist();
     renderCategories();
   });
 
-  // ---------- Tilbake-knapp (design only – ingen navigasjon enda) ----------
-// ---------- Tilbake-knapp ----------
-$('#backBtn').addEventListener('click', () => {
-  const ref = document.referrer || '';
-  const cameFromApp = /(^|\/)app\.html(\?|#|$)/.test(ref);
-  if (cameFromApp) {
-    history.back();
-  } else {
-    location.href = 'app.html';
-  }
-});
+  // ---------- Tilbake-knapp ----------
+  $('#backBtn').addEventListener('click', () => {
+    const ref = document.referrer || '';
+    const cameFromApp = /(^|\/)app\.html(\?|#|$)/.test(ref);
+    if (cameFromApp) { history.back(); } else { location.href = 'app.html'; }
+  });
 
   // ---------- Canva element SDK (styling) ----------
   async function onConfigChange(config) {
@@ -1116,7 +660,5 @@ $('#backBtn').addEventListener('click', () => {
   // Første render
   renderCategories();
 </script>
-
-
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bf9ae4f5a0b4f7',t:'MTc2MjcxNTM3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
