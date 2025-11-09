@@ -265,7 +265,7 @@
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
   // ---------- Nøkler ----------
-  const WEEK_ISO = getActiveWeekISO(); // <— FIX: samme nøkkel som app.html
+  const WEEK_ISO = getActiveWeekISO(); // <— samme uke-nøkkel som resten av appen
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
   const PURCHASES_KEY = `purchases_${WEEK_ISO}`;
 
@@ -520,7 +520,6 @@
     if (it.checked) {
       upsertPurchaseForLine(ci, ii);
     } else {
-      // Hvis den var bokført og man angrer, fjern kjøpet
       if (it.booked) removePurchaseForLine(ci, ii);
     }
     updateItemBookedBadge(ci, ii);
@@ -540,7 +539,6 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    // Hvis bokført, oppdater kjøpet så budsjettet er korrekt
     resyncIfBooked(ci, ii);
     updateTotals();
   }
@@ -554,13 +552,11 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    // Hvis bokført, oppdater kjøpet så budsjettet er korrekt
     resyncIfBooked(ci, ii);
     updateTotals();
   }
 
   function deleteItem(ci, ii) {
-    // Hvis bokført: fjern kjøpet først
     const it = categories[ci].items[ii];
     if (it?.booked) removePurchaseForLine(ci, ii);
     categories[ci].items.splice(ii, 1);
@@ -622,21 +618,18 @@
 
   // ---------- “Merk alle som kjøpt” ----------
   $('#markAllBtn').addEventListener('click', () => {
-    const todayISO = isoLocalToday();
     categories.forEach((cat, ci) => {
       cat.items.forEach((it, ii) => {
         it.checked = true;
-        // Opprett/oppdater kjøp for alle linjer
         upsertPurchaseForLine(ci, ii);
       });
     });
     persist();
-    renderCategories(); // viser (bokført)
+    renderCategories();
   });
 
   // ---------- Tøm kjøpte ----------
   $('#clearBtn').addEventListener('click', () => {
-    // Fjern kjøp for alle markerte før vi sletter fra lista
     categories.forEach((c, ci) => {
       c.items.forEach((i, ii) => { if (i.checked && i.booked) removePurchaseForLine(ci, ii); });
     });
@@ -680,14 +673,12 @@
     $('#markAllBtn').textContent = config.mark_all_button || defaultConfig.mark_all_button;
     $('#clearBtn').textContent = config.clear_button || defaultConfig.clear_button;
 
-    // Oppdater footer-etikett uten å miste total
     const footerTotal = $('#footerTotal');
     if (footerTotal) {
       const currentTotal = footerTotal.textContent.split(': ').slice(1).join(': ') || `${fmt(0)} kr`;
       footerTotal.textContent = `${config.total_label || defaultConfig.total_label}: ${currentTotal}`;
     }
 
-    // Farger
     $$('.btn-primary, .fab, .stepper-btn').forEach(el => { el.style.background = config.primary_color || defaultConfig.primary_color; });
     $$('.budget-card, .category-card, .modal').forEach(el => { el.style.background = config.surface_color || defaultConfig.surface_color; });
   }
@@ -720,8 +711,82 @@
     });
   }
 
-  // Første render
+  // ---------- Inbox merge (fra middag.html) ----------
+  function showToast(text) {
+    const t = document.createElement('div');
+    t.textContent = text;
+    t.style.position = 'fixed';
+    t.style.top = '12px';
+    t.style.left = '50%';
+    t.style.transform = 'translateX(-50%)';
+    t.style.background = '#4caf50';
+    t.style.color = '#fff';
+    t.style.padding = '10px 14px';
+    t.style.borderRadius = '12px';
+    t.style.boxShadow = '0 4px 12px rgba(0,0,0,.12)';
+    t.style.zIndex = '1000';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  function mergeInboxItems() {
+    const inboxKey = `shoppingList_inbox_${WEEK_ISO}`;
+    let inbox = [];
+    try { inbox = JSON.parse(localStorage.getItem(inboxKey)) || []; } catch {}
+
+    if (!Array.isArray(inbox) || inbox.length === 0) return 0;
+
+    // Finn/lag Matvarer-kategori
+    let matIdx = categories.findIndex(c => c.name === 'Matvarer');
+    if (matIdx === -1) {
+      categories.push({ name: 'Matvarer', open: true, items: [] });
+      matIdx = categories.length - 1;
+    }
+
+    // Sett med eksisterende varenavn (case-insensitive)
+    const existing = new Set(
+      categories.flatMap(c => c.items).map(i => String(i.name).trim().toLowerCase())
+    );
+
+    let added = 0;
+    inbox.forEach(name => {
+      const clean = String(name || '').trim();
+      if (!clean) return;
+      const key = clean.toLowerCase();
+      if (existing.has(key)) return; // unngå duplikat
+      categories[matIdx].items.push({
+        name: clean,
+        quantity: 1,
+        price: 0,
+        checked: false
+      });
+      existing.add(key);
+      added++;
+    });
+
+    // Tøm inbox etter merge
+    try { localStorage.setItem(inboxKey, JSON.stringify([])); } catch {}
+
+    // Åpne Matvarer hvis vi la til noe
+    if (added > 0) categories[matIdx].open = true;
+
+    persist();
+    return added;
+  }
+
+  // ---------- Første render (med merge fra inbox) ----------
+  const params = new URLSearchParams(location.search);
+  const addedFrom = params.get('added') || 'oppskrift';
+
+  const mergedCount = mergeInboxItems();   // henter fra shoppingList_inbox_<uke> og legger i Matvarer
   renderCategories();
+
+  if (mergedCount > 0) {
+    showToast(`La til ${mergedCount} varer fra “${addedFrom}”`);
+    const matCard = Array.from(document.querySelectorAll('.category-card'))
+      .find(card => card.querySelector('.category-title')?.textContent?.includes('Matvarer'));
+    if (matCard) matCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 </script>
 </body>
 </html>
