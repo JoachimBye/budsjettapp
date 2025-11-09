@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="no">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Legg til kjøp - Husholdningsbudsjett</title>
@@ -51,50 +51,58 @@
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
+</head>
+<body>
   <main class="container">
-   <div class="header">
-    <h1 class="title" id="mainTitle">Legg til nytt kjøp</h1>
-    <p class="description" id="descriptionText">Registrer hvor mye du brukte, og hvor du handlet.</p>
-   </div>
-   <form class="form-section" id="purchaseForm">
-    <div class="form-group">
-      <label class="form-label" for="storeInput">
-        <span class="form-icon">🏪</span> <span id="storeLabel">Butikk</span>
-      </label>
-      <select class="form-input form-select" id="storeInput" required>
-        <option value="">Velg butikk...</option>
-        <option value="Kiwi">Kiwi</option>
-        <option value="Rema 1000">Rema 1000</option>
-        <option value="Meny">Meny</option>
-        <option value="Coop Extra">Coop Extra</option>
-        <option value="ICA">ICA</option>
-        <option value="Bunnpris">Bunnpris</option>
-        <option value="Joker">Joker</option>
-        <option value="Spar">Spar</option>
-        <option value="Annet">Annet</option>
-      </select>
+    <div class="header">
+      <h1 class="title" id="mainTitle">Legg til nytt kjøp</h1>
+      <p class="description" id="descriptionText">Registrer hvor mye du brukte, og hvor du handlet.</p>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="amountInput">
-        <span class="form-icon">💸</span> <span id="amountLabel">Beløp</span>
-      </label>
-      <div class="amount-input">
-        <input type="number" class="form-input" id="amountInput" placeholder="0" min="0" step="1" inputmode="numeric" required>
+
+    <form class="form-section" id="purchaseForm">
+      <div class="form-group">
+        <label class="form-label" for="storeInput">
+          <span class="form-icon">🏪</span> <span id="storeLabel">Butikk</span>
+        </label>
+        <select class="form-input form-select" id="storeInput" required>
+          <option value="">Velg butikk...</option>
+          <option value="Kiwi">Kiwi</option>
+          <option value="Rema 1000">Rema 1000</option>
+          <option value="Meny">Meny</option>
+          <option value="Coop Extra">Coop Extra</option>
+          <option value="ICA">ICA</option>
+          <option value="Bunnpris">Bunnpris</option>
+          <option value="Joker">Joker</option>
+          <option value="Spar">Spar</option>
+          <option value="Annet">Annet</option>
+        </select>
       </div>
+
+      <div class="form-group">
+        <label class="form-label" for="amountInput">
+          <span class="form-icon">💸</span> <span id="amountLabel">Beløp</span>
+        </label>
+        <div class="amount-input">
+          <input type="number" class="form-input" id="amountInput" placeholder="0" min="0" step="1" inputmode="decimal" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="dateInput">
+          <span class="form-icon">📅</span> <span id="dateLabel">Dato</span>
+        </label>
+        <input type="date" class="form-input date-input" id="dateInput" required>
+      </div>
+    </form>
+
+    <div class="button-section">
+      <button type="submit" class="save-button" id="saveButton" form="purchaseForm">
+        <span id="saveButtonText">Lagre kjøp</span>
+      </button><br>
+      <button type="button" class="back-button" id="backButton">
+        <span id="backButtonText">Tilbake til oversikten</span>
+      </button>
     </div>
-    <div class="form-group">
-      <label class="form-label" for="dateInput">
-        <span class="form-icon">📅</span> <span id="dateLabel">Dato</span>
-      </label>
-      <input type="date" class="form-input date-input" id="dateInput" required>
-    </div>
-   </form>
-   <div class="button-section">
-    <button type="submit" class="save-button" id="saveButton" form="purchaseForm"><span id="saveButtonText">Lagre kjøp</span></button><br>
-    <button type="button" class="back-button" id="backButton"><span id="backButtonText">Tilbake til oversikten</span></button>
-   </div>
   </main>
 
   <div class="overlay" id="overlay"></div>
@@ -103,7 +111,7 @@
     <p class="success-text" id="successText">Kjøpet er lagt til!</p>
   </div>
 
-  <script>
+<script>
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -122,7 +130,90 @@
     success_message: "Kjøpet er lagt til!"
   };
 
-  async function onConfigChange(config) {
+  // ---- Utils (lokal tid) ----
+  function isoLocalToday(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function dateFromISOLocal(iso){ // yyyy-mm-dd -> Date i lokal tid
+    const [y,m,d] = iso.split('-').map(Number);
+    return new Date(y, m-1, d);
+  }
+  function mondayOfLocal(date){
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = (d.getDay()+6)%7; // 0=mandag
+    d.setDate(d.getDate()-day);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+  function adjustColor(color, percent) {
+    const num = parseInt(color.replace('#',''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return '#' + (0x1000000 + R*0x10000 + G*0x100 + B).toString(16).slice(1);
+  }
+  function showSuccessMessage() {
+    const overlay = document.getElementById('overlay');
+    const successMessage = document.getElementById('successMessage');
+    overlay.classList.add('show');
+    successMessage.classList.add('show');
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      successMessage.classList.remove('show');
+    }, 900);
+  }
+
+  // Sett dagens dato (robust på iOS)
+  document.getElementById('dateInput').value = isoLocalToday();
+
+  // Lagre + tilbake til hovedskjermen
+  document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const saveButton = document.getElementById('saveButton');
+    const store = document.getElementById('storeInput').value;
+    const amountRaw = document.getElementById('amountInput').value;
+    const dateISO = document.getElementById('dateInput').value;
+
+    // Robust parsing: støtt komma
+    const amount = Number(String(amountRaw).replace(',', '.'));
+    if (!store || !isFinite(amount) || amount <= 0 || !dateISO){
+      return; // enkel guard – feltene er required uansett
+    }
+
+    saveButton.classList.add('saving');
+    saveButton.textContent = 'Lagrer...';
+
+    setTimeout(() => {
+      const date = dateFromISOLocal(dateISO);
+      const monday = mondayOfLocal(date).toISOString().slice(0,10);
+      const key = `purchases_${monday}`;
+      const purchases = JSON.parse(localStorage.getItem(key) || '[]');
+
+      purchases.push({ store, amount, dateISO });
+      localStorage.setItem(key, JSON.stringify(purchases));
+
+      saveButton.classList.remove('saving');
+      saveButton.textContent = document.getElementById('saveButtonText').textContent;
+      showSuccessMessage();
+
+      // Alltid tilbake til hovedskjermen etter kort bekreftelse
+      setTimeout(() => { location.href = 'index.html'; }, 400);
+    }, 500);
+  });
+
+  // Tilbake-knapp
+  document.getElementById('backButton').addEventListener('click', () => {
+    location.href = 'index.html';
+  });
+
+  // Element SDK (valgfritt)
+  function onConfigChange(config){
     const backgroundColor = config.background_color || defaultConfig.background_color;
     const surfaceColor = config.surface_color || defaultConfig.surface_color;
     const textColor = config.text_color || defaultConfig.text_color;
@@ -132,11 +223,10 @@
     const baseSize = config.font_size || defaultConfig.font_size;
 
     document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor, -2)} 100%)`;
-    
+
     const container = document.querySelector('.container');
     container.style.background = surfaceColor;
 
-    // Update text content
     document.getElementById('mainTitle').textContent = config.main_title || defaultConfig.main_title;
     document.getElementById('descriptionText').textContent = config.description_text || defaultConfig.description_text;
     document.getElementById('storeLabel').textContent = config.store_label || defaultConfig.store_label;
@@ -146,24 +236,15 @@
     document.getElementById('backButtonText').textContent = config.back_button_text || defaultConfig.back_button_text;
     document.getElementById('successText').textContent = config.success_message || defaultConfig.success_message;
 
-    const titleElement = document.getElementById('mainTitle');
-    titleElement.style.color = textColor;
-    titleElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-    titleElement.style.fontSize = `${baseSize * 1.78}px`;
-
-    const descElement = document.getElementById('descriptionText');
-    descElement.style.color = secondaryTextColor;
-    descElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-    descElement.style.fontSize = `${baseSize}px`;
-
-    const formLabels = document.querySelectorAll('.form-label span:not(.form-icon)');
-    formLabels.forEach(label => {
-      label.style.color = textColor;
-      label.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+    // font + farger
+    ['mainTitle','descriptionText','successText'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      el.style.color = id==='descriptionText' ? secondaryTextColor : textColor;
+      if (id==='mainTitle') el.style.fontSize = `${baseSize * 1.78}px`;
     });
 
-    const formInputs = document.querySelectorAll('.form-input');
-    formInputs.forEach(input => {
+    document.querySelectorAll('.form-input').forEach(input=>{
       input.style.borderColor = adjustColor(primaryActionColor, 60);
       input.style.color = textColor;
       input.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
@@ -172,108 +253,22 @@
     const saveButton = document.getElementById('saveButton');
     saveButton.style.background = `linear-gradient(135deg, ${primaryActionColor} 0%, ${adjustColor(primaryActionColor, -10)} 100%)`;
     saveButton.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-
-    const backButton = document.getElementById('backButton');
-    backButton.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-
-    const successMessage = document.querySelector('.success-message');
-    successMessage.style.background = surfaceColor;
-
-    const successText = document.getElementById('successText');
-    successText.style.color = textColor;
-    successText.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-
-    const successIcon = document.querySelector('.success-icon');
-    successIcon.style.color = primaryActionColor;
   }
-
-  function adjustColor(color, percent) {
-    const num = parseInt(color.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-       const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
-    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-    return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-  }
-
-  function showSuccessMessage() {
-    const overlay = document.getElementById('overlay');
-    const successMessage = document.getElementById('successMessage');
-    
-    overlay.classList.add('show');
-    successMessage.classList.add('show');
-    
-    setTimeout(() => {
-      overlay.classList.remove('show');
-      successMessage.classList.remove('show');
-    }, 1200);
-  }
-
-  function mapToCapabilities(config) {
+  function mapToCapabilities(config){
     return {
-      recolorables: [
-        {
-          get: () => config.background_color || defaultConfig.background_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ background_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.surface_color || defaultConfig.surface_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ surface_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.text_color || defaultConfig.text_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ text_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.primary_action_color || defaultConfig.primary_action_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ primary_action_color: value });
-            }
-          }
-        },
-        {
-          get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ secondary_text_color: value });
-            }
-          }
-        }
+      recolorables:[
+        {get:()=>config.background_color||defaultConfig.background_color,set:v=>window.elementSdk?.setConfig({background_color:v})},
+        {get:()=>config.surface_color||defaultConfig.surface_color,set:v=>window.elementSdk?.setConfig({surface_color:v})},
+        {get:()=>config.text_color||defaultConfig.text_color,set:v=>window.elementSdk?.setConfig({text_color:v})},
+        {get:()=>config.primary_action_color||defaultConfig.primary_action_color,set:v=>window.elementSdk?.setConfig({primary_action_color:v})},
+        {get:()=>config.secondary_text_color||defaultConfig.secondary_text_color,set:v=>window.elementSdk?.setConfig({secondary_text_color:v})},
       ],
-      borderables: [],
-      fontEditable: {
-        get: () => config.font_family || defaultConfig.font_family,
-        set: (value) => {
-          if (window.elementSdk) {
-            window.elementSdk.setConfig({ font_family: value });
-          }
-        }
-      },
-      fontSizeable: {
-        get: () => config.font_size || defaultConfig.font_size,
-        set: (value) => {
-          if (window.elementSdk) {
-            window.elementSdk.setConfig({ font_size: value });
-          }
-        }
-      }
+      borderables:[],
+      fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>window.elementSdk?.setConfig({font_family:v})},
+      fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>window.elementSdk?.setConfig({font_size:v})},
     };
   }
-
-  function mapToEditPanelValues(config) {
+  function mapToEditPanelValues(config){
     return new Map([
       ["main_title", config.main_title || defaultConfig.main_title],
       ["description_text", config.description_text || defaultConfig.description_text],
@@ -285,70 +280,9 @@
       ["success_message", config.success_message || defaultConfig.success_message]
     ]);
   }
-
-  // Sett dagens dato som default
-  document.getElementById('dateInput').valueAsDate = new Date();
-
-  // ---- OPPDATERT: lagre til localStorage + tilbake til oversikt ----
-  document.getElementById('purchaseForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const saveButton = document.getElementById('saveButton');
-    const store = document.getElementById('storeInput').value;
-    const amount = document.getElementById('amountInput').value;
-    const date = document.getElementById('dateInput').value;
-    
-    if (store && amount && date) {
-      saveButton.classList.add('saving');
-      saveButton.textContent = 'Lagrer...';
-      
-      setTimeout(() => {
-        // Finn mandag i samme uke som valgt dato
-        const d = new Date(date + 'T00:00:00');
-        const day = (d.getDay() + 6) % 7; // 0=mandag
-        d.setDate(d.getDate() - day);
-        const mondayISO = d.toISOString().slice(0, 10);
-
-        const key = `purchases_${mondayISO}`;
-        const purchases = JSON.parse(localStorage.getItem(key) || '[]');
-        purchases.push({
-          store,
-          amount: Number(amount),
-          dateISO: date
-        });
-        localStorage.setItem(key, JSON.stringify(purchases));
-
-        // Tilbakestill knapp + bekreftelse
-        saveButton.classList.remove('saving');
-        saveButton.textContent = document.getElementById('saveButtonText').textContent;
-        showSuccessMessage();
-
-        // Tilbake til oversikten
-        setTimeout(() => {
-          if (document.referrer) history.back();
-          else location.href = 'app.html';
-        }, 400);
-      }, 800);
-    }
-  });
-  // ------------------------------------------------------------------
-
-  // Tilbake-knapp
-  document.getElementById('backButton').addEventListener('click', () => {
-    if (document.referrer) history.back();
-    else location.href = 'app.html';
-  });
-
-  if (window.elementSdk) {
-    window.elementSdk.init({
-      defaultConfig,
-      onConfigChange,
-      mapToCapabilities,
-      mapToEditPanelValues
-    });
+  if (window.elementSdk){
+    window.elementSdk.init({ defaultConfig, onConfigChange, mapToCapabilities, mapToEditPanelValues });
   }
 </script>
-  <!-- Beholder Cloudflare/Canva snippet -->
-  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be85f4f699b4f7',t:'MTc2MjcwNDAyOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
- </body>
+</body>
 </html>
