@@ -131,14 +131,28 @@
  <body>
   <main class="container">
    <div class="icon-container">
-    <svg class="icon" viewbox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="25" y="15" width="70" height="90" rx="8" fill="#4caf50" opacity="0.1" /> <rect x="30" y="20" width="60" height="80" rx="6" fill="white" stroke="#4caf50" stroke-width="3" /> <circle cx="60" cy="25" r="2" fill="#4caf50" /> <rect x="40" y="35" width="40" height="3" rx="1.5" fill="#4caf50" opacity="0.6" /> <rect x="40" y="45" width="30" height="3" rx="1.5" fill="#4caf50" opacity="0.4" /> <circle cx="45" cy="60" r="8" fill="#4caf50" opacity="0.2" /> <path d="M45 57 L44 61 L48 61 Z" fill="#4caf50" /> <rect x="40" y="75" width="40" height="3" rx="1.5" fill="#4caf50" opacity="0.6" /> <rect x="40" y="85" width="35" height="3" rx="1.5" fill="#4caf50" opacity="0.4" />
+    <svg class="icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="25" y="15" width="70" height="90" rx="8" fill="#4caf50" opacity="0.1" />
+      <rect x="30" y="20" width="60" height="80" rx="6" fill="white" stroke="#4caf50" stroke-width="3" />
+      <circle cx="60" cy="25" r="2" fill="#4caf50" />
+      <rect x="40" y="35" width="40" height="3" rx="1.5" fill="#4caf50" opacity="0.6" />
+      <rect x="40" y="45" width="30" height="3" rx="1.5" fill="#4caf50" opacity="0.4" />
+      <circle cx="45" cy="60" r="8" fill="#4caf50" opacity="0.2" />
+      <path d="M45 57 L44 61 L48 61 Z" fill="#4caf50" />
+      <rect x="40" y="75" width="40" height="3" rx="1.5" fill="#4caf50" opacity="0.6" />
+      <rect x="40" y="85" width="35" height="3" rx="1.5" fill="#4caf50" opacity="0.4" />
     </svg>
    </div>
    <div class="content">
     <h1 class="title" id="welcomeTitle">Velkommen til husholdningsbudsjettet ditt 💚</h1>
-    <p class="description" id="welcomeDescription">En enkel løsning for å holde oversikt over ukens matbudsjett rett på kjøleskapet. Følg med på forbruket, registrer kjøp, og få kontroll på pengene – sammen som familie.</p><button class="cta-button" id="ctaButton">Kom i gang</button>
+    <p class="description" id="welcomeDescription">
+      En enkel løsning for å holde oversikt over ukens matbudsjett rett på kjøleskapet. 
+      Følg med på forbruket, registrer kjøp, og få kontroll på pengene – sammen som familie.
+    </p>
+    <button class="cta-button" id="ctaButton">Kom i gang</button>
    </div>
   </main>
+
   <script>
     const defaultConfig = {
       background_color: "#f0f9f4",
@@ -209,94 +223,15 @@
         .toString(16).slice(1);
     }
 
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [
-          {
-            get: () => config.background_color || defaultConfig.background_color,
-            set: (value) => {
-              if (window.elementSdk) {
-                window.elementSdk.setConfig({ background_color: value });
-              }
-            }
-          },
-          {
-            get: () => config.surface_color || defaultConfig.surface_color,
-            set: (value) => {
-              if (window.elementSdk) {
-                window.elementSdk.setConfig({ surface_color: value });
-              }
-            }
-          },
-          {
-            get: () => config.text_color || defaultConfig.text_color,
-            set: (value) => {
-              if (window.elementSdk) {
-                window.elementSdk.setConfig({ text_color: value });
-              }
-            }
-          },
-          {
-            get: () => config.primary_action_color || defaultConfig.primary_action_color,
-            set: (value) => {
-              if (window.elementSdk) {
-                window.elementSdk.setConfig({ primary_action_color: value });
-              }
-            }
-          },
-          {
-            get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
-            set: (value) => {
-              if (window.elementSdk) {
-                window.elementSdk.setConfig({ secondary_text_color: value });
-              }
-            }
-          }
-        ],
-        borderables: [],
-        fontEditable: {
-          get: () => config.font_family || defaultConfig.font_family,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ font_family: value });
-            }
-          }
-        },
-        fontSizeable: {
-          get: () => config.font_size || defaultConfig.font_size,
-          set: (value) => {
-            if (window.elementSdk) {
-              window.elementSdk.setConfig({ font_size: value });
-            }
-          }
-        }
-      };
-    }
-
-    function mapToEditPanelValues(config) {
-      return new Map([
-        ["welcome_title", config.welcome_title || defaultConfig.welcome_title],
-        ["welcome_description", config.welcome_description || defaultConfig.welcome_description],
-        ["button_text", config.button_text || defaultConfig.button_text]
-      ]);
-    }
-
     document.getElementById('ctaButton').addEventListener('click', () => {
       const button = document.getElementById('ctaButton');
       button.style.transform = 'scale(0.95)';
       setTimeout(() => {
         button.style.transform = '';
-      }, 150);
+        // ➡️ Gå til første onboarding-side
+        location.href = 'onboarding1.html';
+      }, 120);
     });
-
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be5748f391a41f',t:'MTc2MjcwMjExNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
