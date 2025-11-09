@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Middagsanbefaling</title>
   <script src="/_sdk/element_sdk.js"></script>
   <style>
-    body { box-sizing: border-box; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ------ Base ------ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -15,22 +15,26 @@
       color: #2d5f4d;
       overflow-x: hidden;
     }
-    .container { max-width: 1000px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px 20px 100px; }
 
+    /* ------ Header ------ */
     .header { margin-bottom: 24px; }
     .back-button {
       display: inline-flex; align-items: center; gap: 6px;
-      background: none; border: none; color: #5a7a6d; font-size: 14px; cursor: pointer;
-      padding: 8px 12px; border-radius: 12px; transition: background 0.2s; font-family: inherit;
+      background: none; border: none; color: #5a7a6d;
+      font-size: 14px; cursor: pointer; padding: 8px 12px;
+      border-radius: 12px; transition: background .2s; font-family: inherit;
     }
-    .back-button:hover { background: rgba(76, 175, 80, 0.1); }
+    .back-button:hover { background: rgba(76,175,80,.1); }
     .back-button:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 8px 0; }
+
+    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 8px; }
     .page-subtitle { font-size: 16px; color: #5a7a6d; }
 
+    /* ------ Budget card ------ */
     .budget-card {
-      background: #ffffff; border-radius: 20px; padding: 24px; margin-bottom: 24px;
-      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08); display: flex; align-items: center; gap: 20px;
+      background: #fff; border-radius: 20px; padding: 24px; margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(45,95,77,.08); display: flex; align-items: center; gap: 20px;
     }
     .budget-info { flex: 1; }
     .budget-label { font-size: 14px; color: #5a7a6d; margin-bottom: 8px; }
@@ -38,35 +42,26 @@
     .budget-progress { width: 80px; height: 80px; position: relative; }
     .progress-ring { width: 80px; height: 80px; transform: rotate(-90deg); }
     .progress-ring-bg { fill: none; stroke: #f0f9f4; stroke-width: 8; }
-    .progress-ring-fill {
-      fill: none; stroke: #4caf50; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 0.5s ease;
-    }
-    .progress-text {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      font-size: 12px; font-weight: 600; color: #2d5f4d; text-align: center;
-    }
+    .progress-ring-fill { fill: none; stroke: #4caf50; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
+    .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 12px; font-weight: 600; color: #2d5f4d; text-align: center; }
 
-    .filter-panel {
-      background: #ffffff; border-radius: 20px; padding: 24px; margin-bottom: 24px;
-      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-    }
+    /* ------ Filters ------ */
+    .filter-panel { background: #fff; border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(45,95,77,.08); }
     .filter-title { font-size: 18px; font-weight: 600; color: #2d5f4d; margin-bottom: 20px; }
     .filter-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; align-items: end; }
     .filter-group { display: flex; flex-direction: column; gap: 8px; }
     .filter-label { font-size: 14px; font-weight: 600; color: #2d5f4d; }
-    .price-input {
-      width: 160px; padding: 12px 16px; border: 1px solid rgba(76,175,80,0.2);
-      border-radius: 12px; font-size: 16px; font-family: inherit; color: #2d5f4d; background: #f8fffe;
-    }
-    .price-input:focus { outline: 2px solid #4caf50; outline-offset: 0; border-color: #4caf50; }
 
-    .stepper {
-      display: flex; align-items: center; gap: 8px; background: #f8fffe; border-radius: 12px; padding: 4px;
-      border: 1px solid rgba(76,175,80,0.2);
+    .price-input {
+      width: 140px; padding: 12px 16px; border: 1px solid rgba(76,175,80,.2);
+      border-radius: 12px; font-size: 16px; color: #2d5f4d; background: #f8fffe; font-family: inherit;
     }
+    .price-input:focus { outline: 2px solid #4caf50; border-color: #4caf50; }
+
+    .stepper { display: flex; align-items: center; gap: 8px; background: #f8fffe; border-radius: 12px; padding: 4px; border: 1px solid rgba(76,175,80,.2); }
     .stepper-btn {
-      width: 32px; height: 32px; border: none; background: #4caf50; color: white; border-radius: 8px;
-      cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+      width: 32px; height: 32px; border: none; background: #4caf50; color: #fff; border-radius: 8px;
+      cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s;
     }
     .stepper-btn:hover { background: #45a049; }
     .stepper-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
@@ -74,68 +69,105 @@
 
     .chip-group { display: flex; gap: 8px; flex-wrap: wrap; }
     .chip {
-      padding: 8px 16px; border: 2px solid rgba(76,175,80,0.2); border-radius: 20px; background: #f8fffe;
-      color: #2d5f4d; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; user-select: none;
+      padding: 8px 16px; border: 2px solid rgba(76,175,80,.2); border-radius: 20px; background: #f8fffe; color: #2d5f4d;
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all .2s; user-select: none;
     }
-    .chip:hover { border-color: rgba(76,175,80,0.4); }
-    .chip.active { background: #4caf50; color: white; border-color: #4caf50; }
+    .chip:hover { border-color: rgba(76,175,80,.4); }
+    .chip.active { background: #4caf50; color: #fff; border-color: #4caf50; }
     .chip:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
 
-    .toggle-chip {
-      display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 2px solid rgba(76,175,80,0.2);
-      border-radius: 20px; background: #f8fffe; color: #2d5f4d; font-size: 14px; font-weight: 500; cursor: pointer;
-      transition: all 0.2s; user-select: none;
-    }
-    .toggle-chip:hover { border-color: rgba(76,175,80,0.4); }
+    .toggle-chip { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 2px solid rgba(76,175,80,.2); border-radius: 20px; background: #f8fffe; color: #2d5f4d; font-size: 14px; font-weight: 500; cursor: pointer; transition: all .2s; user-select: none; }
+    .toggle-chip:hover { border-color: rgba(76,175,80,.4); }
+    .toggle-chip.active { background: #4caf50; color: #fff; border-color: #4caf50; }
 
-    .suggest-btn {
-      padding: 14px 28px; background: #4caf50; color: white; border: none; border-radius: 12px; font-size: 16px;
-      font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit;
-    }
+    .suggest-btn { padding: 14px 28px; background: #4caf50; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
     .suggest-btn:hover { background: #45a049; transform: translateY(-1px); }
     .suggest-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
 
-    .tip-card {
-      background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 12px; padding: 16px; margin-bottom: 20px;
-      display: flex; align-items: center; gap: 12px;
-    }
+    /* ------ Tips ------ */
+    .tip-card { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 12px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
     .tip-icon { font-size: 20px; }
     .tip-text { font-size: 14px; color: #856404; }
 
+    /* ------ Results ------ */
     .results-section { margin-bottom: 24px; }
     .results-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 20px; }
-    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-    .recipe-card { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(45,95,77,0.08); transition: all 0.2s; }
-    .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(45,95,77,0.12); }
-    .recipe-image {
-      width: 100%; height: 180px; background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
-      display: flex; align-items: center; justify-content: center; font-size: 48px; color: #4caf50;
-    }
+    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 20px; }
+    .recipe-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(45,95,77,.08); transition: all .2s; }
+    .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(45,95,77,.12); }
+    .recipe-image { width: 100%; height: 180px; background: linear-gradient(135deg,#e8f5e8 0%,#c8e6c9 100%); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #4caf50; }
     .recipe-content { padding: 20px; }
     .recipe-name { font-size: 18px; font-weight: 600; color: #2d5f4d; margin-bottom: 12px; }
     .recipe-chips { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     .recipe-chip { padding: 4px 8px; background: #f0f9f4; color: #2d5f4d; font-size: 12px; border-radius: 8px; font-weight: 500; }
-    .recipe-chip.price { background: #4caf50; color: white; }
+    .recipe-chip.price { background: #4caf50; color: #fff; }
     .recipe-description { font-size: 14px; color: #5a7a6d; margin-bottom: 16px; line-height: 1.4; }
     .recipe-actions { display: flex; gap: 8px; }
-    .btn { padding: 10px 16px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; flex: 1; }
-    .btn-primary { background: #4caf50; color: white; }
+    .btn { padding: 10px 16px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; flex: 1; }
+    .btn-primary { background: #4caf50; color: #fff; }
     .btn-primary:hover { background: #45a049; }
     .btn-secondary { background: #f0f0f0; color: #5a7a6d; }
     .btn-secondary:hover { background: #e0e0e0; }
     .btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
 
-    .empty-state {
-      text-align: center; padding: 40px 20px; background: #ffffff; border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-    }
+    /* ------ Empty state ------ */
+    .empty-state { text-align: center; padding: 40px 20px; background: #fff; border-radius: 20px; box-shadow: 0 2px 8px rgba(45,95,77,.08); }
     .empty-icon { font-size: 64px; color: #5a7a6d; margin-bottom: 16px; }
     .empty-title { font-size: 20px; font-weight: 600; color: #2d5f4d; margin-bottom: 8px; }
     .empty-text { font-size: 14px; color: #5a7a6d; margin-bottom: 20px; }
+
+    /* ------ Modal ------ */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(45,95,77,.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 24px; padding: 28px; max-width: 600px; width: 100%; max-height: 90%; overflow-y: auto; box-shadow: 0 8px 32px rgba(45,95,77,.2); }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .modal-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 12px; }
+    .modal-close { width: 32px; height: 32px; border: none; background: #f0f0f0; border-radius: 50%; cursor: pointer; font-size: 18px; color: #5a7a6d; display: flex; align-items: center; justify-content: center; }
+    .modal-close:hover { background: #e0e0e0; }
+    .modal-close:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
+    .modal-price { font-size: 20px; font-weight: 700; color: #4caf50; margin-bottom: 20px; }
+
+    .accordion { border: 1px solid rgba(76,175,80,.2); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+    .accordion-header { padding: 16px 20px; background: #f8fffe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #2d5f4d; user-select: none; }
+    .accordion-header:hover { background: #f0f9f4; }
+    .accordion-content { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .accordion.open .accordion-content { max-height: 500px; }
+    .accordion-body { padding: 20px; }
+
+    .ingredient-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .ingredient-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+    .ingredient-checkbox { width: 18px; height: 18px; accent-color: #4caf50; }
+    .ingredient-text { font-size: 14px; color: #2d5f4d; }
+
+    .steps-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+    .step-item { display: flex; gap: 12px; }
+    .step-number { width: 24px; height: 24px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+    .step-text { font-size: 14px; color: #2d5f4d; line-height: 1.5; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+
+    /* ------ FAB ------ */
+    .fab {
+      position: fixed; bottom: 24px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
+      background: #4caf50; color: #fff; border: none; font-size: 24px; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(76,175,80,.4); display: flex; align-items: center; justify-content: center; transition: all .2s; z-index: 50;
+    }
+    .fab:hover { background: #45a049; transform: scale(1.05); }
+    .fab:focus { outline: 3px solid #4caf50; outline-offset: 3px; }
+
+    /* ------ Responsive ------ */
+    @media (max-width: 600px) {
+      .container { padding: 16px; }
+      .page-title { font-size: 28px; }
+      .budget-card { flex-direction: column; text-align: center; }
+      .filter-row { flex-direction: column; align-items: stretch; }
+      .price-input { width: 100%; }
+      .recipe-grid { grid-template-columns: 1fr; }
+      .fab { bottom: 16px; right: 16px; }
+    }
   </style>
   <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
   <div class="container">
@@ -145,32 +177,32 @@
       <p class="page-subtitle" id="pageSubtitle">Få forslag som passer budsjettet ditt i dag.</p>
     </header>
 
-    <div class="budget-card">
+    <section class="budget-card" aria-live="polite">
       <div class="budget-info">
         <div class="budget-label" id="budgetRemainingLabel">Budsjett igjen denne uka:</div>
-        <div class="budget-amount" id="budgetAmount">– kr</div>
+        <div class="budget-amount" id="budgetAmount">–</div>
       </div>
       <div class="budget-progress">
         <svg class="progress-ring" viewBox="0 0 80 80" aria-hidden="true">
           <circle class="progress-ring-bg" cx="40" cy="40" r="32"></circle>
           <circle class="progress-ring-fill" cx="40" cy="40" r="32" id="progressRing"></circle>
         </svg>
-        <div class="progress-text" id="progressText">–%<br>igjen</div>
+        <div class="progress-text" id="progressText">–</div>
       </div>
-    </div>
+    </section>
 
     <div id="tipCard" class="tip-card" style="display:none;">
       <span class="tip-icon">💡</span>
       <span class="tip-text" id="tipText">Tips: Bytt til vegetar for lavere pris og spar mer denne uka!</span>
     </div>
 
-    <div class="filter-panel">
+    <section class="filter-panel">
       <h2 class="filter-title">Filtrer middager</h2>
 
       <div class="filter-row">
         <div class="filter-group">
           <label for="maxPrice" class="filter-label" id="maxPriceLabel">Maks kr pr. porsjon</label>
-          <input type="number" id="maxPrice" class="price-input" value="70" min="10" max="200">
+          <input type="number" id="maxPrice" class="price-input" value="70" min="10" max="200" inputmode="numeric" />
         </div>
 
         <div class="filter-group">
@@ -203,24 +235,27 @@
       </div>
 
       <div class="filter-row">
-        <div class="toggle-chip" id="quickToggle" tabindex="0" role="button"><span>⚡</span> <span>Rask (≤ 25 min)</span></div>
+        <div class="toggle-chip" id="quickToggle" tabindex="0" role="button"><span>⚡</span><span>Rask (≤ 25 min)</span></div>
         <button class="suggest-btn" id="suggestBtn">Foreslå middager</button>
       </div>
-    </div>
+    </section>
 
-    <div class="results-section" id="resultsSection" style="display:none;">
+    <section class="results-section" id="resultsSection" style="display:none;">
       <h2 class="results-title">Anbefalte middager</h2>
       <div class="recipe-grid" id="recipeGrid"></div>
-    </div>
+    </section>
 
-    <div class="empty-state" id="emptyState" style="display:none;">
+    <section class="empty-state" id="emptyState" style="display:none;">
       <div class="empty-icon">🍽️</div>
       <h3 class="empty-title">Ingen middager funnet</h3>
       <p class="empty-text">Prøv å justere filtrene dine for å finne flere alternativer.</p>
       <button class="btn btn-primary" id="resetFiltersBtn">Nullstill filter</button>
-    </div>
+    </section>
   </div>
 
+  <button class="fab" id="randomFab" aria-label="Tilfeldig middag">🎲</button>
+
+  <!-- Modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" role="dialog" aria-labelledby="modalTitle">
       <div class="modal-header">
@@ -233,7 +268,7 @@
       </div>
 
       <div class="accordion" id="ingredientsAccordion">
-        <div class="accordion-header"><span>Ingredienser</span> <span>▼</span></div>
+        <div class="accordion-header"><span>Ingredienser</span><span>▼</span></div>
         <div class="accordion-content">
           <div class="accordion-body">
             <ul class="ingredient-list" id="ingredientsList"></ul>
@@ -242,7 +277,7 @@
       </div>
 
       <div>
-        <h3 style="margin-bottom:16px; color:#2d5f4d; font-weight:600;">Fremgangsmåte</h3>
+        <h3 style="margin-bottom:16px;color:#2d5f4d;font-weight:600;">Fremgangsmåte</h3>
         <ol class="steps-list" id="stepsList"></ol>
       </div>
 
@@ -254,10 +289,9 @@
   </div>
 
   <script>
-    // --- Sikkerhetsnett for feil så ikke hele siden dør ---
-    function safe(fn){ try{ fn(); }catch(e){ console.error(e); } }
-
-    // ---------- Konfig ----------
+    /* =========================
+       Konfig / theming (Element SDK)
+       ========================= */
     const defaultConfig = {
       page_title: "Middagsanbefaling",
       page_subtitle: "Få forslag som passer budsjettet ditt i dag.",
@@ -274,199 +308,335 @@
       font_size: 16
     };
 
-    // ---------- Mock data ----------
-    const mockRecipes = [
-      { navn:"Kylling i form", prisPerMåltid:65, porsjoner:4, tidMin:45, vanskelighetsgrad:"Lett", kalorier:420, kategori:"kylling", allergener:["ingen"], bilde:"🍗",
-        ingredienser:["4 kyllingfileter","2 paprika","1 løk","400g poteter","2 ss olivenolje","Salt og pepper"],
-        steg:["Forvarm ovnen til 200°C","Skjær poteter og grønnsaker i biter","Legg alt i ildfast form med olje og krydder","Stek i ovnen i 35-40 minutter","Sjekk at kyllingen er gjennomstekt"] },
-      { navn:"Kjøttdeigpasta", prisPerMåltid:45, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:520, kategori:"kjøttdeig", allergener:["gluten"], bilde:"🍝",
-        ingredienser:["400g kjøttdeig","400g pasta","1 boks hakkede tomater","1 løk","2 fedd hvitløk","Oregano"],
-        steg:["Kok pasta etter anvisning på pakken","Stek løk og hvitløk i panne","Tilsett kjøttdeig og stek til gjennomstekt","Hell i tomater og krydder, la putre 10 min","Bland med pasta og server"] },
-      { navn:"Laks med ris", prisPerMåltid:85, porsjoner:2, tidMin:25, vanskelighetsgrad:"Lett", kalorier:450, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
-        ingredienser:["2 laksebiter","2 dl ris","1 brokkoli","1 sitron","2 ss smør","Salt og pepper"],
-        steg:["Kok ris etter anvisning","Damp brokkoli i 8-10 minutter","Stek laks i smør 3-4 min per side","Krydre med salt, pepper og sitron","Server sammen med ris og brokkoli"] },
-      { navn:"Vegetar chili", prisPerMåltid:35, porsjoner:6, tidMin:30, vanskelighetsgrad:"Lett", kalorier:320, kategori:"vegetar", allergener:["ingen"], bilde:"🌶️",
-        ingredienser:["2 bokser kidneybønner","1 boks hakkede tomater","1 paprika","1 løk","2 ss tomatpuré","Chili og cumin"],
-        steg:["Stek løk og paprika til myke","Tilsett tomatpuré og stek 1 minutt","Hell i tomater og bønner","Krydre med chili og cumin","La putre i 20 minutter","Server med ris eller brød"] },
-      { navn:"Kyllingwok", prisPerMåltid:55, porsjoner:3, tidMin:15, vanskelighetsgrad:"Lett", kalorier:380, kategori:"kylling", allergener:["ingen"], bilde:"🥘",
-        ingredienser:["300g kyllingstriper","1 pose wokgrønnsaker","3 ss soyasaus","2 ss olje","1 ts ingefær","Ris til servering"],
-        steg:["Varm olje i wokpanne på høy varme","Stek kylling til gyllen, ta ut av pannen","Wok grønnsaker i 3-4 minutter","Tilsett kylling, soyasaus og ingefær","Bland godt og server med ris"] },
-      { navn:"Fiskekaker med potetmos", prisPerMåltid:50, porsjoner:4, tidMin:30, vanskelighetsgrad:"Lett", kalorier:420, kategori:"fisk", allergener:["gluten","egg"], bilde:"🐠",
-        ingredienser:["8 fiskekaker","800g poteter","1 dl melk","2 ss smør","Ertestuing","Salt"],
-        steg:["Kok poteter til møre, ca 20 min","Stek fiskekaker gylne på begge sider","Mos poteter med melk og smør","Varm ertestuing i mikro eller kjele","Server alt sammen"] },
-      { navn:"Tacoskjell", prisPerMåltid:60, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:480, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🌮",
-        ingredienser:["400g kjøttdeig","1 pakke tacokrydder","8 tacoskjell","1 tomat","1 agurk","Ost og rømme"],
-        steg:["Stek kjøttdeig til gjennomstekt","Tilsett tacokrydder og litt vann","Varm tacoskjell i ovn","Skjær tomat og agurk i biter","Server med alle tilbehør"] },
-      { navn:"Vegetar curry", prisPerMåltid:40, porsjoner:4, tidMin:35, vanskelighetsgrad:"Moderat", kalorier:350, kategori:"vegetar", allergener:["laktose"], bilde:"🍛",
-        ingredienser:["1 søtpotet","1 aubergine","400ml kokosmelk","2 ss currypasta","1 løk","Ris til servering"],
-        steg:["Skjær grønnsaker i terninger","Stek løk til gyllen","Tilsett currypasta og stek 1 min","Hell i kokosmelk og grønnsaker","La putre til grønnsakene er møre","Server med ris"] },
-      { navn:"Karbonadedeig", prisPerMåltid:48, porsjoner:4, tidMin:25, vanskelighetsgrad:"Lett", kalorier:460, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🥩",
-        ingredienser:["400g kjøttdeig","2 ss mel","5 dl melk","1 løk","Smør","Poteter til servering"],
-        steg:["Form kjøttdeigen til karbonader","Stek karbonader gylne på begge sider","Ta ut karbonader, stek løk i samme panne","Tilsett mel og melk, rør til jevn saus","Legg karbonader tilbake, la putre 10 min"] },
-      { navn:"Torsk med grønnsaker", prisPerMåltid:75, porsjoner:2, tidMin:20, vanskelighetsgrad:"Lett", kalorier:320, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
-        ingredienser:["2 torskebiter","300g brokkoli","2 gulrøtter","2 ss olivenolje","1 sitron","Timian"],
-        steg:["Forvarm ovnen til 200°C","Skjær grønnsaker i biter","Legg fisk og grønnsaker på stekebrett","Drypp over olje og krydder","Stek i 15-18 minutter"] }
-    ];
+    function applyConfig(config) {
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseSize = config.font_size || defaultConfig.font_size;
 
-    // ---------- State ----------
-    let currentFilters = { maxPrice: 70, people: 2, categories: [], allergies: [], quickOnly: false };
-    let budgetData = { total: 3000, used: 0, remaining: 3000 };
+      document.body.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      document.body.style.background =
+        `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
 
-    // ---------- Uke-hjelpere ----------
-    function mondayAtNoon(d = new Date()){
-      const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-      const day = (x.getDay()+6)%7; // 0=man
-      x.setDate(x.getDate()-day);
-      x.setHours(12,0,0,0);
-      return x;
+      const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+
+      setText('pageTitle', config.page_title || defaultConfig.page_title);
+      setText('pageSubtitle', config.page_subtitle || defaultConfig.page_subtitle);
+      setText('budgetRemainingLabel', config.budget_remaining_label || defaultConfig.budget_remaining_label);
+      setText('maxPriceLabel', config.max_price_label || defaultConfig.max_price_label);
+      setText('peopleCountLabel', config.people_count_label || defaultConfig.people_count_label);
+
+      const suggestBtn = document.getElementById('suggestBtn');
+      if (suggestBtn) {
+        suggestBtn.textContent = config.suggest_button || defaultConfig.suggest_button;
+        suggestBtn.style.background = config.primary_color || defaultConfig.primary_color;
+      }
+
+      document.querySelectorAll('.stepper-btn, .fab, .btn-primary').forEach(el => {
+        el.style.background = config.primary_color || defaultConfig.primary_color;
+      });
+
+      document.querySelectorAll('.budget-card, .filter-panel, .recipe-card, .modal').forEach(el => {
+        el.style.background = config.surface_color || defaultConfig.surface_color;
+      });
+
+      // Sizes
+      const title = document.getElementById('pageTitle');
+      if (title) title.style.fontSize = `${baseSize * 2}px`;
+      const subtitle = document.getElementById('pageSubtitle');
+      if (subtitle) subtitle.style.fontSize = `${baseSize}px`;
     }
-    function getActiveWeekISO(){
-      const pinned = localStorage.getItem('activeWeekISO');
-      return pinned || mondayAtNoon().toISOString().slice(0,10);
-    }
-    const weekISO = getActiveWeekISO();
 
-    // ---------- Budsjett ----------
-    function loadBudgetData() {
-      safe(() => {
-        const weeklyKey = `weeklyBudget_${weekISO}`;
-        const weeklyBudget = parseFloat(localStorage.getItem(weeklyKey));
-        const globalBudget = parseFloat(localStorage.getItem('weeklyBudget'));
-        const total = !isNaN(weeklyBudget) ? weeklyBudget : (!isNaN(globalBudget) ? globalBudget : 3000);
-
-        const purchasesKey = `purchases_${weekISO}`;
-        const purchases = JSON.parse(localStorage.getItem(purchasesKey) || '[]');
-        const used = purchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-        budgetData.total = total > 0 ? total : 3000;
-        budgetData.used = Math.max(0, used);
-        budgetData.remaining = Math.max(0, budgetData.total - budgetData.used);
-
-        updateBudgetDisplay();
-        suggestDefaultMaxPrice();
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange: applyConfig,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk.setConfig({ background_color: v }) },
+            { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk.setConfig({ surface_color: v }) },
+            { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk.setConfig({ text_color: v }) },
+            { get: () => config.primary_color || defaultConfig.primary_color, set: v => window.elementSdk.setConfig({ primary_color: v }) },
+            { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk.setConfig({ secondary_text_color: v }) },
+          ],
+          borderables: [],
+          fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk.setConfig({ font_family: v }) },
+          fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk.setConfig({ font_size: v }) }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["page_title", config.page_title || defaultConfig.page_title],
+          ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle],
+          ["budget_remaining_label", config.budget_remaining_label || defaultConfig.budget_remaining_label],
+          ["max_price_label", config.max_price_label || defaultConfig.max_price_label],
+          ["people_count_label", config.people_count_label || defaultConfig.people_count_label],
+          ["suggest_button", config.suggest_button || defaultConfig.suggest_button],
+        ])
       });
     }
 
+    /* =========================
+       Uke-/budsjett-nøkler (SAMME som onboarding)
+       ========================= */
+    function getCurrentWeekMondayISO(dateObj = new Date()) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const day = (d.getDay() + 6) % 7; // 0 = mandag
+      d.setDate(d.getDate() - day);
+      d.setHours(12, 0, 0, 0); // DST-safe
+      return d.toISOString().slice(0, 10); // YYYY-MM-DD
+    }
+    function getActiveWeekISO() {
+      return localStorage.getItem('activeWeekISO') || getCurrentWeekMondayISO();
+    }
+    function formatKr(n) {
+      const v = Number.isFinite(n) ? n : 0;
+      return v.toLocaleString('no-NO');
+    }
+
+    /* =========================
+       Mock oppskrifter (enkle, konsistente)
+       ========================= */
+    const mockRecipes = [
+      { navn:"Kylling i form", prisPerMåltid:65, porsjoner:4, tidMin:45, vanskelighetsgrad:"Lett", kalorier:420, kategori:"kylling", allergener:["ingen"], bilde:"🍗",
+        ingredienser:["4 kyllingfileter","2 paprika","1 løk","400g poteter","2 ss olivenolje","Salt og pepper"],
+        steg:["Forvarm ovnen til 200°C","Skjær poteter og grønnsaker i biter","Legg alt i ildfast form med olje og krydder","Stek i 35–40 minutter","Sjekk at kyllingen er gjennomstekt"] },
+      { navn:"Kjøttdeigpasta", prisPerMåltid:45, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:520, kategori:"kjøttdeig", allergener:["gluten"], bilde:"🍝",
+        ingredienser:["400g kjøttdeig","400g pasta","1 boks hakkede tomater","1 løk","2 fedd hvitløk","Oregano"],
+        steg:["Kok pasta","Stek løk/hvitløk","Tilsett kjøttdeig","Hell i tomater/krydder 10 min","Bland med pasta"] },
+      { navn:"Laks med ris", prisPerMåltid:85, porsjoner:2, tidMin:25, vanskelighetsgrad:"Lett", kalorier:450, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
+        ingredienser:["2 laksebiter","2 dl ris","1 brokkoli","1 sitron","2 ss smør","Salt og pepper"],
+        steg:["Kok ris","Damp brokkoli 8–10 min","Stek laks i smør 3–4 min pr side","Krydre og server"] },
+      { navn:"Vegetar chili", prisPerMåltid:35, porsjoner:6, tidMin:30, vanskelighetsgrad:"Lett", kalorier:320, kategori:"vegetar", allergener:["ingen"], bilde:"🌶️",
+        ingredienser:["2 bokser kidneybønner","1 boks hakkede tomater","1 paprika","1 løk","2 ss tomatpuré","Chili og cumin"],
+        steg:["Stek løk/paprika","Tilsett tomatpuré 1 min","Ha i tomater og bønner","Krydre og putre 20 min"] },
+      { navn:"Kyllingwok", prisPerMåltid:55, porsjoner:3, tidMin:15, vanskelighetsgrad:"Lett", kalorier:380, kategori:"kylling", allergener:["ingen"], bilde:"🥘",
+        ingredienser:["300g kyllingstriper","1 pose wokgrønnsaker","3 ss soyasaus","2 ss olje","1 ts ingefær","Ris til servering"],
+        steg:["Varm olje","Stek kylling gyllen","Wok grønnsaker 3–4 min","Tilsett kylling+saus","Server med ris"] },
+      { navn:"Fiskekaker med potetmos", prisPerMåltid:50, porsjoner:4, tidMin:30, vanskelighetsgrad:"Lett", kalorier:420, kategori:"fisk", allergener:["gluten","egg"], bilde:"🐠",
+        ingredienser:["8 fiskekaker","800g poteter","1 dl melk","2 ss smør","Ertestuing","Salt"],
+        steg:["Kok poteter 20 min","Stek fiskekaker","Mos poteter med melk/smør","Varm ertestuing","Server"] },
+      { navn:"Tacoskjell", prisPerMåltid:60, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:480, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🌮",
+        ingredienser:["400g kjøttdeig","1 pakke tacokrydder","8 tacoskjell","1 tomat","1 agurk","Ost og rømme"],
+        steg:["Stek kjøttdeig","Tilsett krydder + litt vann","Varm tacoskjell","Kutt grønnsaker","Server"] },
+      { navn:"Vegetar curry", prisPerMåltid:40, porsjoner:4, tidMin:35, vanskelighetsgrad:"Moderat", kalorier:350, kategori:"vegetar", allergener:["laktose"], bilde:"🍛",
+        ingredienser:["1 søtpotet","1 aubergine","400ml kokosmelk","2 ss currypasta","1 løk","Ris"],
+        steg:["Kutt grønnsaker","Stek løk","Rør inn currypasta","Tilsett kokosmelk/grønnsaker","La putre til mørt","Server med ris"] },
+      { navn:"Karbonadedeig", prisPerMåltid:48, porsjoner:4, tidMin:25, vanskelighetsgrad:"Lett", kalorier:460, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🥩",
+        ingredienser:["400g kjøttdeig","2 ss mel","5 dl melk","1 løk","Smør","Poteter"],
+        steg:["Form karbonader","Stek karbonader","Stek løk","Jevn saus med mel/melk","La putre 10 min"] },
+      { navn:"Torsk med grønnsaker", prisPerMåltid:75, porsjoner:2, tidMin:20, vanskelighetsgrad:"Lett", kalorier:320, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
+        ingredienser:["2 torskebiter","300g brokkoli","2 gulrøtter","2 ss olivenolje","1 sitron","Timian"],
+        steg:["Forvarm ovn 200°C","Kutt grønnsaker","Legg alt på brett + olje/krydder","Stek 15–18 min"] },
+    ];
+
+    /* =========================
+       State
+       ========================= */
+    const state = {
+      filters: {
+        maxPrice: 70,
+        people: 2,
+        categories: [],
+        allergies: [], // "gluten" => vis glutenfri (dvs. ekskluder oppskrifter som inneholder gluten)
+        quickOnly: false,
+      },
+      budget: { total: 0, used: 0, remaining: 0 },
+      activeWeekISO: getActiveWeekISO(),
+      currentRecipe: null,
+    };
+
+    /* =========================
+       Budsjett / purchases
+       ========================= */
+    function safeSumPurchases(arr) {
+      try {
+        return arr.reduce((sum, item) => {
+          if (item == null) return sum;
+          if (typeof item === 'number') return sum + (isFinite(item) ? item : 0);
+          if (typeof item === 'string') {
+            const n = parseFloat(item.replace(/[^\d.,-]/g,'').replace(',','.'));
+            return sum + (isFinite(n) ? n : 0);
+          }
+          if (typeof item === 'object') {
+            // vanlige feltnavn
+            const keys = ['amount','sum','price','value','kostnad'];
+            for (const k of keys) {
+              const v = item[k];
+              if (typeof v === 'number' && isFinite(v)) return sum + v;
+              if (typeof v === 'string') {
+                const n = parseFloat(v.replace(/[^\d.,-]/g,'').replace(',','.'));
+                if (isFinite(n)) return sum + n;
+              }
+            }
+          }
+          return sum;
+        }, 0);
+      } catch { return 0; }
+    }
+
+    function loadBudgetData() {
+      const weekISO = state.activeWeekISO;
+      const weeklyBudgetKey = `weeklyBudget_${weekISO}`;
+      const purchasesKey = `purchases_${weekISO}`;
+
+      const fallbackBudget = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
+      const weekBudget = parseInt((localStorage.getItem(weeklyBudgetKey) || '').replace(/\s|kr/g,''), 10);
+
+      const total = Number.isFinite(weekBudget) ? weekBudget
+                  : (Number.isFinite(fallbackBudget) ? fallbackBudget : 0);
+
+      let used = 0;
+      try {
+        const raw = localStorage.getItem(purchasesKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) used = safeSumPurchases(parsed);
+        }
+      } catch { /* ignore */ }
+
+      const remaining = Math.max(0, total - used);
+      state.budget = { total, used, remaining };
+      updateBudgetDisplay();
+    }
+
     function updateBudgetDisplay() {
+      const { total, remaining } = state.budget;
       const budgetAmount = document.getElementById('budgetAmount');
       const progressRing = document.getElementById('progressRing');
       const progressText = document.getElementById('progressText');
       const tipCard = document.getElementById('tipCard');
-      const tipText = document.getElementById('tipText');
 
-      budgetAmount.textContent = `${(budgetData.remaining || 0).toLocaleString('no-NO')} kr`;
+      budgetAmount.textContent = `${formatKr(remaining)} kr`;
 
-      const pct = budgetData.total > 0 ? Math.max(0, Math.min(100, (budgetData.remaining / budgetData.total) * 100)) : 0;
-      const circumference = 2 * Math.PI * 32;
-      const dash = (pct / 100) * circumference;
-      progressRing.style.strokeDasharray = `${dash} ${circumference}`;
+      const r = 32, circumference = 2 * Math.PI * r;
+      const pct = total > 0 ? Math.max(0, Math.min(100, (remaining / total) * 100)) : 0;
+      progressRing.style.strokeDasharray = `${circumference}`;
+      progressRing.style.strokeDashoffset = `${circumference * (1 - pct/100)}`;
       progressText.innerHTML = `${Math.round(pct)}%<br>igjen`;
 
-      if (pct < 25) {
-        tipCard.style.display = 'flex';
-        tipText.textContent = 'Tips: Lavt budsjett – velg vegetar/enkle råvarer og sett makspris lavere 🚦';
-      } else {
-        tipCard.style.display = 'none';
-      }
+      // Enkelt tips basert på nivå
+      let showTip = false, tip = '';
+      if (pct <= 25) { showTip = true; tip = 'Tips: Velg vegetar/gryter for å presse prisen ned resten av uka.'; }
+      else if (pct <= 50) { showTip = true; tip = 'Tips: Planlegg 1–2 billige middager (≤ 40 kr/pers) for å holde budsjettet.'; }
+      document.getElementById('tipText').textContent = tip;
+      tipCard.style.display = showTip ? 'flex' : 'none';
     }
 
-    function suggestDefaultMaxPrice() {
-      const maxPriceInput = document.getElementById('maxPrice');
-      const today = new Date();
-      const dow = today.getDay() || 7; // søndag = 7
-      const daysLeft = Math.max(1, 7 - dow);
-      const mealsLeft = Math.max(3, Math.min(7, daysLeft));
-      const perMealTotal = budgetData.remaining / mealsLeft;
-      const suggestedPerPerson = Math.max(20, Math.min(120, Math.floor(perMealTotal / Math.max(1, currentFilters.people))));
-      if (!maxPriceInput.dataset.userEdited) {
-        maxPriceInput.value = suggestedPerPerson;
-        currentFilters.maxPrice = suggestedPerPerson;
-        maxPriceInput.placeholder = `${suggestedPerPerson} (forslag)`;
-      }
+    /* =========================
+       Filtre & UI handling
+       ========================= */
+    function initPeopleFromHousehold() {
+      const raw = (localStorage.getItem('householdCount') || '2').replace('+','');
+      const n = Math.max(1, parseInt(raw, 10) || 2);
+      state.filters.people = n;
+      document.getElementById('peopleCount').textContent = String(n);
     }
 
-    // ---------- Filtre & UI ----------
+    function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
     function setupFilters() {
       const categoryChips = document.getElementById('categoryChips');
-      const allergyChips = document.getElementById('allergyChips');
-      const quickToggle = document.getElementById('quickToggle');
+      const allergyChips  = document.getElementById('allergyChips');
+      const quickToggle   = document.getElementById('quickToggle');
       const maxPriceInput = document.getElementById('maxPrice');
-      const decrementBtn = document.getElementById('decrementPeople');
-      const incrementBtn = document.getElementById('incrementPeople');
+      const decBtn = document.getElementById('decrementPeople');
+      const incBtn = document.getElementById('incrementPeople');
       const peopleCount = document.getElementById('peopleCount');
 
-      // Event delegation + guard
       categoryChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.chip[data-category]');
         if (!chip) return;
-        const category = chip.dataset.category;
+        const cat = chip.dataset.category;
         chip.classList.toggle('active');
-        if (currentFilters.categories.includes(category)) {
-          currentFilters.categories = currentFilters.categories.filter(c => c !== category);
-        } else {
-          currentFilters.categories.push(category);
-        }
+        const i = state.filters.categories.indexOf(cat);
+        if (i >= 0) state.filters.categories.splice(i,1); else state.filters.categories.push(cat);
       });
 
       allergyChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.chip[data-allergy]');
         if (!chip) return;
-        const allergy = chip.dataset.allergy;
+        const a = chip.dataset.allergy;
         chip.classList.toggle('active');
-        if (currentFilters.allergies.includes(allergy)) {
-          currentFilters.allergies = currentFilters.allergies.filter(a => a !== allergy);
-        } else {
-          currentFilters.allergies.push(allergy);
-        }
+        const i = state.filters.allergies.indexOf(a);
+        if (i >= 0) state.filters.allergies.splice(i,1); else state.filters.allergies.push(a);
       });
 
       quickToggle.addEventListener('click', () => {
         quickToggle.classList.toggle('active');
-        currentFilters.quickOnly = !currentFilters.quickOnly;
+        state.filters.quickOnly = !state.filters.quickOnly;
       });
 
       maxPriceInput.addEventListener('input', (e) => {
-        currentFilters.maxPrice = parseFloat(e.target.value) || 70;
-        maxPriceInput.dataset.userEdited = '1';
+        const v = clamp(parseInt(e.target.value,10) || 70, 10, 200);
+        state.filters.maxPrice = v;
+        e.target.value = String(v);
       });
 
-      decrementBtn.addEventListener('click', () => {
-        if (currentFilters.people > 1) {
-          currentFilters.people--;
-          peopleCount.textContent = currentFilters.people;
-          suggestDefaultMaxPrice();
-        }
+      decBtn.addEventListener('click', () => {
+        state.filters.people = clamp(state.filters.people - 1, 1, 12);
+        peopleCount.textContent = String(state.filters.people);
+      });
+      incBtn.addEventListener('click', () => {
+        state.filters.people = clamp(state.filters.people + 1, 1, 12);
+        peopleCount.textContent = String(state.filters.people);
       });
 
-      incrementBtn.addEventListener('click', () => {
-        if (currentFilters.people < 12) {
-          currentFilters.people++;
-          peopleCount.textContent = currentFilters.people;
-          suggestDefaultMaxPrice();
-        }
-      });
-
+      // Tastatur-toggle for chips
       document.addEventListener('keydown', (e) => {
-        if (document.activeElement && ['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
-        if (e.key === 'Backspace') goBack();
+        const target = e.target;
+        const isChip = target.classList && target.classList.contains('chip');
+        const isToggle = target.id === 'quickToggle';
+        if ((isChip || isToggle) && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault(); target.click();
+        }
       });
     }
 
     function filterRecipes() {
-      return mockRecipes.filter(recipe => {
-        if (recipe.prisPerMåltid > currentFilters.maxPrice) return false;
-        if (currentFilters.categories.length > 0 && !currentFilters.categories.includes(recipe.kategori)) return false;
-        if (currentFilters.quickOnly && recipe.tidMin > 25) return false;
-        if (currentFilters.allergies.length > 0) {
-          const allergens = recipe.allergener || [];
-          const isAllergenFree = (allergens.length === 0) || (allergens.length === 1 && allergens[0] === 'ingen');
-          if (!isAllergenFree) {
-            const conflict = currentFilters.allergies.some(a => allergens.includes(a));
-            if (conflict) return false;
+      const selCats = state.filters.categories;
+      const selAllergies = state.filters.allergies;
+      const maxPrice = state.filters.maxPrice;
+      const quick = state.filters.quickOnly;
+
+      return mockRecipes.filter(r => {
+        // pris per PERS
+        if (r.prisPerMåltid > maxPrice) return false;
+        // kategori
+        if (selCats.length && !selCats.includes(r.kategori)) return false;
+        // rask
+        if (quick && r.tidMin > 25) return false;
+        // allergi: Hvis bruker velger "gluten" => vis glutenFRI, dvs. ekskluder oppskrifter som inneholder "gluten"
+        if (selAllergies.length) {
+          if (!r.allergener.includes('ingen')) {
+            if (selAllergies.some(a => r.allergener.includes(a))) return false;
           }
         }
         return true;
       });
+    }
+
+    function createRecipeCard(recipe) {
+      const card = document.createElement('div');
+      card.className = 'recipe-card';
+
+      card.innerHTML = `
+        <div class="recipe-image">${recipe.bilde}</div>
+        <div class="recipe-content">
+          <h3 class="recipe-name">${recipe.navn}</h3>
+          <div class="recipe-chips">
+            <span class="recipe-chip price">${recipe.prisPerMåltid} kr/pers</span>
+            <span class="recipe-chip">${recipe.tidMin} min</span>
+            <span class="recipe-chip">${recipe.vanskelighetsgrad}</span>
+            <span class="recipe-chip">${recipe.kalorier} kcal</span>
+          </div>
+          <p class="recipe-description">
+            ${recipe.kategori.charAt(0).toUpperCase() + recipe.kategori.slice(1)}rett som passer perfekt til
+            ${state.filters.people} ${state.filters.people === 1 ? 'person' : 'personer'}.
+          </p>
+          <div class="recipe-actions">
+            <button class="btn btn-primary" data-action="open" data-name="${recipe.navn}">Se oppskrift</button>
+            <button class="btn btn-secondary" data-action="resuggest">Ny anbefaling</button>
+          </div>
+        </div>
+      `;
+      return card;
     }
 
     function displayRecipes(recipes) {
@@ -474,7 +644,7 @@
       const recipeGrid = document.getElementById('recipeGrid');
       const emptyState = document.getElementById('emptyState');
 
-      if (recipes.length === 0) {
+      if (!recipes.length) {
         resultsSection.style.display = 'none';
         emptyState.style.display = 'block';
         return;
@@ -483,261 +653,165 @@
       resultsSection.style.display = 'block';
 
       recipeGrid.innerHTML = '';
-      recipes.slice(0, 6).forEach(recipe => {
-        const card = createRecipeCard(recipe);
-        recipeGrid.appendChild(card);
-      });
+      // Litt hyggelig sortering: billigst først, så raskest
+      recipes
+        .slice()
+        .sort((a,b) => (a.prisPerMåltid - b.prisPerMåltid) || (a.tidMin - b.tidMin))
+        .slice(0, 5)
+        .forEach(r => recipeGrid.appendChild(createRecipeCard(r)));
     }
 
-    function createRecipeCard(recipe) {
-      const card = document.createElement('div');
-      card.className = 'recipe-card';
-      const totalPrice = recipe.prisPerMåltid * currentFilters.people;
-      card.innerHTML = `
-        <div class="recipe-image">${recipe.bilde}</div>
-        <div class="recipe-content">
-          <h3 class="recipe-name">${recipe.navn}</h3>
-          <div class="recipe-chips">
-            <span class="recipe-chip price">${recipe.prisPerMåltid} kr/pers</span>
-            <span class="recipe-chip">Totalt: ${totalPrice} kr</span>
-            <span class="recipe-chip">${recipe.tidMin} min</span>
-            <span class="recipe-chip">${recipe.vanskelighetsgrad}</span>
-            <span class="recipe-chip">${recipe.kalorier} kcal</span>
-          </div>
-          <p class="recipe-description">
-            ${recipe.kategori.charAt(0).toUpperCase() + recipe.kategori.slice(1)}rett for ${currentFilters.people} ${currentFilters.people === 1 ? 'person' : 'personer'}.
-          </p>
-          <div class="recipe-actions">
-            <button class="btn btn-primary" data-open="${recipe.navn}">Se oppskrift</button>
-            <button class="btn btn-secondary" data-new="1">Ny anbefaling</button>
-          </div>
-        </div>
-      `;
-      card.querySelector('[data-open]').addEventListener('click', () => openRecipeModal(recipe.navn));
-      card.querySelector('[data-new]').addEventListener('click', suggestNewRecipe);
-      return card;
-    }
-
-    function openRecipeModal(recipeName) {
-      const recipe = mockRecipes.find(r => r.navn === recipeName);
+    /* =========================
+       Modal & handleliste
+       ========================= */
+    function openRecipeModalByName(name) {
+      const recipe = mockRecipes.find(r => r.navn === name);
       if (!recipe) return;
 
-      document.getElementById('modalTitle').textContent = recipe.navn;
-      document.getElementById('modalChips').innerHTML = `
+      state.currentRecipe = recipe;
+
+      const modal = document.getElementById('modalOverlay');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalChips = document.getElementById('modalChips');
+      const modalPrice = document.getElementById('modalPrice');
+      const ingredientsList = document.getElementById('ingredientsList');
+      const stepsList = document.getElementById('stepsList');
+
+      modalTitle.textContent = recipe.navn;
+      modalChips.innerHTML = `
         <span class="recipe-chip price">${recipe.prisPerMåltid} kr/pers</span>
-        <span class="recipe-chip">Totalt: ${recipe.prisPerMåltid * currentFilters.people} kr</span>
         <span class="recipe-chip">${recipe.tidMin} min</span>
         <span class="recipe-chip">${recipe.vanskelighetsgrad}</span>
         <span class="recipe-chip">${recipe.kalorier} kcal</span>
       `;
-      document.getElementById('modalPrice').textContent =
-        \`Pris for ${currentFilters.people} ${currentFilters.people === 1 ? 'person' : 'personer'}: ${recipe.prisPerMåltid * currentFilters.people} kr\`;
 
-      const ingredientsList = document.getElementById('ingredientsList');
+      const totalPrice = recipe.prisPerMåltid * state.filters.people;
+      modalPrice.textContent = `Pris for ${state.filters.people} ${state.filters.people === 1 ? 'person' : 'personer'}: ${formatKr(totalPrice)} kr`;
+
       ingredientsList.innerHTML = '';
-      recipe.ingredienser.forEach(ingredient => {
+      recipe.ingredienser.forEach(ing => {
         const li = document.createElement('li');
         li.className = 'ingredient-item';
         li.innerHTML = `
-          <input type="checkbox" class="ingredient-checkbox" aria-label="Merk ${ingredient}">
-          <span class="ingredient-text">${ingredient}</span>
+          <input type="checkbox" class="ingredient-checkbox" aria-label="Merk ${ing}">
+          <span class="ingredient-text">${ing}</span>
         `;
         ingredientsList.appendChild(li);
       });
 
-      const stepsList = document.getElementById('stepsList');
       stepsList.innerHTML = '';
       recipe.steg.forEach((step, i) => {
         const li = document.createElement('li');
         li.className = 'step-item';
-        li.innerHTML = `
-          <div class="step-number">${i+1}</div>
-          <div class="step-text">${step}</div>
-        `;
+        li.innerHTML = `<div class="step-number">${i+1}</div><div class="step-text">${step}</div>`;
         stepsList.appendChild(li);
       });
 
-      const addBtn = document.getElementById('addToShoppingBtn');
-      addBtn.onclick = () => { addIngredientsToShoppingList(recipe); closeModal(); };
-
-      document.getElementById('modalOverlay').classList.add('open');
+      modal.classList.add('open');
       document.getElementById('modalClose').focus();
     }
 
-    function addIngredientsToShoppingList(recipe) {
-      safe(() => {
-        const key = `shoppingList_${weekISO}`;
-        const stored = JSON.parse(localStorage.getItem(key) || 'null');
-        const categories = Array.isArray(stored) ? stored : [
-          { name: "Matvarer", open: true,  items: [] },
-          { name: "Snacks/drikke", open: false, items: [] },
-          { name: "Husholdning", open: false, items: [] },
-          { name: "Annet", open: false, items: [] }
-        ];
-        let idx = categories.findIndex(c => c.name === "Matvarer");
-        if (idx === -1) { categories.unshift({ name: "Matvarer", open: true, items: [] }); idx = 0; }
-        const existing = new Set(categories[idx].items.map(i => (i.name||'').toLowerCase()));
-        recipe.ingredienser.forEach(txt => {
-          const name = String(txt||'').trim();
-          if (!name) return;
-          if (!existing.has(name.toLowerCase())) {
-            categories[idx].items.push({ name, quantity: 1, price: 0, checked: false });
-            existing.add(name.toLowerCase());
-          }
-        });
-        localStorage.setItem(key, JSON.stringify(categories));
-      });
-    }
-
     function closeModal() {
-      const overlay = document.getElementById('modalOverlay');
-      overlay.classList.remove('open');
+      document.getElementById('modalOverlay').classList.remove('open');
+      state.currentRecipe = null;
     }
 
-    function suggestNewRecipe() {
+    function addCurrentRecipeToShoppingList() {
+      const recipe = state.currentRecipe;
+      if (!recipe) return;
+
+      const weekISO = state.activeWeekISO;
+      const key = `shoppingList_${weekISO}`;
+
+      let list = [];
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) list = JSON.parse(raw);
+        if (!Array.isArray(list)) list = [];
+      } catch { list = []; }
+
+      // lagre som STRINGS for max kompatibilitet (du hadde ryddet disse ved ny onboarding)
+      const existing = new Set(list.map(x => (typeof x === 'string' ? x.trim().toLowerCase() : '')));
+      const toAdd = recipe.ingredienser.filter(ing => !existing.has(ing.trim().toLowerCase()));
+
+      const newList = list.concat(toAdd);
+      localStorage.setItem(key, JSON.stringify(newList));
+
+      // enkel feedback
+      const btn = document.getElementById('addToShoppingBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Lagt til!';
+      btn.disabled = true;
+      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1200);
+    }
+
+    /* =========================
+       Navigasjon / events
+       ========================= */
+    document.getElementById('backBtn').addEventListener('click', () => {
+      if (history.length > 1) history.back();
+      else location.href = 'app.html';
+    });
+
+    document.getElementById('suggestBtn').addEventListener('click', () => {
       const filtered = filterRecipes();
-      if (filtered.length > 0) {
-        const shuffled = filtered.slice().sort(() => 0.5 - Math.random()).slice(0, 6);
-        displayRecipes(shuffled);
-      } else {
-        displayRecipes([]);
-      }
-    }
+      displayRecipes(filtered);
+    });
 
-    function resetFilters() {
-      currentFilters = { maxPrice: 70, people: 2, categories: [], allergies: [], quickOnly: false };
-      const maxPriceInput = document.getElementById('maxPrice');
-      maxPriceInput.value = 70;
-      maxPriceInput.dataset.userEdited = '';
+    document.getElementById('randomFab').addEventListener('click', () => {
+      const filtered = filterRecipes();
+      if (!filtered.length) return;
+      const r = filtered[Math.floor(Math.random() * filtered.length)];
+      openRecipeModalByName(r.navn);
+    });
+
+    document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+      state.filters = { maxPrice: 70, people: 2, categories: [], allergies: [], quickOnly: false };
+      document.getElementById('maxPrice').value = '70';
       document.getElementById('peopleCount').textContent = '2';
       document.querySelectorAll('.chip.active').forEach(chip => chip.classList.remove('active'));
       document.getElementById('quickToggle').classList.remove('active');
-      suggestDefaultMaxPrice();
       displayRecipes(filterRecipes());
-    }
-
-    // ---------- Konfig-styling ----------
-    function onConfigChange(config = {}) {
-      safe(() => {
-        const customFont = config.font_family || defaultConfig.font_family;
-        const baseSize = config.font_size || defaultConfig.font_size;
-        const pageTitle = document.getElementById('pageTitle');
-        const pageSubtitle = document.getElementById('pageSubtitle');
-
-        document.body.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
-
-        if (pageTitle) {
-          pageTitle.textContent = config.page_title || defaultConfig.page_title;
-          pageTitle.style.fontSize = `${baseSize * 2}px`;
-          pageTitle.style.color = config.text_color || defaultConfig.text_color;
-        }
-        if (pageSubtitle) {
-          pageSubtitle.textContent = config.page_subtitle || defaultConfig.page_subtitle;
-          pageSubtitle.style.fontSize = `${baseSize}px`;
-          pageSubtitle.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
-        }
-
-        const maxPriceLabel = document.getElementById('maxPriceLabel');
-        if (maxPriceLabel) maxPriceLabel.textContent = config.max_price_label || defaultConfig.max_price_label;
-        const peopleCountLabel = document.getElementById('peopleCountLabel');
-        if (peopleCountLabel) peopleCountLabel.textContent = config.people_count_label || defaultConfig.people_count_label;
-        const suggestBtn = document.getElementById('suggestBtn');
-        if (suggestBtn) {
-          suggestBtn.textContent = config.suggest_button || defaultConfig.suggest_button;
-          suggestBtn.style.background = config.primary_color || defaultConfig.primary_color;
-        }
-        document.querySelectorAll('.stepper-btn, .btn-primary').forEach(el => {
-          el.style.background = config.primary_color || defaultConfig.primary_color;
-        });
-        document.querySelectorAll('.budget-card, .filter-panel, .recipe-card, .modal').forEach(el => {
-          el.style.background = config.surface_color || defaultConfig.surface_color;
-        });
-      });
-    }
-
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [
-          { get: () => config.background_color || defaultConfig.background_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ background_color: v }) },
-          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ surface_color: v }) },
-          { get: () => config.text_color || defaultConfig.text_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ text_color: v }) },
-          { get: () => config.primary_color || defaultConfig.primary_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ primary_color: v }) },
-          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: (v) => window.elementSdk && window.elementSdk.setConfig({ secondary_text_color: v }) },
-        ],
-        borderables: [],
-        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => window.elementSdk && window.elementSdk.setConfig({ font_family: v }) },
-        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => window.elementSdk && window.elementSdk.setConfig({ font_size: v }) }
-      };
-    }
-
-    function mapToEditPanelValues(config) {
-      return new Map([
-        ["page_title", config.page_title || defaultConfig.page_title],
-        ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle],
-        ["budget_remaining_label", config.budget_remaining_label || defaultConfig.budget_remaining_label],
-        ["max_price_label", config.max_price_label || defaultConfig.max_price_label],
-        ["people_count_label", config.people_count_label || defaultConfig.people_count_label],
-        ["suggest_button", config.suggest_button || defaultConfig.suggest_button]
-      ]);
-    }
-
-    // ---------- Navigasjon ----------
-    function goBack(){ location.href = 'app.html'; }
-
-    // ---------- Init ----------
-    function initPage() {
-      // Back-knapp
-      safe(() => {
-        const backBtn = document.getElementById('backBtn');
-        if (backBtn) backBtn.addEventListener('click', goBack);
-      });
-
-      // Budsjett og UI
-      loadBudgetData();
-      setupFilters();
-
-      // Foreslå-knapp
-      safe(() => {
-        const suggestBtn = document.getElementById('suggestBtn');
-        if (suggestBtn) suggestBtn.addEventListener('click', () => displayRecipes(filterRecipes()));
-      });
-
-      // Reset-knapp (finnes selv om seksjonen er skjult)
-      safe(() => {
-        const resetBtn = document.getElementById('resetFiltersBtn');
-        if (resetBtn) resetBtn.addEventListener('click', resetFilters);
-      });
-
-      // Modal lukking
-      safe(() => {
-        const overlay = document.getElementById('modalOverlay');
-        const xBtn = document.getElementById('modalClose');
-        const closeBtn = document.getElementById('closeModalBtn');
-        if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-        if (xBtn) xBtn.addEventListener('click', closeModal);
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeModal(); });
-      });
-
-      // Startvisning
-      displayRecipes(filterRecipes());
-    }
-
-    window.addEventListener('DOMContentLoaded', initPage);
-    window.addEventListener('pageshow', initPage);
-
-    // Element SDK init – kun hvis tilstede
-    safe(() => {
-      if (window.elementSdk) {
-        window.elementSdk.init({
-          defaultConfig,
-          onConfigChange,
-          mapToCapabilities,
-          mapToEditPanelValues
-        });
-      }
     });
+
+    // Modal
+    document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('addToShoppingBtn').addEventListener('click', addCurrentRecipeToShoppingList);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    // Accordion
+    document.getElementById('ingredientsAccordion').addEventListener('click', (e) => {
+      if (e.target.closest('.accordion-header')) e.currentTarget.classList.toggle('open');
+    });
+
+    // Delegert klikk for kort-knapper
+    document.getElementById('recipeGrid').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'open') openRecipeModalByName(btn.dataset.name);
+      if (action === 'resuggest') displayRecipes(filterRecipes().sort(() => 0.5 - Math.random()).slice(0, 5));
+    });
+
+    /* =========================
+       Init
+       ========================= */
+    // Start med folketall fra onboarding (householdCount)
+    initPeopleFromHousehold();
+    // Les budsjett/forbruk for aktiv uke
+    loadBudgetData();
+    // Sett opp filterkontroller
+    setupFilters();
+    // Første visning
+    displayRecipes(filterRecipes());
+
+    // Kjør tema-applying lokalt om elementSdk ikke leverer config
+    applyConfig(defaultConfig);
   </script>
+
+  <!-- (Canva/Cloudflare-snutt beholdt urørt) -->
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bfd0691443b4f7',t:'MTc2MjcxNzU2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
