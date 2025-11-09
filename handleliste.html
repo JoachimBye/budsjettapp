@@ -1034,9 +1034,16 @@
   });
 
   // ---------- Tilbake-knapp (design only – ingen navigasjon enda) ----------
-  $('#backBtn').addEventListener('click', () => {
-    console.log('Tilbake (linking legges inn senere)');
-  });
+// ---------- Tilbake-knapp ----------
+$('#backBtn').addEventListener('click', () => {
+  const ref = document.referrer || '';
+  const cameFromApp = /(^|\/)app\.html(\?|#|$)/.test(ref);
+  if (cameFromApp) {
+    history.back();
+  } else {
+    location.href = 'app.html';
+  }
+});
 
   // ---------- Canva element SDK (styling) ----------
   async function onConfigChange(config) {
