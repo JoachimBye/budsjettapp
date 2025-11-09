@@ -171,25 +171,25 @@
   // Sett dagens dato (robust på iOS)
   document.getElementById('dateInput').value = isoLocalToday();
 
-  // Lagre + tilbake til hovedskjermen
-  document.getElementById('purchaseForm').addEventListener('submit', (e) => {
-    e.preventDefault();
+// Lagre + tilbake til hovedskjermen
+document.getElementById('purchaseForm').addEventListener('submit', (e) => {
+  e.preventDefault();
 
-    const saveButton = document.getElementById('saveButton');
-    const store = document.getElementById('storeInput').value;
-    const amountRaw = document.getElementById('amountInput').value;
-    const dateISO = document.getElementById('dateInput').value;
+  const saveButton = document.getElementById('saveButton');
+  const saveLabel  = document.getElementById('saveButtonText'); // beholdes i DOM
+  const store = document.getElementById('storeInput').value;
+  const amountRaw = document.getElementById('amountInput').value;
+  const dateISO = document.getElementById('dateInput').value;
 
-    // Robust parsing: støtt komma
-    const amount = Number(String(amountRaw).replace(',', '.'));
-    if (!store || !isFinite(amount) || amount <= 0 || !dateISO){
-      return; // enkel guard – feltene er required uansett
-    }
+  const amount = Number(String(amountRaw).replace(',', '.'));
+  if (!store || !isFinite(amount) || amount <= 0 || !dateISO) return;
 
-    saveButton.classList.add('saving');
-    saveButton.textContent = 'Lagrer...';
+  const originalLabel = saveLabel.textContent;
+  saveButton.classList.add('saving');
+  saveLabel.textContent = 'Lagrer...';
 
-    setTimeout(() => {
+  setTimeout(() => {
+    try {
       const date = dateFromISOLocal(dateISO);
       const monday = mondayOfLocal(date).toISOString().slice(0,10);
       const key = `purchases_${monday}`;
@@ -198,14 +198,15 @@
       purchases.push({ store, amount, dateISO });
       localStorage.setItem(key, JSON.stringify(purchases));
 
-      saveButton.classList.remove('saving');
-      saveButton.textContent = document.getElementById('saveButtonText').textContent;
       showSuccessMessage();
-
-      // Alltid tilbake til hovedskjermen etter kort bekreftelse
+    } finally {
+      // tilbakestill knapp og gå videre uansett
+      saveButton.classList.remove('saving');
+      saveLabel.textContent = originalLabel;
       setTimeout(() => { location.href = 'app.html'; }, 400);
-    }, 500);
-  });
+    }
+  }, 500);
+});
 
   // Tilbake-knapp
   document.getElementById('backButton').addEventListener('click', () => {
