@@ -83,7 +83,6 @@
           <span class="form-icon">💸</span> <span id="amountLabel">Beløp</span>
         </label>
         <div class="amount-input">
-          <!-- tillat desimaler -->
           <input type="number" class="form-input" id="amountInput" placeholder="0" min="0" step="0.01" inputmode="decimal" required>
         </div>
       </div>
@@ -139,18 +138,23 @@
     const day = String(d.getDate()).padStart(2,'0');
     return `${y}-${m}-${day}`;
   }
-  function dateFromISOLocal(iso){ // yyyy-mm-dd -> Date i lokal tid
+  function dateFromISOLocal(iso){ // yyyy-mm-dd -> Date (lokal tid)
     const [y,m,d] = iso.split('-').map(Number);
     return new Date(y, m-1, d);
   }
-  // VIKTIG FIX: bruk 12:00, identisk med app.html for stabil uke-nøkkel
+  // Mandag kl 12:00 (samme som app.html) for stabil uke-nøkkel
   function mondayOfLocal(date){
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const day = (d.getDay()+6)%7; // 0=mandag
     d.setDate(d.getDate()-day);
-    d.setHours(12,0,0,0); // <-- før var 00:00; 12:00 matcher hovedskjermen og unngår DST-drift
+    d.setHours(12,0,0,0);
     return d;
   }
+  // Bruk aktiv uke hvis satt (fra "Start ny uke"), ellers mandag for valgt dato
+  function resolveWeekISOFor(date){
+    return localStorage.getItem('activeWeekISO') || mondayOfLocal(date).toISOString().slice(0,10);
+  }
+
   function adjustColor(color, percent) {
     const num = parseInt(color.replace('#',''), 16);
     const amt = Math.round(2.55 * percent);
@@ -170,7 +174,7 @@
     }, 900);
   }
 
-  // Sett dagens dato (robust på iOS)
+  // Sett dagens dato (iOS-trygt)
   document.getElementById('dateInput').value = isoLocalToday();
 
   // Lagre + tilbake til hovedskjermen
@@ -194,22 +198,21 @@
     setTimeout(() => {
       try {
         const date = dateFromISOLocal(dateISO);
-        const monday = mondayOfLocal(date).toISOString().slice(0,10);
-        const key = `purchases_${monday}`;
+        const weekISO = resolveWeekISOFor(date);               // <<< NYTT: bruk aktiv uke om satt
+        const key = `purchases_${weekISO}`;
         const purchases = JSON.parse(localStorage.getItem(key) || '[]');
 
-        purchases.push({ store, amount, dateISO });
+        purchases.push({ store, amount: Number(amount.toFixed(2)), dateISO });
         localStorage.setItem(key, JSON.stringify(purchases));
 
-        // speil aktivt budsjett (valgfritt, men nyttig for andre sider)
-        const weekBudgetKey = `weeklyBudget_${monday}`;
+        // Speil totalbudsjett for uken (ikke nødvendig for app.html, men nyttig for andre sider)
+        const weekBudgetKey = `weeklyBudget_${weekISO}`;
         const weekBudget = parseFloat(localStorage.getItem(weekBudgetKey)) ||
                            parseFloat(localStorage.getItem('weeklyBudget')) || 3000;
         localStorage.setItem('budget_total', String(weekBudget));
 
         showSuccessMessage();
       } finally {
-        // tilbakestill knapp og gå videre uansett
         saveButton.classList.remove('saving');
         saveLabel.textContent = originalLabel;
         setTimeout(() => { location.href = 'app.html'; }, 400);
