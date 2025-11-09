@@ -30,9 +30,28 @@
     .status-bar{text-align:center;padding:20px;background:rgba(255,255,255,.7);border-radius:15px;animation:fadeInUp .8s ease-out .5s both;}
     .status-message{font-size:18px;color:#5a7a6d;font-weight:500;margin:0;}
     .pulse{animation:pulse 2s ease-in-out;}
+
+    /* Liten fast “middagsanbefaling”-knapp */
+    .mini-fab{
+      position:fixed;
+      right:18px;
+      bottom:96px; /* ligger pent over statusbaren */
+      width:54px;height:54px;border-radius:50%;
+      border:none;background:#4caf50;color:#fff;
+      font-size:22px;cursor:pointer;
+      box-shadow:0 6px 18px rgba(76,175,80,.35);
+      display:flex;align-items:center;justify-content:center;
+      transition:transform .15s ease, box-shadow .15s ease;
+      z-index:60;
+    }
+    .mini-fab:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(76,175,80,.45);}
+    .mini-fab:active{transform:translateY(0);}
+    .mini-fab:focus{outline:3px solid #a5d6a7;outline-offset:3px;}
+
     @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
     @keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
     @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+
     @media (max-width:768px){
       .container{padding:20px;}
       .budget-circle{width:240px;height:240px;}
@@ -42,6 +61,7 @@
       .action-button{min-height:100px;padding:20px;}
       .action-icon{font-size:32px;}
       .action-text{font-size:16px;}
+      .mini-fab{right:16px;bottom:88px;}
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
@@ -89,6 +109,9 @@
     <div class="status-bar">
       <p class="status-message" id="statusMessage">Bra kontroll så langt 💪</p>
     </div>
+
+    <!-- NY: liten fast knapp for middagsanbefaling -->
+    <button class="mini-fab" id="mealSuggestBtn" aria-label="Middagsanbefaling">🍳</button>
   </main>
 
 <script>
@@ -271,10 +294,14 @@
     location.href = 'add-purchase.html';
   });
   document.getElementById('shoppingListBtn').addEventListener('click', () => {
-    location.href = 'handleliste.html'; // NY: lenke til handleliste
+    location.href = 'handleliste.html';
   });
   document.getElementById('weekReportBtn').addEventListener('click', () => {
     location.href = 'week-report.html';
+  });
+  // NY: middagsanbefaling-knapp
+  document.getElementById('mealSuggestBtn').addEventListener('click', () => {
+    location.href = 'middag.html';
   });
 
   // ---------- Init / refresh ----------
