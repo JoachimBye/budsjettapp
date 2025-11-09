@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="no">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handleliste</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
+      color: #2d5f4d;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: 100px;
+    }
+
+    /* Header */
+    .header {
+      margin-bottom: 24px;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: #5a7a6d;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 12px;
+      transition: background 0.2s;
+      font-family: inherit;
+    }
+
+    .back-button:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .back-button:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d5f4d;
+      margin: 12px 0 8px 0;
+    }
+
+    .page-subtitle {
+      font-size: 16px;
+      color: #5a7a6d;
+    }
+
+    /* Budget Card */
+    .budget-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .budget-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .budget-label {
+      font-size: 13px;
+      color: #5a7a6d;
+      font-weight: 500;
+    }
+
+    .budget-amount {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d5f4d;
+      transition: transform 0.3s;
+    }
+
+    .budget-amount.pulse {
+      animation: pulse 0.4s ease;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* Category Cards */
+    .category-card {
+      background: #ffffff;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .category-card:hover {
+      box-shadow: 0 4px 12px rgba(45, 95, 77, 0.12);
+    }
+
+    .category-header {
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .category-header:hover {
+      background: rgba(76, 175, 80, 0.05);
+    }
+
+    .category-header:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: -2px;
+    }
+
+    .category-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d5f4d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-count {
+      font-size: 14px;
+      color: #5a7a6d;
+      font-weight: 400;
+    }
+
+    .category-chevron {
+      font-size: 20px;
+      color: #4caf50;
+      transition: transform 0.3s;
+    }
+
+    .category-card.open .category-chevron {
+      transform: rotate(180deg);
+    }
+
+    .category-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .category-card.open .category-content {
+      max-height: 2000px;
+      opacity: 1;
+    }
+
+    .category-items {
+      padding: 0 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* Item Card */
+    .item-card {
+      background: #f8fffe;
+      border-radius: 15px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      border: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
+    .item-card.checked {
+      background: #f0f0f0;
+      opacity: 0.7;
+    }
+
+    .item-card:hover {
+      border-color: rgba(76, 175, 80, 0.3);
+    }
+
+    .item-checkbox {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      accent-color: #4caf50;
+      flex-shrink: 0;
+    }
+
+    .item-checkbox:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .item-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .item-name {
+      font-size: 16px;
+      font-weight: 500;
+      color: #2d5f4d;
+      transition: text-decoration 0.2s;
+    }
+
+    .item-card.checked .item-name {
+      text-decoration: line-through;
+    }
+
+    .item-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 4px;
+      border: 1px solid rgba(76, 175, 80, 0.2);
+    }
+
+    .stepper-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .stepper-btn:hover {
+      background: #45a049;
+    }
+
+    .stepper-btn:active {
+      background: #3d8b40;
+    }
+
+    .stepper-btn:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .stepper-value {
+      min-width: 30px;
+      text-align: center;
+      font-weight: 600;
+      color: #2d5f4d;
+      font-size: 14px;
+    }
+
+    .price-input {
+      width: 80px;
+      padding: 6px 10px;
+      border: 1px solid rgba(76, 175, 80, 0.2);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #2d5f4d;
+      background: #ffffff;
+    }
+
+    .price-input:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 0;
+      border-color: #4caf50;
+    }
+
+    .item-total {
+      font-size: 16px;
+      font-weight: 700;
+      color: #4caf50;
+      min-width: 70px;
+      text-align: right;
+      transition: transform 0.3s;
+    }
+
+    .item-total.pulse {
+      animation: pulse 0.4s ease;
+    }
+
+    .item-menu-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: none;
+      color: #5a7a6d;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .item-menu-btn:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .item-menu-btn:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .item-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(45, 95, 77, 0.15);
+      padding: 8px;
+      min-width: 180px;
+      z-index: 100;
+      display: none;
+    }
+
+    .item-menu.open {
+      display: block;
+    }
+
+    .menu-item {
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #2d5f4d;
+      transition: background 0.2s;
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .menu-item:hover {
+      background: rgba(76, 175, 80, 0.1);
+    }
+
+    .menu-item:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: -2px;
+    }
+
+    .menu-item.delete {
+      color: #d32f2f;
+    }
+
+    .menu-item.delete:hover {
+      background: rgba(211, 47, 47, 0.1);
+    }
+
+    /* FAB */
+    .fab {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #4caf50;
+      color: white;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 50;
+    }
+
+    .fab:hover {
+      background: #45a049;
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5);
+    }
+
+    .fab:active {
+      transform: scale(0.95);
+    }
+
+    .fab:focus {
+      outline: 3px solid #4caf50;
+      outline-offset: 3px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(45, 95, 77, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 28px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 32px rgba(45, 95, 77, 0.2);
+      max-height: 90%;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2d5f4d;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d5f4d;
+      margin-bottom: 8px;
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid rgba(76, 175, 80, 0.2);
+      border-radius: 12px;
+      font-size: 16px;
+      font-family: inherit;
+      color: #2d5f4d;
+      background: #f8fffe;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #45a049;
+    }
+
+    .btn-primary:active {
+      background: #3d8b40;
+    }
+
+    .btn-primary:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #5a7a6d;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-secondary:focus {
+      outline: 2px solid #5a7a6d;
+      outline-offset: 2px;
+    }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #ffffff;
+      border-top: 1px solid rgba(76, 175, 80, 0.1);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 -2px 8px rgba(45, 95, 77, 0.08);
+      flex-wrap: wrap;
+      z-index: 40;
+    }
+
+    .footer-total {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d5f4d;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .footer-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .footer-btn.mark-all {
+      background: #4caf50;
+      color: white;
+    }
+
+    .footer-btn.mark-all:hover {
+      background: #45a049;
+    }
+
+    .footer-btn.mark-all:focus {
+      outline: 2px solid #4caf50;
+      outline-offset: 2px;
+    }
+
+    .footer-btn.clear {
+      background: #f0f0f0;
+      color: #5a7a6d;
+    }
+
+    .footer-btn.clear:hover {
+      background: #e0e0e0;
+    }
+
+    .footer-btn.clear:focus {
+      outline: 2px solid #5a7a6d;
+      outline-offset: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 16px;
+      }
+
+      .page-title {
+        font-size: 28px;
+      }
+
+      .item-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+      }
+
+      .price-input {
+        width: 100%;
+      }
+
+      .footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .footer-actions {
+        width: 100%;
+      }
+
+      .footer-btn {
+        flex: 1;
+      }
+
+      .fab {
+        bottom: 140px;
+        right: 16px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container">
+   <header class="header"><button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
+    <h1 class="page-title" id="pageTitle">Handleliste</h1>
+    <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
+   </header>
+   <div class="budget-card">
+    <div class="budget-item"><span class="budget-label" id="budgetLabel">Ukas budsjett</span> <span class="budget-amount">3 000 kr</span>
+    </div>
+    <div class="budget-item"><span class="budget-label" id="estimatedLabel">Estimert sum i liste</span> <span class="budget-amount" id="estimatedSum">0 kr</span>
+    </div>
+   </div>
+   <div id="categoriesContainer"></div>
+  </div><button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
+  <div class="modal-overlay" id="modalOverlay">
+   <div class="modal" role="dialog" aria-labelledby="modalTitle">
+    <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
+    <form id="addItemForm">
+     <div class="form-group"><label for="itemName" class="form-label">Varenavn</label> <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
+     </div>
+     <div class="form-group"><label for="itemCategory" class="form-label">Kategori</label> <select id="itemCategory" class="form-select"> <option value="Matvarer">Matvarer</option> <option value="Snacks/drikke">Snacks/drikke</option> <option value="Husholdning">Husholdning</option> <option value="Annet">Annet</option> </select>
+     </div>
+     <div class="form-group"><label for="itemQuantity" class="form-label">Antall</label>
+      <div class="stepper"><button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button> <span class="stepper-value" id="modalQuantity">1</span> <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
+      </div>
+     </div>
+     <div class="form-group"><label for="itemPrice" class="form-label">Estimert pris (kr)</label> <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
+     </div>
+     <div class="modal-actions"><button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button> <button type="submit" class="btn btn-primary">Legg til</button>
+     </div>
+    </form>
+   </div>
+  </div>
+  <footer class="footer">
+   <div class="footer-total" id="footerTotal">
+    Totalt i handlelista: 0 kr
+   </div>
+   <div class="footer-actions"><button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button> <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
+   </div>
+  </footer>
+<script>
+  // ---------- Konfig ----------
+  const defaultConfig = {
+    page_title: "Handleliste",
+    page_subtitle: "Planlegg ukens innkjøp og kryss av etter hvert ✅",
+    budget_label: "Ukas budsjett",
+    estimated_label: "Estimert sum i liste",
+    total_label: "Totalt i handlelista",
+    mark_all_button: "Merk alle som kjøpt",
+    clear_button: "Tøm kjøpte",
+    background_color: "#f8fffe",
+    primary_color: "#4caf50",
+    text_color: "#2d5f4d",
+    secondary_text_color: "#5a7a6d",
+    surface_color: "#ffffff",
+    font_family: "Inter",
+    font_size: 16
+  };
+
+  // ---------- Utils ----------
+  const fmt = (n) => (Number(n)||0).toLocaleString('no-NO');
+  const mondayISO = (d = new Date()) => {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const day = (x.getDay()+6)%7; // 0=man
+    x.setDate(x.getDate()-day);
+    x.setHours(0,0,0,0);
+    return x.toISOString().slice(0,10);
+  };
+  const get = (k, fb) => {
+    try { return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(fb)); } catch { return fb; }
+  };
+  const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+  // ---------- Nøkkel for ukevis lagring ----------
+  const WEEK_KEY = `shoppingList_${mondayISO()}`;
+
+  // ---------- Last budsjett ----------
+  const weeklyBudget = Number(localStorage.getItem('weeklyBudget')) || 3000;
+
+  // ---------- Default data (brukes første gang) ----------
+  const defaultCategories = [
+    { name: "Matvarer", open: true,  items: [
+      { name: "Melk 1L",   quantity: 1, price: 22, checked: false },
+      { name: "Brød",      quantity: 1, price: 35, checked: false },
+      { name: "Egg 12-pk", quantity: 1, price: 45, checked: false }
+    ]},
+    { name: "Snacks/drikke", open: false, items: [
+      { name: "Cola 1,5L",   quantity: 1, price: 29, checked: false },
+      { name: "Sjokolade",    quantity: 2, price: 25, checked: false }
+    ]},
+    { name: "Husholdning", open: false, items: [
+      { name: "Zalo", quantity: 1, price: 24, checked: false }
+    ]},
+    { name: "Annet", open: false, items: [] }
+  ];
+
+  // ---------- State (last fra storage eller fallback) ----------
+  let categories = get(WEEK_KEY, defaultCategories);
+  let modalQuantity = 1;
+
+  // ---------- DOM helpers ----------
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  // ---------- Init statiske tekster + budsjett ----------
+  $('#pageTitle').textContent = defaultConfig.page_title;
+  $('#pageSubtitle').textContent = defaultConfig.page_subtitle;
+  $('#budgetLabel').textContent = defaultConfig.budget_label;
+  $('#estimatedLabel').textContent = defaultConfig.estimated_label;
+  $('#markAllBtn').textContent = defaultConfig.mark_all_button;
+  $('#clearBtn').textContent = defaultConfig.clear_button;
+
+  // Vis budsjett fra localStorage
+  document.querySelector('.budget-card .budget-item .budget-amount').textContent = `${fmt(weeklyBudget)} kr`;
+
+  // ---------- Rendering ----------
+  function renderCategories() {
+    const container = $('#categoriesContainer');
+    container.innerHTML = '';
+
+    categories.forEach((category, categoryIndex) => {
+      const card = document.createElement('div');
+      card.className = `category-card ${category.open ? 'open' : ''}`;
+      card.dataset.categoryIndex = categoryIndex;
+
+      const header = document.createElement('div');
+      header.className = 'category-header';
+      header.setAttribute('role', 'button');
+      header.setAttribute('tabindex', '0');
+      header.setAttribute('aria-expanded', String(category.open));
+      header.innerHTML = `
+        <div class="category-title">
+          ${category.name}
+          <span class="category-count">(${category.items.length})</span>
+        </div>
+        <span class="category-chevron">▼</span>
+      `;
+      header.addEventListener('click', () => toggleCategory(categoryIndex));
+      header.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategory(categoryIndex); }
+      });
+
+      const content = document.createElement('div');
+      content.className = 'category-content';
+
+      const list = document.createElement('div');
+      list.className = 'category-items';
+
+      category.items.forEach((item, itemIndex) => {
+        list.appendChild(createItemCard(item, categoryIndex, itemIndex));
+      });
+
+      content.appendChild(list);
+      card.appendChild(header);
+      card.appendChild(content);
+      container.appendChild(card);
+    });
+
+    updateTotals(false); // ikke puls ved full render
+  }
+
+  function createItemCard(item, categoryIndex, itemIndex) {
+    const card = document.createElement('div');
+    card.className = `item-card ${item.checked ? 'checked' : ''}`;
+    card.dataset.categoryIndex = categoryIndex;
+    card.dataset.itemIndex = itemIndex;
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'item-checkbox';
+    checkbox.checked = item.checked;
+    checkbox.setAttribute('aria-label', `Merk ${item.name} som kjøpt`);
+    checkbox.addEventListener('change', () => { toggleItemChecked(categoryIndex, itemIndex); });
+
+    const details = document.createElement('div');
+    details.className = 'item-details';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'item-name';
+    nameEl.textContent = item.name;
+
+    const controls = document.createElement('div');
+    controls.className = 'item-controls';
+
+    const stepper = document.createElement('div');
+    stepper.className = 'stepper';
+    stepper.innerHTML = `
+      <button class="stepper-btn" aria-label="Reduser antall">−</button>
+      <span class="stepper-value">${item.quantity}</span>
+      <button class="stepper-btn" aria-label="Øk antall">+</button>
+    `;
+    stepper.children[0].addEventListener('click', () => updateQuantity(categoryIndex, itemIndex, -1));
+    stepper.children[2].addEventListener('click', () => updateQuantity(categoryIndex, itemIndex, 1));
+
+    const price = document.createElement('input');
+    price.type = 'number';
+    price.className = 'price-input';
+    price.value = item.price;
+    price.min = '0';
+    price.step = '1';
+    price.setAttribute('aria-label', `Pris for ${item.name}`);
+    price.addEventListener('input', (e) => updatePrice(categoryIndex, itemIndex, e.target.value));
+
+    const total = document.createElement('div');
+    total.className = 'item-total';
+    total.textContent = `${fmt(item.quantity * item.price)} kr`;
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'item-menu-btn';
+    menuBtn.textContent = '•••';
+    menuBtn.setAttribute('aria-label', 'Åpne meny');
+    menuBtn.setAttribute('aria-haspopup', 'true');
+
+    const menu = document.createElement('div');
+    menu.className = 'item-menu';
+    menu.innerHTML = `
+      <button class="menu-item">Rediger</button>
+      <button class="menu-item">Flytt til...</button>
+      <button class="menu-item delete">Slett</button>
+    `;
+    menu.children[0].addEventListener('click', () => { /* placeholder */ closeAllMenus(); });
+    menu.children[1].addEventListener('click', () => { /* placeholder */ closeAllMenus(); });
+    menu.children[2].addEventListener('click', () => { deleteItem(categoryIndex, itemIndex); closeAllMenus(); });
+
+    menuBtn.appendChild(menu);
+    menuBtn.addEventListener('click', (e) => { e.stopPropagation(); closeAllMenus(); menu.classList.toggle('open'); });
+
+    controls.appendChild(stepper);
+    controls.appendChild(price);
+    controls.appendChild(total);
+
+    details.appendChild(nameEl);
+    details.appendChild(controls);
+
+    card.appendChild(checkbox);
+    card.appendChild(details);
+    card.appendChild(menuBtn);
+
+    return card;
+  }
+
+  // ---------- Mutators (med lagring) ----------
+  function persist() { set(WEEK_KEY, categories); }
+
+  function toggleCategory(index) {
+    categories[index].open = !categories[index].open;
+    const card = document.querySelector(`[data-category-index="${index}"]`);
+    if (card) {
+      card.classList.toggle('open');
+      card.querySelector('.category-header')?.setAttribute('aria-expanded', String(categories[index].open));
+    }
+    persist();
+  }
+
+  function toggleItemChecked(ci, ii) {
+    const it = categories[ci].items[ii];
+    it.checked = !it.checked;
+    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    card?.classList.toggle('checked');
+    persist();
+    updateTotals();
+  }
+
+  function updateQuantity(ci, ii, delta) {
+    const it = categories[ci].items[ii];
+    it.quantity = Math.max(1, it.quantity + delta);
+    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const stepperValue = card.querySelector('.stepper-value');
+    const itemTotal = card.querySelector('.item-total');
+    stepperValue.textContent = it.quantity;
+    itemTotal.textContent = `${fmt(it.quantity * it.price)} kr`;
+    itemTotal.classList.add('pulse');
+    setTimeout(() => itemTotal.classList.remove('pulse'), 400);
+    persist();
+    updateTotals();
+  }
+
+  function updatePrice(ci, ii, value) {
+    const it = categories[ci].items[ii];
+    it.price = parseFloat(value) || 0;
+    const card = document.querySelector(`[data-category-index="${ci}"][data-item-index="${ii}"]`);
+    const itemTotal = card.querySelector('.item-total');
+    itemTotal.textContent = `${fmt(it.quantity * it.price)} kr`;
+    itemTotal.classList.add('pulse');
+    setTimeout(() => itemTotal.classList.remove('pulse'), 400);
+    persist();
+    updateTotals();
+  }
+
+  function deleteItem(ci, ii) {
+    categories[ci].items.splice(ii, 1);
+    persist();
+    renderCategories();
+  }
+
+  // ---------- Totals ----------
+  function updateTotals(pulse = true) {
+    let total = 0;
+    categories.forEach(c => c.items.forEach(i => total += i.quantity * i.price));
+    const estimatedSum = $('#estimatedSum');
+    const footerTotal = $('#footerTotal');
+    if (estimatedSum) {
+      estimatedSum.textContent = `${fmt(total)} kr`;
+      if (pulse) { estimatedSum.classList.add('pulse'); setTimeout(()=>estimatedSum.classList.remove('pulse'), 400); }
+    }
+    if (footerTotal) {
+      const label = window.elementSdk?.config?.total_label || defaultConfig.total_label;
+      footerTotal.textContent = `${label}: ${fmt(total)} kr`;
+    }
+  }
+
+  // ---------- Meny lukking ----------
+  function closeAllMenus() { document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('open')); }
+  document.addEventListener('click', (e) => { if (!e.target.closest('.item-menu-btn')) closeAllMenus(); });
+
+  // ---------- FAB / Modal ----------
+  $('#fabBtn').addEventListener('click', () => {
+    $('#modalOverlay').classList.add('open');
+    $('#itemName').focus();
+  });
+  $('#modalOverlay').addEventListener('click', (e) => { if (e.target === $('#modalOverlay')) closeModal(); });
+  $('#cancelBtn').addEventListener('click', closeModal);
+  function closeModal() {
+    $('#modalOverlay').classList.remove('open');
+    $('#addItemForm').reset();
+    modalQuantity = 1;
+    $('#modalQuantity').textContent = '1';
+  }
+  $('#modalDecrement').addEventListener('click', () => { modalQuantity = Math.max(1, modalQuantity-1); $('#modalQuantity').textContent = modalQuantity; });
+  $('#modalIncrement').addEventListener('click', () => { modalQuantity += 1; $('#modalQuantity').textContent = modalQuantity; });
+
+  $('#addItemForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = $('#itemName').value.trim();
+    const categoryName = $('#itemCategory').value;
+    const price = parseFloat($('#itemPrice').value) || 0;
+    if (!name) return;
+
+    const idx = categories.findIndex(c => c.name === categoryName);
+    if (idx === -1) return;
+
+    categories[idx].items.push({ name, quantity: modalQuantity, price, checked: false });
+    persist();
+    renderCategories();
+    closeModal();
+  });
+
+  // ---------- Markér/Tøm ----------
+  $('#markAllBtn').addEventListener('click', () => {
+    categories.forEach(c => c.items.forEach(i => { i.checked = true; }));
+    persist();
+    renderCategories();
+  });
+  $('#clearBtn').addEventListener('click', () => {
+    categories.forEach(c => { c.items = c.items.filter(i => !i.checked); });
+    persist();
+    renderCategories();
+  });
+
+  // ---------- Tilbake-knapp (design only – ingen navigasjon enda) ----------
+  $('#backBtn').addEventListener('click', () => {
+    console.log('Tilbake (linking legges inn senere)');
+  });
+
+  // ---------- Canva element SDK (styling) ----------
+  async function onConfigChange(config) {
+    const customFont = config.font_family || defaultConfig.font_family;
+    const baseSize = config.font_size || defaultConfig.font_size;
+    const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+    document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+    document.body.style.background = `linear-gradient(135deg, ${config.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
+
+    const pageTitle = $('#pageTitle');
+    if (pageTitle) {
+      pageTitle.textContent = config.page_title || defaultConfig.page_title;
+      pageTitle.style.fontSize = `${baseSize * 2}px`;
+      pageTitle.style.color = config.text_color || defaultConfig.text_color;
+    }
+
+    const pageSubtitle = $('#pageSubtitle');
+    if (pageSubtitle) {
+      pageSubtitle.textContent = config.page_subtitle || defaultConfig.page_subtitle;
+      pageSubtitle.style.fontSize = `${baseSize}px`;
+      pageSubtitle.style.color = config.secondary_text_color || defaultConfig.secondary_text_color;
+    }
+
+    $('#budgetLabel').textContent = config.budget_label || defaultConfig.budget_label;
+    $('#estimatedLabel').textContent = config.estimated_label || defaultConfig.estimated_label;
+    $('#markAllBtn').textContent = config.mark_all_button || defaultConfig.mark_all_button;
+    $('#clearBtn').textContent = config.clear_button || defaultConfig.clear_button;
+
+    // Oppdater footer-etikett uten å miste total
+    const footerTotal = $('#footerTotal');
+    if (footerTotal) {
+      const currentTotal = footerTotal.textContent.split(': ').slice(1).join(': ') || `${fmt(0)} kr`;
+      footerTotal.textContent = `${config.total_label || defaultConfig.total_label}: ${currentTotal}`;
+    }
+
+    // Farger
+    $$('.btn-primary, .fab, .stepper-btn').forEach(el => { el.style.background = config.primary_color || defaultConfig.primary_color; });
+    $$('.budget-card, .category-card, .modal').forEach(el => { el.style.background = config.surface_color || defaultConfig.surface_color; });
+  }
+
+  if (window.elementSdk) {
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange,
+      mapToCapabilities: (config) => ({
+        recolorables: [
+          { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk.setConfig({ background_color: v }) },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk.setConfig({ surface_color: v }) },
+          { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk.setConfig({ text_color: v }) },
+          { get: () => config.primary_color || defaultConfig.primary_color, set: v => window.elementSdk.setConfig({ primary_color: v }) },
+          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk.setConfig({ secondary_text_color: v }) },
+        ],
+        borderables: [],
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk.setConfig({ font_family: v }) },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk.setConfig({ font_size: v }) },
+      }),
+      mapToEditPanelValues: (config) => new Map([
+        ["page_title", config.page_title || defaultConfig.page_title],
+        ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle],
+        ["budget_label", config.budget_label || defaultConfig.budget_label],
+        ["estimated_label", config.estimated_label || defaultConfig.estimated_label],
+        ["total_label", config.total_label || defaultConfig.total_label],
+        ["mark_all_button", config.mark_all_button || defaultConfig.mark_all_button],
+        ["clear_button", config.clear_button || defaultConfig.clear_button],
+      ])
+    });
+  }
+
+  // Første render
+  renderCategories();
+</script>
+
+
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99bf9ae4f5a0b4f7',t:'MTc2MjcxNTM3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
