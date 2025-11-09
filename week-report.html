@@ -150,47 +150,51 @@
     const s = new Date(m);
     s.setDate(m.getDate()+6);
     return s;
-  }
+    }
 
   function weekLabel(dateObj = new Date()){
     const m = mondayOf(dateObj);
     const s = sundayOf(dateObj);
-    const nf = new Intl.DateTimeFormat('no-NO',{ day:'2-digit', month:'long' });
-    const start = nf.format(m);
-    const end   = nf.format(s);
-    // Ukenummer
+    const nfStart = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
+    const nfEnd   = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
+    const start = nfStart.format(m);
+    const end   = nfEnd.format(s);
     const wn = weekNumberISO(dateObj);
     return `Uke ${wn} – ${start}–${end}`;
   }
 
   function weekNumberISO(dateObj = new Date()){
-    // ISO-uke (mandag som første dag)
     const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
-    const dayNum = (d.getUTCDay() + 6) % 7;
-    d.setUTCDate(d.getUTCDate() - dayNum + 3);
-    const firstThursday = new Date(Date.UTC(d.getUTCFullYear(),0,4));
-    const weekNum = 1 + Math.round(((d - firstThursday) / 86400000 - 3 + (firstThursday.getUTCDay()+6)%7) / 7);
-    return weekNum;
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
 
   function safeGet(key, fallback){
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
     catch { return fallback; }
   }
-
   function safeSet(key, value){
     try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
   }
 
-  // ---------- Data ----------
-  const mondayISO = mondayOf().toISOString().slice(0,10);
-  const purchasesKey = `purchases_${mondayISO}`; // array of {store, amount, date, category}
-  const purchases = safeGet(purchasesKey, []);
-  const totalBudget = Number(localStorage.getItem('budget_total')) || 3000;
+  function readWeeklyBudgetFor(isoMonday){
+    const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
+    if (!isNaN(byWeek) && byWeek > 0) return byWeek;
+    const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
+    if (!isNaN(global) && global > 0) return global;
+    return 3000;
+  }
 
-  const spent = purchases.reduce((s,p)=> s + (Number(p.amount)||0), 0);
-  const saved = Math.max(0, totalBudget - spent);
-  const pct   = Math.min(100, totalBudget>0 ? Math.round(spent/totalBudget*100) : 0);
+  // ---------- Data (denne uken) ----------
+  const thisMondayISO = mondayOf().toISOString().slice(0,10);
+  const purchasesKey  = `purchases_${thisMondayISO}`; // array of {store, amount, date, category}
+  const purchases     = safeGet(purchasesKey, []);
+  const totalBudget   = readWeeklyBudgetFor(thisMondayISO);
+  const spent         = purchases.reduce((s,p)=> s + (Number(p.amount)||0), 0);
+  const saved         = Math.max(0, totalBudget - spent);
+  const pct           = Math.min(100, totalBudget>0 ? Math.round(spent/totalBudget*100) : 0);
 
   // Kategori-summer (fallback "Uten kategori")
   const byCategory = purchases.reduce((acc,p)=>{
@@ -217,7 +221,7 @@
       savedRow.style.display = 'none';
     }
 
-    const circleProgress = document.getElementById('circleProgress');
+    const circleProgress   = document.getElementById('circleProgress');
     const circlePercentage = document.getElementById('circlePercentage');
     const deg = Math.min(360, Math.round((pct/100)*360));
     circleProgress.style.background = `conic-gradient(#4caf50 0deg, #4caf50 ${deg}deg, transparent ${deg}deg)`;
@@ -260,7 +264,6 @@
     const list = document.getElementById('insightsList');
     list.innerHTML = '';
 
-    // Enkle “smarte” meldinger
     if (saved > 0){
       addInsight('👏', `Bra kontroll! Dere brukte under budsjett og sparte ${formatAmount(saved)} kr denne uken.`);
     } else if (spent === 0){
@@ -271,7 +274,6 @@
       addInsight('💡', 'Stabil uke. Fortsett med planlagte handler – grunnvarer på tilbud gir best effekt.');
     }
 
-    // Kategori-spiss
     const entries = Object.entries(byCategory).sort((a,b)=> b[1]-a[1]);
     if (entries.length >= 1){
       const [topCat, topVal] = entries[0];
@@ -310,9 +312,22 @@
       .replace(/'/g,'&#039;');
   }
 
-  // ---------- Events ----------
+  // ---------- Start ny uke ----------
   document.getElementById('startWeekButton').addEventListener('click', ()=>{
-    // valgfritt: ikke rør data; vi bare går tilbake til oversikten (som viser ny uke ved behov)
+    const thisMon = mondayOf();
+    const nextMon = new Date(thisMon); nextMon.setDate(thisMon.getDate()+7);
+    const nextISO = nextMon.toISOString().slice(0,10);
+
+    // Dersom neste uke ikke har budsjett enda, kopier denne ukens budsjett
+    const nextHas = localStorage.getItem(`weeklyBudget_${nextISO}`);
+    if (nextHas === null) {
+      localStorage.setItem(`weeklyBudget_${nextISO}`, String(totalBudget));
+    }
+
+    // Merk at vi har avsluttet denne uken (valgfri metadata)
+    localStorage.setItem('lastClosedWeekISO', thisMondayISO);
+
+    // Naviger til hovedskjermen (ingen onboarding)
     window.location.href = 'index.html';
   });
 
@@ -321,12 +336,13 @@
   });
 
   // ---------- Init ----------
-  document.getElementById('mainTitle'); // touch to ensure DOM loaded
-  document.getElementById('weekLabel').textContent = weekLabel();
-
-  renderOverview();
-  renderCategories();
-  renderInsights();
+  function init(){
+    document.getElementById('weekLabel').textContent = weekLabel();
+    renderOverview();
+    renderCategories();
+    renderInsights();
+  }
+  init();
 })();
 </script>
 </body>
