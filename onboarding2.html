@@ -122,11 +122,12 @@
   const maxBudget = 8000;
   const step = 100;
 
+  // FIX: Mandag kl. 12:00 lokal tid → ISO (UTC) slice(0,10) blir riktig dato uansett DST
   function getCurrentWeekMondayISO(dateObj = new Date()) {
-    // Mandag-basert uke
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
     const day = (d.getDay() + 6) % 7; // 0=mandag
     d.setDate(d.getDate() - day);
+    d.setHours(12,0,0,0); // <-- viktig!
     return d.toISOString().slice(0, 10);
   }
 
@@ -165,7 +166,7 @@
 
   // Init budget: bruk lagret verdi hvis finnes, ellers anbefalt midt
   let currentBudget = (() => {
-    const saved = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
+    const saved = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
     if (!isNaN(saved) && saved >= minBudget && saved <= maxBudget) return saved;
     return Math.min(maxBudget, Math.max(minBudget, recommendedMid(householdCount)));
   })();
@@ -179,7 +180,6 @@
     currentBudget = Math.max(minBudget, Math.min(maxBudget, currentBudget));
     budgetAmount.textContent = formatBudget(currentBudget);
 
-    // Mini-anim
     budgetDisplay.classList.remove('updated');
     setTimeout(() => budgetDisplay.classList.add('updated'), 10);
     setTimeout(() => budgetDisplay.classList.remove('updated'), 300);
@@ -283,15 +283,18 @@
     setTimeout(() => {
       button.style.transform = '';
 
-      // 1) Lagre globalt budsjett
-      const budgetInt = Math.max(minBudget, Math.min(maxBudget, parseInt(currentBudget, 10) || 0));
+      // 1) Normaliser og lagre globalt budsjett
+      const budgetInt = Math.max(minBudget, Math.min(maxBudget, parseInt(String(currentBudget).replace(/\s|kr/g,''), 10) || 0));
       localStorage.setItem('weeklyBudget', String(budgetInt));
 
-      // 2) Lagre uke-spesifikt budsjett (mandag som nøkkel)
+      // 2) Finn ISO for aktiv uke (mandag 12:00) og sett som aktiv
       const mondayISO = getCurrentWeekMondayISO();
+      localStorage.setItem('activeWeekISO', mondayISO); // <-- FIX: sett aktiv uke
+
+      // 3) Lagre uke-spesifikt budsjett for aktiv uke
       localStorage.setItem(`weeklyBudget_${mondayISO}`, String(budgetInt));
 
-      // 3) Videre i onboarding
+      // 4) Videre i onboarding
       location.href = 'onboarding3.html';
     }, 150);
   });
