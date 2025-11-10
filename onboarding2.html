@@ -136,8 +136,8 @@
   const householdRaw = (localStorage.getItem('householdCount') || '2').replace('+','');
   const householdCount = Math.max(1, parseInt(householdRaw, 10) || 2);
 
-  // Lavere og mer realistiske grenser
-  const minBudget = 800;     // var 1000
+  // Realistiske grenser
+  const minBudget = 800;
   const maxBudget = 8000;
   const step = 100;
 
@@ -150,9 +150,8 @@
     return d.toISOString().slice(0, 10);
   }
 
-  // NY: Lavere anbefalinger med skalaeffekt (nokså nøkternt nivå)
-  // 1: 900–1300, 2: 1500–2200, 3: 2000–2800, 4: 2400–3300, 5: 2800–3800, 6: 3200–4300
-  // 7+: +400 (low) / +500 (high) per ekstra person
+  // Lavt og nøkternt nivå med skalaeffekt
+  // 1: 900–1300, 2: 1500–2200, 3: 2000–2800, 4: 2400–3300, 5: 2800–3800, 6: 3200–4300, 7+: +400/+500
   function recommendedRange(n) {
     const presets = {
       1: [ 900, 1300 ],
@@ -163,7 +162,6 @@
       6: [ 3200, 4300 ],
     };
     if (n <= 6) return presets[n];
-
     const extra = n - 6;
     const base = presets[6];
     return [ base[0] + extra * 400, base[1] + extra * 500 ];
@@ -194,7 +192,7 @@
       `Anbefalt for ${householdCount} ${householdCount === 1 ? 'person' : 'personer'}: ca. ${formatBudget(low)}–${formatBudget(high)} kr per uke.`;
   }
 
-  // Startverdi: lagret verdi eller midt i anbefalt intervall (avrundet til nærmeste 100)
+  // Startverdi: lagret verdi eller midt i anbefalt intervall
   let currentBudget = (() => {
     const saved = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
     if (!isNaN(saved) && saved >= minBudget && saved <= maxBudget) return saved;
@@ -337,14 +335,26 @@
       });
       localStorage.removeItem('budget_total');
 
-      // (Hvis tabellen finnes og RLS-policy er satt)
-      const { data: { session } } = await supa.auth.getSession();
-      if (session) {
-        await supa.from('household_budgets')
-          .upsert({ user_id: session.user.id, week_start: mondayISO, amount: budgetInt });
-      }
+      // 4) DB-lagring (hvis tabellen finnes og RLS er satt)
+      try {
+        const { data: { session } } = await supa.auth.getSession();
+        if (session) {
+          await supa
+            .from('household_budgets')
+            .upsert(
+              [{ user_id: session.user.id, week_start: mondayISO, amount: budgetInt }],
+              { onConflict: 'user_id,week_start' }
+            );
 
-      // 4) Videre i onboarding
+          // (valgfritt) lagre default på members om kolonnen finnes
+          await supa
+            .from('members')
+            .update({ default_weekly_budget: budgetInt })
+            .eq('user_id', session.user.id);
+        }
+      } catch (_) { /* ignorer DB-feil, localStorage holder */ }
+
+      // 5) Videre i onboarding
       location.href = 'onboarding3.html';
     }, 150);
   });
