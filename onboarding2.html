@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Husholdningsbudsjett - Budsjettvalg</title>
+
+  <!-- Element SDK -->
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- Supabase JS v2 (for auth-guard) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- (valgfritt) Tailwind -->
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+
   <style>
     body {
       box-sizing: border-box; margin: 0; padding: 0; height: 100%;
@@ -65,10 +75,8 @@
       .budget-display { padding: 25px 30px; min-width: 160px; }
       .continue-button { font-size: 20px; padding: 18px 50px; }
     }
+    @view-transition { navigation: auto; }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 <body>
   <main class="container">
@@ -99,6 +107,16 @@
   </main>
 
 <script>
+  // ===== Supabase init + auth-guard =====
+  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  (async () => {
+    const { data: { session } } = await supa.auth.getSession();
+    if (!session) { location.href = '/innlogging.html'; }
+  })();
+
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -122,7 +140,6 @@
   const maxBudget = 8000;
   const step = 100;
 
-  // Mandag kl. 12:00 lokal tid → ISO (UTC) → slice(0,10) gir YYYY-MM-DD stabilt (DST-safe)
   function getCurrentWeekMondayISO(dateObj = new Date()) {
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
     const day = (d.getDay() + 6) % 7; // 0=mandag
@@ -164,7 +181,6 @@
       `Anbefalt for ${householdCount} ${householdCount === 1 ? 'person' : 'personer'}: ca. ${formatBudget(low)}–${formatBudget(high)} kr per uke.`;
   }
 
-  // Init budget: bruk lagret verdi hvis finnes, ellers anbefalt midt
   let currentBudget = (() => {
     const saved = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
     if (!isNaN(saved) && saved >= minBudget && saved <= maxBudget) return saved;
@@ -213,7 +229,6 @@
     descElement.style.fontSize = `${baseSize}px`;
 
     const recElement = document.getElementById('recommendationText');
-    // Vi beholder dynamisk beregnet tekst fra updateRecommendation()
     recElement.style.color = textColor;
     recElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
 
@@ -278,10 +293,11 @@
     if (currentBudget < maxBudget) { currentBudget += step; updateBudgetDisplay(); }
   });
 
-  document.getElementById('continueButton').addEventListener('click', () => {
+  document.getElementById('continueButton').addEventListener('click', async () => {
     const button = document.getElementById('continueButton');
     button.style.transform = 'scale(0.95)';
-    setTimeout(() => {
+
+    setTimeout(async () => {
       button.style.transform = '';
 
       // 1) Normaliser og lagre globalt budsjett
@@ -296,16 +312,26 @@
 
       // 2) Finn ISO for aktiv uke (mandag 12:00) og sett som aktiv
       const mondayISO = getCurrentWeekMondayISO();
-      localStorage.setItem('activeWeekISO', mondayISO); // aktiv uke som YYYY-MM-DD
+      localStorage.setItem('activeWeekISO', mondayISO);
 
       // 3) Lagre uke-spesifikt budsjett for aktiv uke
       localStorage.setItem(`weeklyBudget_${mondayISO}`, String(budgetInt));
 
-      /* --- NYTT: start helt fresh for denne uken hvis brukeren kjører onboarding på nytt --- */
+      // Tøm ev. ukedata for ny start i denne uken
       ['purchases_', 'shoppingList_'].forEach(prefix => {
         localStorage.removeItem(`${prefix}${mondayISO}`);
       });
-      localStorage.removeItem('budget_total'); // tving ny beregning i app/rapport
+      localStorage.removeItem('budget_total');
+
+      /* (VALGFRITT) Lagre budsjettet i DB per bruker/husstand dersom du har en kolonne
+         f.eks. members.default_weekly_budget INT og/eller household_budgets-tabell.
+      const { data: { session } } = await supa.auth.getSession();
+      if (session) {
+        await supa.from('members')
+          .update({ default_weekly_budget: budgetInt })
+          .eq('user_id', session.user.id);
+      }
+      */
 
       // 4) Videre i onboarding
       location.href = 'onboarding3.html';
@@ -335,7 +361,7 @@
   }
 </script>
 
-<!-- (Canva/Cloudflare-snutt beholdt urørt) -->
+<!-- (beholdt) -->
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be74c32080b4f7',t:'MTc2MjcwMzMyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
