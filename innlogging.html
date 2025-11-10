@@ -195,13 +195,7 @@
         }
 
         // Send OTP (passwordless e-postkode)
-        const { error } = await supa.auth.signInWithOtp({
-          email,
-          options: {
-            // metadata blir knyttet når verifyOtp lykkes
-            data: { invite_code: inviteCode, beta: true }
-          }
-        });
+        const { error } = await supa.auth.signInWithOtp({email});
         if (error) throw error;
 
         // Vis info + OTP-boks
