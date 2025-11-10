@@ -1,10 +1,20 @@
 <!doctype html>
 <html lang="no">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Husholdningsbudsjett - Kategorivalg</title>
+
+  <!-- Element SDK -->
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- Supabase (auth + valgfri lagring av valg) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- (valgfritt) Tailwind -->
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+
   <style>
     body {
       box-sizing: border-box;
@@ -17,237 +27,98 @@
       align-items: center;
       justify-content: center;
     }
-
-    html {
-      height: 100%;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 700px;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .header {
-      margin-bottom: 50px;
-      animation: fadeInDown 0.8s ease-out;
-    }
-
-    .title {
-      font-size: 32px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 20px;
-      line-height: 1.3;
-    }
-
-    .description {
-      font-size: 18px;
-      color: #5a7a6d;
-      line-height: 1.6;
-      max-width: 550px;
-      margin: 0 auto;
-    }
-
-    .choices-section {
-      margin-bottom: 50px;
-      animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .choice-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
+    html { height: 100%; }
+    .container { width: 90%; max-width: 700px; text-align: center; padding: 40px; }
+    .header { margin-bottom: 50px; animation: fadeInDown 0.8s ease-out; }
+    .title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin-bottom: 20px; line-height: 1.3; }
+    .description { font-size: 18px; color: #5a7a6d; line-height: 1.6; max-width: 550px; margin: 0 auto; }
+    .choices-section { margin-bottom: 50px; animation: fadeInUp 0.8s ease-out 0.2s both; }
+    .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 600px; margin: 0 auto; }
     .choice-card {
-      background: white;
-      border: 3px solid #e8f5f0;
-      border-radius: 20px;
-      padding: 30px 25px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      position: relative;
-      min-height: 160px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+      background: white; border: 3px solid #e8f5f0; border-radius: 20px; padding: 30px 25px;
+      cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      position: relative; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
     }
-
-    .choice-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
-      border-color: #4caf50;
-    }
-
-    .choice-card.selected {
-      background: #f8fff9;
-      border-color: #4caf50;
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.25);
-    }
-
-    .choice-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-      display: block;
-    }
-
-    .choice-title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 12px;
-    }
-
-    .choice-description {
-      font-size: 16px;
-      color: #5a7a6d;
-      line-height: 1.4;
-      margin: 0;
-    }
-
+    .choice-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.15); border-color: #4caf50; }
+    .choice-card.selected { background: #f8fff9; border-color: #4caf50; transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.25); }
+    .choice-icon { font-size: 48px; margin-bottom: 15px; display: block; }
+    .choice-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 12px; }
+    .choice-description { font-size: 16px; color: #5a7a6d; line-height: 1.4; margin: 0; }
     .check-icon {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      width: 30px;
-      height: 30px;
-      background: #4caf50;
-      border-radius: 50%;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
+      position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: #4caf50;
+      border-radius: 50%; display: none; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;
     }
-
-    .choice-card.selected .check-icon {
-      display: flex;
-      animation: checkPop 0.3s ease-out;
-    }
-
-    .button-section {
-      animation: fadeInUp 0.8s ease-out 0.4s both;
-    }
-
+    .choice-card.selected .check-icon { display: flex; animation: checkPop 0.3s ease-out; }
+    .button-section { animation: fadeInUp 0.8s ease-out 0.4s both; }
     .continue-button {
-      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-      color: white;
-      border: none;
-      padding: 20px 60px;
-      font-size: 22px;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      opacity: 0.6;
-      pointer-events: none;
+      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; padding: 20px 60px; font-size: 22px;
+      font-weight: 600; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 20px rgba(76,175,80,0.3);
+      transition: all 0.3s ease; margin-bottom: 20px; opacity: .6; pointer-events: none;
     }
-
-    .continue-button.enabled {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .continue-button.enabled:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 28px rgba(76, 175, 80, 0.4);
-      background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-    }
-
-    .continue-button.enabled:active {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-    }
-
+    .continue-button.enabled { opacity: 1; pointer-events: auto; }
+    .continue-button.enabled:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(76,175,80,0.4); background: linear-gradient(135deg,#45a049 0%,#3d8b40 100%); }
+    .continue-button.enabled:active { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(76,175,80,0.3); }
     .back-button {
-      background: transparent;
-      color: #8a9a8d;
-      border: 2px solid #e0e7e3;
-      padding: 15px 40px;
-      font-size: 18px;
-      font-weight: 500;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      background: transparent; color: #8a9a8d; border: 2px solid #e0e7e3; padding: 15px 40px; font-size: 18px;
+      font-weight: 500; border-radius: 30px; cursor: pointer; transition: all 0.3s ease;
     }
-
-    .back-button:hover {
-      background: #f5f8f6;
-      border-color: #c8d4cb;
-      color: #5a7a6d;
-    }
-
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes checkPop {
-      0% { transform: scale(0); opacity: 0; }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
+    .back-button:hover { background: #f5f8f6; border-color: #c8d4cb; color: #5a7a6d; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
     @media (max-width: 768px) {
-      .title { font-size: 26px; }
-      .description { font-size: 16px; }
+      .title { font-size: 26px; } .description { font-size: 16px; }
       .choice-grid { grid-template-columns: 1fr; gap: 20px; }
       .choice-card { padding: 25px 20px; min-height: 140px; }
       .choice-icon { font-size: 40px; margin-bottom: 12px; }
-      .choice-title { font-size: 20px; }
-      .choice-description { font-size: 15px; }
+      .choice-title { font-size: 20px; } .choice-description { font-size: 15px; }
       .continue-button { font-size: 20px; padding: 18px 50px; }
     }
   </style>
   <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
+</head>
+<body>
   <main class="container">
-   <div class="header">
-    <h1 class="title" id="mainTitle">Hva ønsker dere å følge med på i budsjettet?</h1>
-    <p class="description" id="descriptionText">Velg om dere vil holde oversikt kun over mat, eller også andre husholdningsutgifter som vaskemidler, hygieneprodukter og lignende.</p>
-   </div>
-   <div class="choices-section">
-    <div class="choice-grid">
-     <div class="choice-card" data-choice="food-only">
-      <div class="check-icon">✓</div>
-      <span class="choice-icon">🍎</span>
-      <h3 class="choice-title" id="foodOnlyTitle">Kun mat</h3>
-      <p class="choice-description" id="foodOnlyDesc">Perfekt for dere som kun vil følge matinnkjøp.</p>
-     </div>
-     <div class="choice-card" data-choice="food-household">
-      <div class="check-icon">✓</div>
-      <span class="choice-icon">🏠</span>
-      <h3 class="choice-title" id="foodHouseholdTitle">Mat + husholdning</h3>
-      <p class="choice-description" id="foodHouseholdDesc">Inkluder også vask, hygiene og husholdningsvarer.</p>
-     </div>
+    <div class="header">
+      <h1 class="title" id="mainTitle">Hva ønsker dere å følge med på i budsjettet?</h1>
+      <p class="description" id="descriptionText">Velg om dere vil holde oversikt kun over mat, eller også andre husholdningsutgifter som vaskemidler, hygieneprodukter og lignende.</p>
     </div>
-   </div>
-   <div class="button-section">
-     <button class="continue-button" id="continueButton">Fortsett</button> <br>
-     <button class="back-button" id="backButton">Tilbake</button>
-   </div>
+
+    <div class="choices-section">
+      <div class="choice-grid">
+        <div class="choice-card" data-choice="food-only">
+          <div class="check-icon">✓</div>
+          <span class="choice-icon">🍎</span>
+          <h3 class="choice-title" id="foodOnlyTitle">Kun mat</h3>
+          <p class="choice-description" id="foodOnlyDesc">Perfekt for dere som kun vil følge matinnkjøp.</p>
+        </div>
+        <div class="choice-card" data-choice="food-household">
+          <div class="check-icon">✓</div>
+          <span class="choice-icon">🏠</span>
+          <h3 class="choice-title" id="foodHouseholdTitle">Mat + husholdning</h3>
+          <p class="choice-description" id="foodHouseholdDesc">Inkluder også vask, hygiene og husholdningsvarer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="button-section">
+      <button class="continue-button" id="continueButton">Fortsett</button><br>
+      <button class="back-button" id="backButton">Tilbake</button>
+    </div>
   </main>
 
   <script>
+    // ===== Supabase init + auth guard =====
+    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    (async () => {
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) location.href = '/innlogging.html';
+    })();
+
+    // ===== Element SDK konfig =====
     const defaultConfig = {
       background_color: "#f8fffe",
       surface_color: "#ffffff",
@@ -277,8 +148,9 @@
       const customFont = config.font_family || defaultConfig.font_family;
       const baseSize = config.font_size || defaultConfig.font_size;
 
-      document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor, -2)} 100%)`;
-      
+      document.body.style.background =
+        `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor, -2)} 100%)`;
+
       const titleElement = document.getElementById('mainTitle');
       titleElement.textContent = config.main_title || defaultConfig.main_title;
       titleElement.style.color = textColor;
@@ -320,8 +192,7 @@
       backButton.textContent = config.back_button_text || defaultConfig.back_button_text;
       backButton.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
 
-      const choiceCards = document.querySelectorAll('.choice-card');
-      choiceCards.forEach(card => {
+      document.querySelectorAll('.choice-card').forEach(card => {
         card.style.background = surfaceColor;
         card.style.borderColor = adjustColor(primaryActionColor, 60);
         if (card.classList.contains('selected')) {
@@ -330,12 +201,16 @@
         }
       });
 
-      const checkIcons = document.querySelectorAll('.check-icon');
-      checkIcons.forEach(icon => { icon.style.background = primaryActionColor; });
+      document.querySelectorAll('.check-icon').forEach(icon => {
+        icon.style.background = primaryActionColor;
+      });
 
       if (selectedChoice) {
-        continueButton.style.background = `linear-gradient(135deg, ${primaryActionColor} 0%, ${adjustColor(primaryActionColor, -10)} 100%)`;
+        continueButton.style.background =
+          `linear-gradient(135deg, ${primaryActionColor} 0%, ${adjustColor(primaryActionColor, -10)} 100%)`;
         continueButton.classList.add('enabled');
+      } else {
+        continueButton.classList.remove('enabled');
       }
     }
 
@@ -351,15 +226,15 @@
     function mapToCapabilities(config) {
       return {
         recolorables: [
-          { get: () => config.background_color || defaultConfig.background_color, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ background_color: v }); } },
-          { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ surface_color: v }); } },
-          { get: () => config.text_color || defaultConfig.text_color, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ text_color: v }); } },
-          { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ primary_action_color: v }); } },
-          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ secondary_text_color: v }); } }
+          { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk?.setConfig({ background_color: v }) },
+          { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk?.setConfig({ surface_color: v }) },
+          { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk?.setConfig({ text_color: v }) },
+          { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: v => window.elementSdk?.setConfig({ primary_action_color: v }) },
+          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk?.setConfig({ secondary_text_color: v }) }
         ],
         borderables: [],
-        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ font_family: v }); } },
-        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: (v) => { if (window.elementSdk) window.elementSdk.setConfig({ font_size: v }); } }
+        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk?.setConfig({ font_family: v }) },
+        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk?.setConfig({ font_size: v }) }
       };
     }
 
@@ -376,44 +251,77 @@
       ]);
     }
 
-    // Forvalg fra localStorage (hvis bruker går frem/tilbake)
-    function restoreSelection() {
-      const saved = localStorage.getItem('trackingScope');
-      if (!saved) return;
-      const card = document.querySelector(`.choice-card[data-choice="${saved}"]`);
-      if (!card) return;
-      document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedChoice = saved;
-      const btn = document.getElementById('continueButton');
-      btn.classList.add('enabled');
+    // === Gjenopprett valg (DB -> localStorage fallback) ===
+    async function restoreSelection() {
+      try {
+        const { data: { session } } = await supa.auth.getSession();
+        let scope = null;
+
+        if (session) {
+          // Forutsetter kolonne "tracking_scope" i "members" (TEXT).
+          const { data, error } = await supa
+            .from('members')
+            .select('tracking_scope')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          if (!error && data && data.tracking_scope) scope = data.tracking_scope;
+        }
+
+        if (!scope) scope = localStorage.getItem('trackingScope');
+
+        if (scope) {
+          const card = document.querySelector(`.choice-card[data-choice="${scope}"]`);
+          if (card) {
+            document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedChoice = scope;
+            document.getElementById('continueButton').classList.add('enabled');
+          }
+        }
+      } catch (_) {
+        // Ignorer feil; fallback til localStorage allerede håndtert
+      }
     }
 
-    // Handle choice selection
+    // Velg kort
     document.querySelectorAll('.choice-card').forEach(card => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedChoice = card.dataset.choice;
-        const continueButton = document.getElementById('continueButton');
-        continueButton.classList.add('enabled');
-        if (window.elementSdk && window.elementSdk.config) onConfigChange(window.elementSdk.config);
+        const btn = document.getElementById('continueButton');
+        btn.classList.add('enabled');
+        if (window.elementSdk?.config) onConfigChange(window.elementSdk.config);
       });
     });
 
-    // Fortsett → lagre og gå til takk
-    document.getElementById('continueButton').addEventListener('click', () => {
+    // Fortsett → lagre valg (localStorage + valgfritt DB) og gå videre
+    document.getElementById('continueButton').addEventListener('click', async () => {
       if (!selectedChoice) return;
       const button = document.getElementById('continueButton');
       button.style.transform = 'scale(0.95)';
-      setTimeout(() => {
+
+      setTimeout(async () => {
         button.style.transform = '';
+
+        // Lokalt
         localStorage.setItem('trackingScope', selectedChoice);
+
+        // DB (valgfritt): oppdater "members.tracking_scope" om feltet finnes/RLS er satt
+        try {
+          const { data: { session } } = await supa.auth.getSession();
+          if (session) {
+            await supa.from('members')
+              .update({ tracking_scope: selectedChoice })
+              .eq('user_id', session.user.id);
+          }
+        } catch (_) { /* ignorer DB-feil, lokalt valg består */ }
+
         location.href = 'takk.html';
       }, 150);
     });
 
-    // Tilbake → onboarding2
+    // Tilbake
     document.getElementById('backButton').addEventListener('click', () => {
       const button = document.getElementById('backButton');
       button.style.transform = 'scale(0.95)';
@@ -424,7 +332,7 @@
     });
 
     // Init
-    restoreSelection();
+    await restoreSelection();
     if (window.elementSdk) {
       window.elementSdk.init({
         defaultConfig,
@@ -435,7 +343,7 @@
     }
   </script>
 
-  <!-- Canva/Cloudflare snippet beholdt -->
+  <!-- (valgfri) Cloudflare-snutt beholdt -->
   <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be799e5643a41f',t:'MTc2MjcwMzUyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
- </body>
+</body>
 </html>
