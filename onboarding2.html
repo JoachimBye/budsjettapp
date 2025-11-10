@@ -323,15 +323,13 @@
       });
       localStorage.removeItem('budget_total');
 
-      /* (VALGFRITT) Lagre budsjettet i DB per bruker/husstand dersom du har en kolonne
-         f.eks. members.default_weekly_budget INT og/eller household_budgets-tabell.
       const { data: { session } } = await supa.auth.getSession();
       if (session) {
         await supa.from('members')
           .update({ default_weekly_budget: budgetInt })
           .eq('user_id', session.user.id);
       }
-      */
+      
 
       // 4) Videre i onboarding
       location.href = 'onboarding3.html';
