@@ -1,343 +1,241 @@
 <!doctype html>
 <html lang="no">
- <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Husholdningsbudsjett - Onboarding</title>
+
+  <!-- Element SDK -->
   <script src="/_sdk/element_sdk.js"></script>
-  <style>
-    body {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    html {
-      height: 100%;
-    }
-
-    .container {
-      width: 90%;
-      max-width: 700px;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .header {
-      margin-bottom: 50px;
-      animation: fadeInDown 0.8s ease-out;
-    }
-
-    .title {
-      font-size: 32px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 20px;
-      line-height: 1.3;
-    }
-
-    .description {
-      font-size: 18px;
-      color: #5a7a6d;
-      line-height: 1.6;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    .selection-area {
-      margin-bottom: 60px;
-      animation: fadeInUp 0.8s ease-out 0.2s both;
-    }
-
-    .person-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 20px;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-
-    .person-button {
-      background: white;
-      border: 3px solid #e8f5f0;
-      border-radius: 20px;
-      padding: 25px 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 16px;
-      font-weight: 600;
-      color: #5a7a6d;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      min-height: 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .person-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15);
-      border-color: #4caf50;
-    }
-
-    .person-button.selected {
-      background: #4caf50;
-      border-color: #4caf50;
-      color: white;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
-    }
-
-    .person-button .emoji {
-      font-size: 24px;
-      margin-bottom: 4px;
-    }
-
-    .person-button .number {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .continue-section {
-      animation: fadeInUp 0.8s ease-out 0.4s both;
-    }
-
-    .continue-button {
-      background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-      color: white;
-      border: none;
-      padding: 20px 60px;
-      font-size: 22px;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
-      transition: all 0.3s ease;
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .continue-button.enabled {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .continue-button.enabled:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 28px rgba(76, 175, 80, 0.4);
-      background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-    }
-
-    .continue-button.enabled:active {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
-    }
-
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 768px) {
-      .title { font-size: 26px; }
-      .description { font-size: 16px; }
-      .person-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; }
-      .person-button { padding: 20px 10px; min-height: 70px; }
-      .continue-button { font-size: 20px; padding: 18px 50px; }
-    }
-
-    @media (max-width: 480px) {
-      .person-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- Supabase JS v2 (AUTH/DB) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
+
+  <style>
+    body{
+      box-sizing:border-box;margin:0;padding:0;height:100%;
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
+      display:flex;align-items:center;justify-content:center;
+    }
+    html{height:100%}
+    .container{width:90%;max-width:700px;text-align:center;padding:40px}
+    .header{margin-bottom:50px;animation:fadeInDown .8s ease-out}
+    .title{font-size:32px;font-weight:700;color:#2d5f4d;margin-bottom:20px;line-height:1.3}
+    .description{font-size:18px;color:#5a7a6d;line-height:1.6;max-width:500px;margin:0 auto}
+    .selection-area{margin-bottom:60px;animation:fadeInUp .8s ease-out .2s both}
+    .person-grid{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));
+      gap:20px;max-width:600px;margin:0 auto;padding:0 20px
+    }
+    .person-button{
+      background:#fff;border:3px solid #e8f5f0;border-radius:20px;
+      padding:25px 15px;cursor:pointer;transition:all .3s ease;
+      font-size:16px;font-weight:600;color:#5a7a6d;min-height:80px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,.05)
+    }
+    .person-button:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(76,175,80,.15);border-color:#4caf50}
+    .person-button.selected{
+      background:#4caf50;border-color:#4caf50;color:#fff;transform:translateY(-3px);
+      box-shadow:0 8px 20px rgba(76,175,80,.3)
+    }
+    .person-button .emoji{font-size:24px;margin-bottom:4px}
+    .person-button .number{font-size:18px;font-weight:700}
+    .continue-section{animation:fadeInUp .8s ease-out .4s both}
+    .continue-button{
+      background:linear-gradient(135deg,#4caf50 0%,#45a049 100%);
+      color:#fff;border:none;padding:20px 60px;font-size:22px;font-weight:600;border-radius:50px;
+      cursor:pointer;box-shadow:0 8px 20px rgba(76,175,80,.3);transition:all .3s ease;
+      opacity:.6;pointer-events:none
+    }
+    .continue-button.enabled{opacity:1;pointer-events:auto}
+    .continue-button.enabled:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(76,175,80,.4);background:linear-gradient(135deg,#45a049 0%,#3d8b40 100%)}
+    .continue-button.enabled:active{transform:translateY(-1px);box-shadow:0 6px 16px rgba(76,175,80,.3)}
+    @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    @media (max-width:768px){
+      .title{font-size:26px}.description{font-size:16px}
+      .person-grid{grid-template-columns:repeat(3,1fr);gap:15px}
+      .person-button{padding:20px 10px;min-height:70px}
+      .continue-button{font-size:20px;padding:18px 50px}
+    }
+    @media (max-width:480px){.person-grid{grid-template-columns:repeat(2,1fr)}}
+    @view-transition{navigation:auto}
+  </style>
+</head>
+<body>
   <main class="container">
-   <div class="header">
-    <h1 class="title" id="mainTitle">Hvor mange personer er dere i husholdningen?</h1>
-    <p class="description" id="descriptionText">Velg antall personer som bor i husholdningen. Dette hjelper oss å foreslå et realistisk ukesbudsjett.</p>
-   </div>
-
-   <div class="selection-area">
-    <div class="person-grid">
-      <button class="person-button" data-count="1"><div class="emoji">👤</div><div class="number">1</div></button>
-      <button class="person-button" data-count="2"><div class="emoji">👥</div><div class="number">2</div></button>
-      <button class="person-button" data-count="3"><div class="emoji">👥</div><div class="number">3</div></button>
-      <button class="person-button" data-count="4"><div class="emoji">👥</div><div class="number">4</div></button>
-      <button class="person-button" data-count="5"><div class="emoji">👥</div><div class="number">5</div></button>
-      <button class="person-button" data-count="6+"><div class="emoji">👥</div><div class="number">6+</div></button>
+    <div class="header">
+      <h1 class="title" id="mainTitle">Hvor mange personer er dere i husholdningen?</h1>
+      <p class="description" id="descriptionText">Velg antall personer som bor i husholdningen. Dette hjelper oss å foreslå et realistisk ukesbudsjett.</p>
     </div>
-   </div>
 
-   <div class="continue-section">
-     <button class="continue-button" id="continueButton">Fortsett</button>
-   </div>
+    <div class="selection-area">
+      <div class="person-grid">
+        <button class="person-button" data-count="1"><div class="emoji">👤</div><div class="number">1</div></button>
+        <button class="person-button" data-count="2"><div class="emoji">👥</div><div class="number">2</div></button>
+        <button class="person-button" data-count="3"><div class="emoji">👥</div><div class="number">3</div></button>
+        <button class="person-button" data-count="4"><div class="emoji">👥</div><div class="number">4</div></button>
+        <button class="person-button" data-count="5"><div class="emoji">👥</div><div class="number">5</div></button>
+        <button class="person-button" data-count="6+"><div class="emoji">👥</div><div class="number">6+</div></button>
+      </div>
+    </div>
+
+    <div class="continue-section">
+      <button class="continue-button" id="continueButton">Fortsett</button>
+    </div>
   </main>
 
   <script>
+    // === Supabase init (samme prosjekt som de andre sidene) ===================
+    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // === Element SDK default-konfig ==========================================
     const defaultConfig = {
-      background_color: "#f8fffe",
-      surface_color: "#ffffff",
-      text_color: "#2d5f4d",
-      primary_action_color: "#4caf50",
-      secondary_text_color: "#5a7a6d",
-      font_family: "Inter",
-      font_size: 18,
-      main_title: "Hvor mange personer er dere i husholdningen?",
-      description_text: "Velg antall personer som bor i husholdningen. Dette hjelper oss å foreslå et realistisk ukesbudsjett.",
-      continue_button_text: "Fortsett"
+      background_color:"#f8fffe", surface_color:"#ffffff", text_color:"#2d5f4d",
+      primary_action_color:"#4caf50", secondary_text_color:"#5a7a6d",
+      font_family:"Inter", font_size:18,
+      main_title:"Hvor mange personer er dere i husholdningen?",
+      description_text:"Velg antall personer som bor i husholdningen. Dette hjelper oss å foreslå et realistisk ukesbudsjett.",
+      continue_button_text:"Fortsett"
     };
 
     let selectedCount = null;
+    function adjustColor(color,percent){
+      const num=parseInt(color.replace('#',''),16),amt=Math.round(2.55*percent);
+      const R=Math.max(0,Math.min(255,(num>>16)+amt));
+      const G=Math.max(0,Math.min(255,(num>>8&0x00FF)+amt));
+      const B=Math.max(0,Math.min(255,(num&0x0000FF)+amt));
+      return '#'+(0x1000000+R*0x10000+G*0x100+B).toString(16).slice(1);
+    }
 
-    async function onConfigChange(config) {
-      const backgroundColor = config.background_color || defaultConfig.background_color;
-      const surfaceColor = config.surface_color || defaultConfig.surface_color;
-      const textColor = config.text_color || defaultConfig.text_color;
-      const primaryActionColor = config.primary_action_color || defaultConfig.primary_action_color;
-      const secondaryTextColor = config.secondary_text_color || defaultConfig.secondary_text_color;
-      const customFont = config.font_family || defaultConfig.font_family;
-      const baseSize = config.font_size || defaultConfig.font_size;
+    async function onConfigChange(config){
+      const bg=config.background_color||defaultConfig.background_color;
+      const surface=config.surface_color||defaultConfig.surface_color;
+      const text=config.text_color||defaultConfig.text_color;
+      const primary=config.primary_action_color||defaultConfig.primary_action_color;
+      const secondary=config.secondary_text_color||defaultConfig.secondary_text_color;
+      const font=config.font_family||defaultConfig.font_family;
+      const base=config.font_size||defaultConfig.font_size;
 
-      document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor, -2)} 100%)`;
-      
-      const titleElement = document.getElementById('mainTitle');
-      titleElement.textContent = config.main_title || defaultConfig.main_title;
-      titleElement.style.color = textColor;
-      titleElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      titleElement.style.fontSize = `${baseSize * 1.78}px`;
+      document.body.style.background=`linear-gradient(135deg, ${bg} 0%, ${adjustColor(bg,-2)} 100%)`;
 
-      const descElement = document.getElementById('descriptionText');
-      descElement.textContent = config.description_text || defaultConfig.description_text;
-      descElement.style.color = secondaryTextColor;
-      descElement.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      descElement.style.fontSize = `${baseSize}px`;
+      const t=document.getElementById('mainTitle');
+      t.textContent=config.main_title||defaultConfig.main_title;
+      t.style.color=text; t.style.fontFamily=`${font}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      t.style.fontSize=`${base*1.78}px`;
 
-      const continueButton = document.getElementById('continueButton');
-      continueButton.textContent = config.continue_button_text || defaultConfig.continue_button_text;
-      continueButton.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      continueButton.style.fontSize = `${baseSize * 1.22}px`;
+      const d=document.getElementById('descriptionText');
+      d.textContent=config.description_text||defaultConfig.description_text;
+      d.style.color=secondary; d.style.fontFamily=`${font}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      d.style.fontSize=`${base}px`;
 
-      // Update person buttons
-      const personButtons = document.querySelectorAll('.person-button');
-      personButtons.forEach(button => {
-        button.style.background = surfaceColor;
-        button.style.color = secondaryTextColor;
-        button.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-        
-        if (button.classList.contains('selected')) {
-          button.style.background = primaryActionColor;
-          button.style.borderColor = primaryActionColor;
-          button.style.color = 'white';
-        } else {
-          button.style.borderColor = adjustColor(primaryActionColor, 60);
-        }
+      const cta=document.getElementById('continueButton');
+      cta.textContent=config.continue_button_text||defaultConfig.continue_button_text;
+      cta.style.fontFamily=`${font}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      cta.style.fontSize=`${base*1.22}px`;
+
+      document.querySelectorAll('.person-button').forEach(b=>{
+        b.style.background=surface; b.style.color=secondary; b.style.borderColor=adjustColor(primary,60);
+        if(b.classList.contains('selected')){ b.style.background=primary; b.style.borderColor=primary; b.style.color='#fff'; }
       });
-
-      // Update continue button colors
-      if (selectedCount) {
-        continueButton.style.background = `linear-gradient(135deg, ${primaryActionColor} 0%, ${adjustColor(primaryActionColor, -10)} 100%)`;
-      }
     }
 
-    function adjustColor(color, percent) {
-      const num = parseInt(color.replace('#', ''), 16);
-      const amt = Math.round(2.55 * percent);
-      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-      const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
-      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-      return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-    }
-
-    function mapToCapabilities(config) {
+    function mapToCapabilities(config){
       return {
-        recolorables: [
-          { get: () => config.background_color || defaultConfig.background_color,
-            set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ background_color: value }); } },
-          { get: () => config.surface_color || defaultConfig.surface_color,
-            set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ surface_color: value }); } },
-          { get: () => config.text_color || defaultConfig.text_color,
-            set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ text_color: value }); } },
-          { get: () => config.primary_action_color || defaultConfig.primary_action_color,
-            set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ primary_action_color: value }); } },
-          { get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
-            set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ secondary_text_color: value }); } },
+        recolorables:[
+          {get:()=>config.background_color||defaultConfig.background_color,set:v=>window.elementSdk?.setConfig({background_color:v})},
+          {get:()=>config.surface_color||defaultConfig.surface_color,set:v=>window.elementSdk?.setConfig({surface_color:v})},
+          {get:()=>config.text_color||defaultConfig.text_color,set:v=>window.elementSdk?.setConfig({text_color:v})},
+          {get:()=>config.primary_action_color||defaultConfig.primary_action_color,set:v=>window.elementSdk?.setConfig({primary_action_color:v})},
+          {get:()=>config.secondary_text_color||defaultConfig.secondary_text_color,set:v=>window.elementSdk?.setConfig({secondary_text_color:v})},
         ],
-        borderables: [],
-        fontEditable: {
-          get: () => config.font_family || defaultConfig.font_family,
-          set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ font_family: value }); }
-        },
-        fontSizeable: {
-          get: () => config.font_size || defaultConfig.font_size,
-          set: (value) => { if (window.elementSdk) window.elementSdk.setConfig({ font_size: value }); }
-        }
+        borderables:[],
+        fontEditable:{get:()=>config.font_family||defaultConfig.font_family,set:v=>window.elementSdk?.setConfig({font_family:v})},
+        fontSizeable:{get:()=>config.font_size||defaultConfig.font_size,set:v=>window.elementSdk?.setConfig({font_size:v})}
       };
     }
-
-    function mapToEditPanelValues(config) {
+    function mapToEditPanelValues(config){
       return new Map([
-        ["main_title", config.main_title || defaultConfig.main_title],
-        ["description_text", config.description_text || defaultConfig.description_text],
-        ["continue_button_text", config.continue_button_text || defaultConfig.continue_button_text]
+        ["main_title",config.main_title||defaultConfig.main_title],
+        ["description_text",config.description_text||defaultConfig.description_text],
+        ["continue_button_text",config.continue_button_text||defaultConfig.continue_button_text]
       ]);
     }
 
-    // Handle person selection
-    document.querySelectorAll('.person-button').forEach(button => {
-      button.addEventListener('click', () => {
-        // Remove selection from all buttons
-        document.querySelectorAll('.person-button').forEach(btn => {
-          btn.classList.remove('selected');
-        });
-        
-        // Add selection to clicked button
-        button.classList.add('selected');
-        selectedCount = button.dataset.count;
-        
-        // Enable continue button
-        const continueButton = document.getElementById('continueButton');
-        continueButton.classList.add('enabled');
-        
-        // Trigger config update to apply colors
-        if (window.elementSdk && window.elementSdk.config) {
-          onConfigChange(window.elementSdk.config);
-        }
-      });
-    });
+    // === Auth-guard ==========================================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data:{ session } } = await supa.auth.getSession();
+      if(!session){ location.href='/innlogging.html'; return; }
 
-    // Handle continue button (ENDRET: lagre og gå til neste side)
-    document.getElementById('continueButton').addEventListener('click', () => {
-      if (selectedCount) {
-        const btn = document.getElementById('continueButton');
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          btn.style.transform = '';
-          // Lagre valget og gå videre
-          localStorage.setItem('householdCount', selectedCount);
-          location.href = 'onboarding2.html';
-        }, 150);
+      // Gjenopprett tidligere valg (hvis bruker går frem/tilbake)
+      const saved = localStorage.getItem('householdCount');
+      if (saved) {
+        selectedCount = saved;
+        const btn = document.querySelector(`.person-button[data-count="${saved}"]`) ||
+                    (saved === '6' ? document.querySelector(`.person-button[data-count="6+"]`) : null);
+        if (btn) {
+          btn.classList.add('selected');
+          document.getElementById('continueButton').classList.add('enabled');
+        }
       }
     });
 
-    if (window.elementSdk) {
+    // === UI-hendelser ========================================================
+    document.querySelectorAll('.person-button').forEach(button=>{
+      button.addEventListener('click',()=>{
+        document.querySelectorAll('.person-button').forEach(b=>b.classList.remove('selected'));
+        button.classList.add('selected');
+        selectedCount = button.dataset.count;
+        document.getElementById('continueButton').classList.add('enabled');
+
+        if(window.elementSdk && window.elementSdk.config){ onConfigChange(window.elementSdk.config); }
+      });
+    });
+
+    // === Lagre valg (DB + localStorage) og gå videre =========================
+    document.getElementById('continueButton').addEventListener('click', async ()=>{
+      if(!selectedCount) return;
+
+      const btn = document.getElementById('continueButton');
+      btn.style.transform='scale(0.95)';
+
+      // Normaliser "6+" -> 6 (som tall)
+      const normalized = (selectedCount === '6+') ? '6' : String(selectedCount);
+      localStorage.setItem('householdCount', normalized);
+
+      // Prøv å lagre i DB (members.household_size), men ikke stopp flyt hvis det feiler
+      try{
+        const { data:{ session } } = await supa.auth.getSession();
+        if(session){
+          const sizeNumber = parseInt(normalized, 10);
+          // Forsøk direkte UPDATE; krever kolonnen "household_size" + RLS-policy
+          const { error } = await supa
+            .from('members')
+            .update({ household_size: sizeNumber })
+            .eq('user_id', session.user.id);
+
+          if (error) {
+            // Ikke fatal – vi fortsetter onboarding og bruker localStorage som fallback
+            console.warn('Kunne ikke lagre household_size i DB:', error.message || error);
+          }
+        }
+      } catch(e){
+        console.warn('DB-oppdatering feilet:', e?.message || e);
+      } finally{
+        setTimeout(()=>{ btn.style.transform=''; location.href='onboarding2.html'; },150);
+      }
+    });
+
+    // === Element SDK init ====================================================
+    if(window.elementSdk){
       window.elementSdk.init({
         defaultConfig,
         onConfigChange,
@@ -346,5 +244,5 @@
       });
     }
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be6f2b139da41f',t:'MTc2MjcwMzA5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
