@@ -154,34 +154,45 @@
     location.href = '/innlogging.html';
   });
 
-  // Route-vakt
+  // Route-vakt (robust mot RLS/DB-feil)
   (async () => {
     const { data:{ session } } = await supa.auth.getSession();
     if (!session) { location.href = '/innlogging.html'; return; }
 
-    // Sjekk at onboarding er ferdig
+    // Lokal fallback hvis DB ikke kan nås
+    const localOnb = localStorage.getItem('onboarding_done') === '1' || localStorage.getItem('setupComplete') === 'true';
+
     try {
       const { data: m, error } = await supa
         .from('members')
         .select('onboarding_done')
         .eq('user_id', session.user.id)
-        .single();
-      if (error || !m?.onboarding_done) {
+        .maybeSingle();
+
+      const done = !!(m?.onboarding_done);
+
+      // Kun redirect dersom vi faktisk vet at onboarding IKKE er gjort,
+      // og vi heller ikke har lokalt flagg.
+      if (!done && !localOnb) {
         location.href = '/onboarding1.html';
         return;
       }
-    } catch(_) {}
+    } catch(_) {
+      // DB utilgjengelig → stol på lokal status (ingen redirect)
+    }
 
-    // Sikre at aktiv uke er satt (pinned), ellers sett denne ukens mandag
+    // Sett aktiv uke hvis mangler (mandag 12:00, lokal tid)
     if (!localStorage.getItem('activeWeekISO')) {
       localStorage.setItem('activeWeekISO', mondayAtNoon().toISOString().slice(0,10));
     }
 
-    // Hent budsjett fra DB (hvis finnes), cache lokalt, og tegn UI
+    // Prøv å hente budsjett fra DB (ikke kritisk)
     await refreshBudgetFromDB();
+
+    // Tegn UI
     init();
 
-    // Reager på utlogging i bakgrunnen
+    // Reager på utlogging
     supa.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') location.href = '/innlogging.html';
     });
@@ -461,10 +472,11 @@
   });
 
   // ---------- Init / refresh ----------
-  async function init() {
+  function init() {
     setWeekHeader();
     recalcFromStorage();
   }
+  window.addEventListener('DOMContentLoaded', init);
   window.addEventListener('pageshow', init);
 
   if (window.elementSdk) {
