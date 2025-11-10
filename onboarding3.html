@@ -36,9 +36,11 @@
       cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       position: relative; min-height: 160px; display: flex; flex-direction: column;
       align-items: center; justify-content: center; text-align: center;
+      outline: none;
     }
     .choice-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.15); border-color: #4caf50; }
     .choice-card.selected { background: #f8fff9; border-color: #4caf50; transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.25); }
+    .choice-card:focus-visible { box-shadow: 0 0 0 3px rgba(76,175,80,.35); }
 
     .choice-icon { font-size: 48px; margin-bottom: 15px; display: block; }
     .choice-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 12px; }
@@ -90,13 +92,13 @@
 
     <div class="choices-section">
       <div class="choice-grid">
-        <div class="choice-card" data-choice="food-only" role="button" tabindex="0">
+        <div class="choice-card" data-choice="food-only" role="button" tabindex="0" aria-pressed="false">
           <div class="check-icon">✓</div>
           <span class="choice-icon">🍎</span>
           <h3 class="choice-title" id="foodOnlyTitle">Kun mat</h3>
           <p class="choice-description" id="foodOnlyDesc">Perfekt for dere som kun vil følge matinnkjøp.</p>
         </div>
-        <div class="choice-card" data-choice="food-household" role="button" tabindex="0">
+        <div class="choice-card" data-choice="food-household" role="button" tabindex="0" aria-pressed="false">
           <div class="check-icon">✓</div>
           <span class="choice-icon">🏠</span>
           <h3 class="choice-title" id="foodHouseholdTitle">Mat + husholdning</h3>
@@ -262,7 +264,6 @@
         let scope = null;
 
         if (session) {
-          // Forutsetter kolonne "tracking_scope" i "members"
           const { data, error } = await supa
             .from('members')
             .select('tracking_scope')
@@ -278,20 +279,27 @@
           if (card) {
             document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+            card.setAttribute('aria-pressed','true');
             selectedChoice = scope;
-            document.getElementById('continueButton').classList.add('enabled');
+            const cta = document.getElementById('continueButton');
+            cta.classList.add('enabled');
+            if (window.elementSdk?.config) onConfigChange(window.elementSdk.config);
           }
         }
       } catch (_) {
-        // Ignorer feil
+        /* ignorer feil */
       }
     }
 
     // Velg kort (klikk + Enter/Space for tastatur)
     document.querySelectorAll('.choice-card').forEach(card => {
       const select = () => {
-        document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.choice-card').forEach(c => {
+          c.classList.remove('selected');
+          c.setAttribute('aria-pressed','false');
+        });
         card.classList.add('selected');
+        card.setAttribute('aria-pressed','true');
         selectedChoice = card.dataset.choice;
         const btn = document.getElementById('continueButton');
         btn.classList.add('enabled');
@@ -337,7 +345,7 @@
       }, 150);
     });
 
-    // ===== Init (✅ ikke toppnivå await) =====
+    // ===== Init (ingen toppnivå await) =====
     (async () => {
       await restoreSelection();
       if (window.elementSdk) {
