@@ -97,7 +97,7 @@
     </div>
 
     <div class="recommendation">
-      <p class="recommendation-text" id="recommendationText">Anbefalt for 2 personer: ca. 2 800–3 500 kr per uke.</p>
+      <p class="recommendation-text" id="recommendationText">Anbefalt for 2 personer: ca. 1 500–2 200 kr per uke.</p>
     </div>
 
     <div class="button-section">
@@ -127,7 +127,7 @@
     font_size: 18,
     main_title: "Hva ønsker dere at ukens matbudsjett skal være?",
     description_text: "Velg hvor mye dere vil bruke totalt på mat denne uken. Budsjettet kan justeres senere.",
-    recommendation_text: "Anbefalt for 2 personer: ca. 2 800–3 500 kr per uke.",
+    recommendation_text: "Anbefalt for 2 personer: ca. 1 500–2 200 kr per uke.",
     continue_button_text: "Fortsett",
     back_button_text: "Tilbake"
   };
@@ -136,24 +136,37 @@
   const householdRaw = (localStorage.getItem('householdCount') || '2').replace('+','');
   const householdCount = Math.max(1, parseInt(householdRaw, 10) || 2);
 
-  const minBudget = 1000;
+  // Lavere og mer realistiske grenser
+  const minBudget = 800;     // var 1000
   const maxBudget = 8000;
   const step = 100;
 
+  // Mandag kl. 12:00 lokal tid → ISO (UTC) → YYYY-MM-DD
   function getCurrentWeekMondayISO(dateObj = new Date()) {
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
     const day = (d.getDay() + 6) % 7; // 0=mandag
     d.setDate(d.getDate() - day);
     d.setHours(12,0,0,0);
-    return d.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    return d.toISOString().slice(0, 10);
   }
 
+  // NY: Lavere anbefalinger med skalaeffekt (nokså nøkternt nivå)
+  // 1: 900–1300, 2: 1500–2200, 3: 2000–2800, 4: 2400–3300, 5: 2800–3800, 6: 3200–4300
+  // 7+: +400 (low) / +500 (high) per ekstra person
   function recommendedRange(n) {
-    const low = 1700 + (n - 1) * 800;
-    const high = 2300 + (n - 1) * 1200;
-    const rLow = Math.round(low / 100) * 100;
-    const rHigh = Math.round(high / 100) * 100;
-    return [rLow, rHigh];
+    const presets = {
+      1: [ 900, 1300 ],
+      2: [ 1500, 2200 ],
+      3: [ 2000, 2800 ],
+      4: [ 2400, 3300 ],
+      5: [ 2800, 3800 ],
+      6: [ 3200, 4300 ],
+    };
+    if (n <= 6) return presets[n];
+
+    const extra = n - 6;
+    const base = presets[6];
+    return [ base[0] + extra * 400, base[1] + extra * 500 ];
   }
 
   function recommendedMid(n) {
@@ -181,6 +194,7 @@
       `Anbefalt for ${householdCount} ${householdCount === 1 ? 'person' : 'personer'}: ca. ${formatBudget(low)}–${formatBudget(high)} kr per uke.`;
   }
 
+  // Startverdi: lagret verdi eller midt i anbefalt intervall (avrundet til nærmeste 100)
   let currentBudget = (() => {
     const saved = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
     if (!isNaN(saved) && saved >= minBudget && saved <= maxBudget) return saved;
@@ -323,13 +337,12 @@
       });
       localStorage.removeItem('budget_total');
 
+      // (Hvis tabellen finnes og RLS-policy er satt)
       const { data: { session } } = await supa.auth.getSession();
       if (session) {
-        await supa.from('members')
-          .update({ default_weekly_budget: budgetInt })
-          .eq('user_id', session.user.id);
+        await supa.from('household_budgets')
+          .upsert({ user_id: session.user.id, week_start: mondayISO, amount: budgetInt });
       }
-      
 
       // 4) Videre i onboarding
       location.href = 'onboarding3.html';
