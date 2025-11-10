@@ -17,38 +17,39 @@
 
   <style>
     body {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      height: 100%;
+      box-sizing: border-box; margin: 0; padding: 0; height: 100%;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
     html { height: 100%; }
     .container { width: 90%; max-width: 700px; text-align: center; padding: 40px; }
     .header { margin-bottom: 50px; animation: fadeInDown 0.8s ease-out; }
     .title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin-bottom: 20px; line-height: 1.3; }
     .description { font-size: 18px; color: #5a7a6d; line-height: 1.6; max-width: 550px; margin: 0 auto; }
+
     .choices-section { margin-bottom: 50px; animation: fadeInUp 0.8s ease-out 0.2s both; }
     .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 600px; margin: 0 auto; }
+
     .choice-card {
       background: white; border: 3px solid #e8f5f0; border-radius: 20px; padding: 30px 25px;
       cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      position: relative; min-height: 160px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+      position: relative; min-height: 160px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
     }
     .choice-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.15); border-color: #4caf50; }
     .choice-card.selected { background: #f8fff9; border-color: #4caf50; transform: translateY(-5px); box-shadow: 0 8px 20px rgba(76,175,80,0.25); }
+
     .choice-icon { font-size: 48px; margin-bottom: 15px; display: block; }
     .choice-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 12px; }
     .choice-description { font-size: 16px; color: #5a7a6d; line-height: 1.4; margin: 0; }
+
     .check-icon {
       position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; background: #4caf50;
       border-radius: 50%; display: none; align-items: center; justify-content: center; color: white; font-size: 16px; font-weight: bold;
     }
     .choice-card.selected .check-icon { display: flex; animation: checkPop 0.3s ease-out; }
+
     .button-section { animation: fadeInUp 0.8s ease-out 0.4s both; }
     .continue-button {
       background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; border: none; padding: 20px 60px; font-size: 22px;
@@ -58,14 +59,17 @@
     .continue-button.enabled { opacity: 1; pointer-events: auto; }
     .continue-button.enabled:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(76,175,80,0.4); background: linear-gradient(135deg,#45a049 0%,#3d8b40 100%); }
     .continue-button.enabled:active { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(76,175,80,0.3); }
+
     .back-button {
       background: transparent; color: #8a9a8d; border: 2px solid #e0e7e3; padding: 15px 40px; font-size: 18px;
       font-weight: 500; border-radius: 30px; cursor: pointer; transition: all 0.3s ease;
     }
     .back-button:hover { background: #f5f8f6; border-color: #c8d4cb; color: #5a7a6d; }
+
     @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes checkPop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+
     @media (max-width: 768px) {
       .title { font-size: 26px; } .description { font-size: 16px; }
       .choice-grid { grid-template-columns: 1fr; gap: 20px; }
@@ -74,8 +78,8 @@
       .choice-title { font-size: 20px; } .choice-description { font-size: 15px; }
       .continue-button { font-size: 20px; padding: 18px 50px; }
     }
+    @view-transition { navigation: auto; }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
 </head>
 <body>
   <main class="container">
@@ -86,13 +90,13 @@
 
     <div class="choices-section">
       <div class="choice-grid">
-        <div class="choice-card" data-choice="food-only">
+        <div class="choice-card" data-choice="food-only" role="button" tabindex="0">
           <div class="check-icon">✓</div>
           <span class="choice-icon">🍎</span>
           <h3 class="choice-title" id="foodOnlyTitle">Kun mat</h3>
           <p class="choice-description" id="foodOnlyDesc">Perfekt for dere som kun vil følge matinnkjøp.</p>
         </div>
-        <div class="choice-card" data-choice="food-household">
+        <div class="choice-card" data-choice="food-household" role="button" tabindex="0">
           <div class="check-icon">✓</div>
           <span class="choice-icon">🏠</span>
           <h3 class="choice-title" id="foodHouseholdTitle">Mat + husholdning</h3>
@@ -138,6 +142,15 @@
     };
 
     let selectedChoice = null;
+
+    function adjustColor(color, percent) {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+      const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+      return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+    }
 
     async function onConfigChange(config) {
       const backgroundColor = config.background_color || defaultConfig.background_color;
@@ -214,15 +227,6 @@
       }
     }
 
-    function adjustColor(color, percent) {
-      const num = parseInt(color.replace('#', ''), 16);
-      const amt = Math.round(2.55 * percent);
-      const R = Math.max(0, Math.min(255, (num >> 16) + amt));
-      const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
-      const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-      return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
-    }
-
     function mapToCapabilities(config) {
       return {
         recolorables: [
@@ -254,11 +258,11 @@
     // === Gjenopprett valg (DB -> localStorage fallback) ===
     async function restoreSelection() {
       try {
-        const { data: { session } } = await supa.auth.getSession();
+        const { data: { session} } = await supa.auth.getSession();
         let scope = null;
 
         if (session) {
-          // Forutsetter kolonne "tracking_scope" i "members" (TEXT).
+          // Forutsetter kolonne "tracking_scope" i "members"
           const { data, error } = await supa
             .from('members')
             .select('tracking_scope')
@@ -279,19 +283,23 @@
           }
         }
       } catch (_) {
-        // Ignorer feil; fallback til localStorage allerede håndtert
+        // Ignorer feil
       }
     }
 
-    // Velg kort
+    // Velg kort (klikk + Enter/Space for tastatur)
     document.querySelectorAll('.choice-card').forEach(card => {
-      card.addEventListener('click', () => {
+      const select = () => {
         document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedChoice = card.dataset.choice;
         const btn = document.getElementById('continueButton');
         btn.classList.add('enabled');
         if (window.elementSdk?.config) onConfigChange(window.elementSdk.config);
+      };
+      card.addEventListener('click', select);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(); }
       });
     });
 
@@ -304,10 +312,8 @@
       setTimeout(async () => {
         button.style.transform = '';
 
-        // Lokalt
         localStorage.setItem('trackingScope', selectedChoice);
 
-        // DB (valgfritt): oppdater "members.tracking_scope" om feltet finnes/RLS er satt
         try {
           const { data: { session } } = await supa.auth.getSession();
           if (session) {
@@ -315,7 +321,7 @@
               .update({ tracking_scope: selectedChoice })
               .eq('user_id', session.user.id);
           }
-        } catch (_) { /* ignorer DB-feil, lokalt valg består */ }
+        } catch (_) {}
 
         location.href = 'takk.html';
       }, 150);
@@ -331,19 +337,18 @@
       }, 150);
     });
 
-    // Init
-    await restoreSelection();
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
+    // ===== Init (✅ ikke toppnivå await) =====
+    (async () => {
+      await restoreSelection();
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+    })();
   </script>
-
-  <!-- (valgfri) Cloudflare-snutt beholdt -->
-  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99be799e5643a41f',t:'MTc2MjcwMzUyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
