@@ -1,23 +1,46 @@
 <!doctype html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Husholdningsbudsjett - Hovedskjerm</title>
+
+  <!-- Element SDK (valgfri redigering/tema) -->
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- (valgfritt) Tailwind -->
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+
   <style>
-    body{box-sizing:border-box;margin:0;padding:0;height:100%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);display:flex;flex-direction:column;}
+    body{
+      box-sizing:border-box;margin:0;padding:0;height:100%;
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
+      display:flex;flex-direction:column;
+    }
     html{height:100%;}
     .container{flex:1;display:flex;flex-direction:column;padding:30px;max-width:800px;margin:0 auto;width:100%;}
     .header{text-align:center;margin-bottom:40px;animation:fadeInDown .6s ease-out;}
     .week-info{font-size:20px;color:#5a7a6d;font-weight:500;}
+
+    /* Logout knapp øverst til høyre */
+    .logout-btn{
+      position:fixed;top:16px;right:16px;z-index:50;
+      background:transparent;color:#8a9a8d;border:2px solid #e0e7e3;
+      padding:10px 16px;font-size:14px;font-weight:600;border-radius:9999px;
+      cursor:pointer;transition:all .2s ease;
+    }
+    .logout-btn:hover{background:#f5f8f6;border-color:#c8d4cb;color:#5a7a6d;}
+
     .budget-overview{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:40px;animation:fadeInUp .8s ease-out .2s both;}
     .budget-circle{position:relative;width:280px;height:280px;margin-bottom:30px;}
     .circle-bg{width:100%;height:100%;border-radius:50%;background:#e8f5f0;position:relative;overflow:hidden;}
-    /* bruker CSS-variabler for å sikre korrekt farge/vinkel */
     .circle-progress{
-      --ring-color:#4caf50;
-      --ring-deg:0deg;
+      --ring-color:#4caf50; --ring-deg:0deg;
       position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;
       background:conic-gradient(var(--ring-color) 0deg, var(--ring-color) var(--ring-deg), transparent var(--ring-deg));
       transition:background .6s ease-out;
@@ -28,14 +51,11 @@
     .remaining-info{background:rgba(76,175,80,.1);padding:15px 25px;border-radius:25px;margin-bottom:20px;animation:fadeInUp .8s ease-out .3s both;}
     .remaining-amount{font-size:28px;font-weight:700;color:#4caf50;margin:0;}
     .remaining-text{font-size:16px;color:#2d5f4d;margin:5px 0 0 0;}
-
-    /* states */
-    .remaining-info.warn{background:rgba(249,168,37,.12);} /* gul */
-    .remaining-info.over{background:rgba(211,47,47,.12);}   /* rød */
+    .remaining-info.warn{background:rgba(249,168,37,.12);}
+    .remaining-info.over{background:rgba(211,47,47,.12);}
     .remaining-amount.warn{color:#f9a825;}
     .remaining-amount.over{color:#d32f2f;}
 
-    /* Hovedknapp for middagsforslag */
     .meal-button{
       background:#4caf50;color:#fff;border:none;border-radius:20px;
       padding:15px 25px;font-size:18px;font-weight:600;cursor:pointer;
@@ -51,6 +71,7 @@
     .action-button:active{transform:translateY(-2px);}
     .action-icon{font-size:40px;margin-bottom:12px;display:block;}
     .action-text{font-size:18px;font-weight:600;color:#2d5f4d;margin:0;}
+
     .status-bar{text-align:center;padding:20px;background:rgba(255,255,255,.7);border-radius:15px;animation:fadeInUp .8s ease-out .5s both;}
     .status-message{font-size:18px;color:#5a7a6d;font-weight:500;margin:0;}
     .pulse{animation:pulse 2s ease-in-out;}
@@ -70,12 +91,13 @@
       .action-text{font-size:16px;}
       .meal-button{width:100%;}
     }
+    @view-transition { navigation: auto; }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 <body>
+  <!-- Logg ut -->
+  <button class="logout-btn" id="logoutBtn" title="Logg ut" aria-label="Logg ut">Logg ut</button>
+
   <main class="container">
     <div class="header">
       <div class="week-info" id="weekInfo">Uke – dd.–dd. mmmm</div>
@@ -97,7 +119,6 @@
         <div class="remaining-text" id="remainingText">igjen denne uka</div>
       </div>
 
-      <!-- Hovedknapp for middagsforslag -->
       <button class="meal-button" id="mealPlanBtn">Middag for 0 kr – vis forslag</button>
     </div>
 
@@ -122,6 +143,51 @@
   </main>
 
 <script>
+  // ===== Supabase init + auth/onboarding guard ================================
+  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Logg ut
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try { await supa.auth.signOut(); } catch(_) {}
+    location.href = '/innlogging.html';
+  });
+
+  // Route-vakt
+  (async () => {
+    const { data:{ session } } = await supa.auth.getSession();
+    if (!session) { location.href = '/innlogging.html'; return; }
+
+    // Sjekk at onboarding er ferdig
+    try {
+      const { data: m, error } = await supa
+        .from('members')
+        .select('onboarding_done')
+        .eq('user_id', session.user.id)
+        .single();
+      if (error || !m?.onboarding_done) {
+        location.href = '/onboarding1.html';
+        return;
+      }
+    } catch(_) {}
+
+    // Sikre at aktiv uke er satt (pinned), ellers sett denne ukens mandag
+    if (!localStorage.getItem('activeWeekISO')) {
+      localStorage.setItem('activeWeekISO', mondayAtNoon().toISOString().slice(0,10));
+    }
+
+    // Hent budsjett fra DB (hvis finnes), cache lokalt, og tegn UI
+    await refreshBudgetFromDB();
+    init();
+
+    // Reager på utlogging i bakgrunnen
+    supa.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') location.href = '/innlogging.html';
+    });
+  })();
+
+  // ===== Element/tema konfig =================================================
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -162,11 +228,8 @@
     return `${from}–${to}`;
   }
 
-  // ---- Aktiv uke ----
   function getActiveWeekISO(){
-    const pinned = localStorage.getItem('activeWeekISO');
-    if (pinned) return pinned;
-    return mondayAtNoon().toISOString().slice(0,10);
+    return localStorage.getItem('activeWeekISO') || mondayAtNoon().toISOString().slice(0,10);
   }
   function getActiveMondayDate(){
     const iso = getActiveWeekISO();
@@ -183,6 +246,32 @@
   // ---------- Budsjett/kjøp ----------
   let budgetData = { total: 0, spent: 0, remaining: 0 };
 
+  // DB: prøv å lese weekly budget for aktiv uke
+  async function readWeeklyBudgetFromDB(isoMonday){
+    try {
+      const { data:{ session } } = await supa.auth.getSession();
+      if (!session) return null;
+      const { data, error } = await supa
+        .from('household_budgets')
+        .select('amount')
+        .eq('user_id', session.user.id)
+        .eq('week_start', isoMonday)
+        .maybeSingle();
+      if (error) return null;
+      if (data && typeof data.amount === 'number') return data.amount;
+      return null;
+    } catch { return null; }
+  }
+
+  async function refreshBudgetFromDB(){
+    const iso = getActiveWeekISO();
+    const dbAmount = await readWeeklyBudgetFromDB(iso);
+    if (dbAmount !== null && !Number.isNaN(dbAmount)) {
+      localStorage.setItem(`weeklyBudget_${iso}`, String(dbAmount));
+    }
+  }
+
+  // Local fallback
   function readWeeklyBudgetFor(isoMonday){
     const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
@@ -190,6 +279,7 @@
     if (!isNaN(global) && global > 0) return global;
     return 3000;
   }
+
   function sumPurchasesFor(isoMonday) {
     const key = `purchases_${isoMonday}`;
     try {
@@ -209,15 +299,13 @@
     const statusMsg = document.getElementById('statusMessage');
 
     const { total, spent } = budgetData;
-    const remainingRaw = total > 0 ? (total - spent) : 0; // kan være negativ
+    const remainingRaw = total > 0 ? (total - spent) : 0;
     budgetData.remaining = remainingRaw;
 
-    // UI-tekst
     spentElement.textContent = `${formatAmount(spent)} kr`;
     totalElement.textContent = `av ${formatAmount(total)} kr`;
 
-    // Tilstandsfarger og tekster
-    let color = '#4caf50';   // grønn
+    let color = '#4caf50';
     let ringDeg = 0;
     let status = 'Bra kontroll så langt 💪';
 
@@ -225,28 +313,22 @@
       const ratio = spent / total;
       ringDeg = Math.min(360, Math.max(0, ratio * 360));
 
-      if (ratio >= 1.0) {                // overskredet
-        color = '#d32f2f';               // rød
+      if (ratio >= 1.0) {
+        color = '#d32f2f';
         ringDeg = 360;
-        remainingBox.classList.remove('warn');
-        remainingBox.classList.add('over');
-        remainingElement.classList.remove('warn');
-        remainingElement.classList.add('over');
+        remainingBox.classList.remove('warn'); remainingBox.classList.add('over');
+        remainingElement.classList.remove('warn'); remainingElement.classList.add('over');
         remainingElement.textContent = `${formatAmount(Math.abs(remainingRaw))} kr`;
         remainingText.textContent = 'overskredet';
         status = 'Over budsjett – kutt kostnader 💸';
-
-      } else if (ratio >= 0.9) {         // nær budsjett (gul)
+      } else if (ratio >= 0.9) {
         color = '#f9a825';
-        remainingBox.classList.remove('over');
-        remainingBox.classList.add('warn');
-        remainingElement.classList.remove('over');
-        remainingElement.classList.add('warn');
+        remainingBox.classList.remove('over'); remainingBox.classList.add('warn');
+        remainingElement.classList.remove('over'); remainingElement.classList.add('warn');
         remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
         remainingText.textContent = 'igjen denne uka';
         status = 'Nær budsjett – vurder billigere valg ⚠️';
-
-      } else {                           // god margin (grønn)
+      } else {
         color = '#4caf50';
         remainingBox.classList.remove('over','warn');
         remainingElement.classList.remove('over','warn');
@@ -255,7 +337,6 @@
         status = 'Bra kontroll så langt 💪';
       }
     } else {
-      // total = 0 (ingen budsjett satt)
       color = '#4caf50';
       ringDeg = 0;
       remainingBox.classList.remove('over','warn');
@@ -265,22 +346,16 @@
       status = 'Sett et ukesbudsjett for å komme i gang 🙂';
     }
 
-    // Oppdater sirkeldiagram via variabler (robust fargebytte)
     circleProgress.style.setProperty('--ring-color', color);
     circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
 
-    // Middagsknapp
     const mealBtn = document.getElementById('mealPlanBtn');
-    if (budgetData.remaining < 0) {
-      mealBtn.textContent = `Middag – billige forslag`;
-    } else {
-      mealBtn.textContent = `Middag for ${formatAmount(budgetData.remaining)} kr – vis forslag`;
-    }
+    mealBtn.textContent = (budgetData.remaining < 0)
+      ? `Middag – billige forslag`
+      : `Middag for ${formatAmount(budgetData.remaining)} kr – vis forslag`;
 
-    // Statuslinje
     statusMsg.textContent = status;
 
-    // liten animasjon
     [spentElement, remainingElement].forEach(el => {
       el.classList.add('pulse');
       setTimeout(()=>el.classList.remove('pulse'), 600);
@@ -290,7 +365,7 @@
   function recalcFromStorage() {
     const weekISO = getActiveWeekISO();
     budgetData.total = readWeeklyBudgetFor(weekISO);
-    localStorage.setItem('budget_total', String(budgetData.total)); // for week-report o.l.
+    localStorage.setItem('budget_total', String(budgetData.total));
     budgetData.spent = sumPurchasesFor(weekISO);
     updateBudgetDisplay();
   }
@@ -386,11 +461,10 @@
   });
 
   // ---------- Init / refresh ----------
-  function init() {
+  async function init() {
     setWeekHeader();
     recalcFromStorage();
   }
-  window.addEventListener('DOMContentLoaded', init);
   window.addEventListener('pageshow', init);
 
   if (window.elementSdk) {
