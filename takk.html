@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Husholdningsbudsjett - Ferdig!</title>
+
+  <!-- Element SDK -->
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- Supabase (auth + lagring) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- (valgfritt) Tailwind -->
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+
   <style>
     body{
       box-sizing:border-box;margin:0;padding:0;height:100%;
@@ -14,10 +24,9 @@
     }
     html{height:100%;}
 
-    /* KONFETTI – start fra toppen */
+    /* KONFETTI */
     .confetti{
-      position:absolute;top:-16px; /* <- start over toppen */
-      width:10px;height:10px;background:#4caf50;animation:confetti-fall linear infinite;
+      position:absolute;top:-16px;width:10px;height:10px;background:#4caf50;animation:confetti-fall linear infinite;
     }
     .confetti:nth-child(odd){background:#81c784;border-radius:50%;}
     .confetti:nth-child(3n){background:#a5d6a7;width:8px;height:8px;}
@@ -35,7 +44,6 @@
     .title{font-size:48px;font-weight:800;color:#2d5f4d;margin-bottom:16px;line-height:1.2;animation:titleBounce .8s ease-out .4s both;}
     .description{font-size:20px;color:#5a7a6d;line-height:1.6;max-width:550px;margin:0 auto;}
 
-    /* Badge FLYTTET under header */
     .success-badge{
       display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,.1);
       color:#2d5f4d;padding:12px 20px;border-radius:50px;font-size:16px;font-weight:600;
@@ -74,10 +82,8 @@
       .description{font-size:18px;}
       .start-button{font-size:22px;padding:20px 50px;}
     }
+    @view-transition{navigation:auto;}
   </style>
-  <style>@view-transition{navigation:auto;}</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 <body>
   <main class="container">
@@ -91,7 +97,6 @@
       </p>
     </div>
 
-    <!-- Badge under tittel/tekst -->
     <div class="success-badge" id="successBadge">
       <div class="checkmark">✓</div> Onboarding fullført
     </div>
@@ -103,6 +108,27 @@
   </main>
 
   <script>
+    // ===== Supabase init + auth guard =====
+    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    (async () => {
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) { location.href = '/innlogging.html'; return; }
+
+      // Marker onboarding som fullført i DB (valgfritt, men anbefalt)
+      try {
+        await supa.from('members')
+          .update({ onboarding_done: true })
+          .eq('user_id', session.user.id);
+      } catch (_) { /* ignorer – localStorage fallback under */ }
+
+      // Lokal fallback/flag
+      localStorage.setItem('onboarding_done', '1');
+    })();
+
+    // ===== Element SDK / UI-tema =====
     const defaultConfig = {
       background_color:"#f8fffe",surface_color:"#ffffff",text_color:"#2d5f4d",
       primary_action_color:"#4caf50",secondary_text_color:"#5a7a6d",
@@ -112,15 +138,27 @@
       start_button_text:"Start uke 1",back_button_text:"Tilbake"
     };
 
-    const onboardingState = {
-      householdCount: localStorage.getItem('householdCount'),
-      weeklyBudget: localStorage.getItem('weeklyBudget'),
-      trackingScope: localStorage.getItem('trackingScope')
-    };
+    function adjustColor(color,percent){
+      const num=parseInt(color.replace('#',''),16),amt=Math.round(2.55*percent);
+      const R=Math.max(0,Math.min(255,(num>>16)+amt));
+      const G=Math.max(0,Math.min(255,((num>>8)&0x00FF)+amt));
+      const B=Math.max(0,Math.min(255,((num)&0x0000FF)+amt));
+      return '#'+(0x1000000+R*0x10000+G*0x100+B).toString(16).slice(1);
+    }
+
+    function updateConfettiColors(primary){
+      const s=document.createElement('style');
+      s.textContent = `
+        .confetti{background:${primary}!important;}
+        .confetti:nth-child(odd){background:${adjustColor(primary,20)}!important;}
+        .confetti:nth-child(3n){background:${adjustColor(primary,40)}!important;}
+        .confetti:nth-child(4n){background:${adjustColor(primary,60)}!important;}
+      `;
+      document.head.appendChild(s);
+    }
 
     async function onConfigChange(config){
       const bg = config.background_color||defaultConfig.background_color;
-      const surf = config.surface_color||defaultConfig.surface_color;
       const txt = config.text_color||defaultConfig.text_color;
       const pri = config.primary_action_color||defaultConfig.primary_action_color;
       const sec = config.secondary_text_color||defaultConfig.secondary_text_color;
@@ -160,37 +198,6 @@
       updateConfettiColors(pri);
     }
 
-    function adjustColor(color,percent){
-      const num=parseInt(color.replace('#',''),16),amt=Math.round(2.55*percent);
-      const R=Math.max(0,Math.min(255,(num>>16)+amt));
-      const G=Math.max(0,Math.min(255,((num>>8)&0x00FF)+amt));
-      const B=Math.max(0,Math.min(255,((num)&0x0000FF)+amt));
-      return '#'+(0x1000000+R*0x10000+G*0x100+B).toString(16).slice(1);
-    }
-
-    function updateConfettiColors(primary){
-      const s=document.createElement('style');
-      s.textContent = `
-        .confetti{background:${primary}!important;}
-        .confetti:nth-child(odd){background:${adjustColor(primary,20)}!important;}
-        .confetti:nth-child(3n){background:${adjustColor(primary,40)}!important;}
-        .confetti:nth-child(4n){background:${adjustColor(primary,60)}!important;}
-      `;
-      document.head.appendChild(s);
-    }
-
-    function createConfetti(){
-      for(let i=0;i<50;i++){
-        const c=document.createElement('div');
-        c.className='confetti';
-        c.style.left = Math.random()*100 + '%';
-        c.style.animationDuration = (Math.random()*3+2)+'s';
-        c.style.animationDelay = (Math.random()*2)+'s';
-        document.body.appendChild(c);
-        setTimeout(()=>c.remove(), 6000);
-      }
-    }
-
     function mapToCapabilities(config){
       return {
         recolorables:[
@@ -225,7 +232,18 @@
       setTimeout(()=>{ b.style.transform=''; location.href='onboarding3.html'; },150);
     });
 
-    // Konfetti
+    // Konfetti – moderat for ytelse
+    function createConfetti(){
+      for(let i=0;i<40;i++){
+        const c=document.createElement('div');
+        c.className='confetti';
+        c.style.left = Math.random()*100 + '%';
+        c.style.animationDuration = (Math.random()*3+2)+'s';
+        c.style.animationDelay = (Math.random()*2)+'s';
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(), 6000);
+      }
+    }
     setTimeout(createConfetti, 300);
     const confettiInterval=setInterval(createConfetti, 3000);
     window.addEventListener('beforeunload',()=>clearInterval(confettiInterval));
