@@ -155,7 +155,7 @@
       });
     }
 
-    // === Auth-guard, join_with_code og ruting ================================
+    // === Auth-guard, join_with_code og DB-basert onboarding ==================
     (async () => {
       const btn = document.getElementById('ctaButton');
 
@@ -163,7 +163,7 @@
       const { data: { session } } = await supa.auth.getSession();
       if (!session) { window.location.href = '/innlogging.html'; return; }
 
-      // 2) Knytt bruker til husstand første gang (RPC)
+      // 2) Knytt bruker til husstand første gang (RPC). Fanger opp pending kode fra login.
       try {
         const inviteCode =
           session.user?.user_metadata?.invite_code ||
@@ -180,8 +180,25 @@
         console.warn('join_with_code feilet:', e?.message || e);
       }
 
-      // 3) Bestem neste side (onboarding eller app)
-      const onboardingDone = localStorage.getItem('onboarding_done') === '1';
+      // 3) Les onboarding_done fra DB (med engangs-fallback fra localStorage)
+      let onboardingDone = false;
+      try {
+        const { data: member, error } = await supa
+          .from('members')
+          .select('onboarding_done')
+          .eq('user_id', session.user.id)
+          .single();
+        if (!error && member) onboardingDone = !!member.onboarding_done;
+      } catch (_) {}
+
+      // Backfill én gang hvis du hadde lokal flagg tidligere
+      if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
+        await supa.rpc('set_onboarding_done', { p_value: true }).catch(()=>{});
+        localStorage.removeItem('onboarding_done');
+        onboardingDone = true;
+      }
+
+      // 4) Aktiver CTA → route basert på status
       btn.disabled = false;
       btn.addEventListener('click', () => {
         btn.style.transform = 'scale(0.95)';
@@ -191,7 +208,7 @@
         }, 120);
       });
 
-      // 4) Reager på utlogging
+      // 5) Reager på utlogging
       supa.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') location.href = '/innlogging.html';
       });
