@@ -139,11 +139,13 @@
       const { data: { session } } = await supa.auth.getSession();
       if (!session) { location.href = '/innlogging.html'; return; }
 
-      // Marker onboarding som fullført i DB + lokalt
+      // ✅ Robust: opprett/oppdater members-raden med onboarding_done = true
       try {
         await supa.from('members')
-          .update({ onboarding_done: true })
-          .eq('user_id', session.user.id);
+          .upsert(
+            { user_id: session.user.id, onboarding_done: true },
+            { onConflict: 'user_id' }
+          );
       } catch(_) {/* ignorer */}
       localStorage.setItem('onboarding_done', '1');
 
