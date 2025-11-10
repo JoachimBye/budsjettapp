@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="no">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Familie-budsjett Beta</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .app-name {
+      font-size: 1.25rem;
+      color: #2e7d32;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      padding: 2.5rem;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+
+    .title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1b5e20;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #558b2f;
+      margin-bottom: 2rem;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2e7d32;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid #c8e6c9;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: #689f38;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .submit-btn:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+
+    .submit-btn:disabled {
+      background: #a5d6a7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success-message {
+      background: #e8f5e9;
+      border: 2px solid #4caf50;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1rem;
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    .success-message.show {
+      display: flex;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success-icon {
+      font-size: 1.5rem;
+    }
+
+    .success-text {
+      color: #2e7d32;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .info-box {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: #e65100;
+      line-height: 1.5;
+    }
+
+    .progress-bar {
+      background: #e0e0e0;
+      border-radius: 1rem;
+      height: 0.5rem;
+      margin-top: 1.5rem;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #4caf50, #8bc34a);
+      height: 100%;
+      width: 90%;
+      border-radius: 1rem;
+      transition: width 0.5s ease;
+    }
+
+    .progress-text {
+      font-size: 0.85rem;
+      color: #558b2f;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-weight: 600;
+    }
+
+    .security-badges {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #558b2f;
+    }
+
+    .footer {
+      text-align: center;
+      color: #689f38;
+      font-size: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: #558b2f;
+    }
+
+    .login-link a {
+      color: #2e7d32;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 1.5rem;
+      }
+
+      .title {
+        font-size: 1.5rem;
+      }
+
+      .security-badges {
+        gap: 1rem;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="logo">
+   🍽️
+  </div>
+  <div class="app-name">
+   Familie-budsjett
+  </div>
+  <div class="card">
+   <h1 class="title" id="main-title">Bli med i familie-betaen 👨‍👩‍👧‍👦</h1>
+   <p class="subtitle" id="subtitle">Du er invitert til å teste vår nye budsjett-app før alle andre.</p>
+   <form id="beta-form">
+    <div class="form-group"><label for="email" id="email-label">E-postadresse</label> <input type="email" id="email" name="email" required placeholder="din@epost.no">
+    </div>
+    <div class="form-group"><label for="code" id="code-label">Husstandskode (invitasjonskode)</label> <input type="text" id="code" name="code" required placeholder="NORDMO2025">
+     <p class="hint" id="code-hint">Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.</p>
+    </div><button type="submit" class="submit-btn" id="submit-btn"> <span id="button-text">Bli med i betaen</span> </button>
+    <div class="success-message" id="success-message"><span class="success-icon">✔️</span> <span class="success-text">Lenke sendt! Sjekk e-posten din.</span>
+    </div>
+   </form>
+   <div class="info-box" id="exclusivity-text">
+    🎉 Du er blant de første som tester denne appen. Dine tilbakemeldinger gjør at vi kan gjøre den enda bedre før lansering.
+   </div>
+   <div class="progress-bar">
+    <div class="progress-fill"></div>
+   </div>
+   <p class="progress-text">27 / 30 plasser opptatt</p>
+   <div class="security-badges">
+    <div class="badge">
+     🔒 Trygt for familien
+    </div>
+    <div class="badge">
+     🚫 Ingen deling av data
+    </div>
+    <div class="badge">
+     ✨ Meld deg ut når som helst
+    </div>
+   </div>
+   <div class="login-link">
+    Har du allerede konto? <a href="#login">Logg inn</a>
+   </div>
+  </div>
+  <div class="footer" id="footer-text">
+   Laget i Tromsø 🌙 · Familieversjon v0.9 beta
+  </div>
+  <script>
+    const defaultConfig = {
+      main_title: "Bli med i familie-betaen 👨‍👩‍👧‍👦",
+      subtitle: "Du er invitert til å teste vår nye budsjett-app før alle andre.",
+      email_label: "E-postadresse",
+      code_label: "Husstandskode (invitasjonskode)",
+      code_hint: "Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.",
+      button_text: "Bli med i betaen",
+      exclusivity_text: "🎉 Du er blant de første som tester denne appen. Dine tilbakemeldinger gjør at vi kan gjøre den enda bedre før lansering.",
+      footer_text: "Laget i Tromsø 🌙 · Familieversjon v0.9 beta",
+      background_color: "#e8f5e9",
+      card_color: "#ffffff",
+      primary_color: "#4caf50",
+      text_color: "#1b5e20",
+      accent_color: "#558b2f"
+    };
+
+    async function onConfigChange(config) {
+      document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
+      document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
+      document.getElementById('email-label').textContent = config.email_label || defaultConfig.email_label;
+      document.getElementById('code-label').textContent = config.code_label || defaultConfig.code_label;
+      document.getElementById('code-hint').textContent = config.code_hint || defaultConfig.code_hint;
+      document.getElementById('button-text').textContent = config.button_text || defaultConfig.button_text;
+      document.getElementById('exclusivity-text').textContent = config.exclusivity_text || defaultConfig.exclusivity_text;
+      document.getElementById('footer-text').textContent = config.footer_text || defaultConfig.footer_text;
+
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const cardColor = config.card_color || defaultConfig.card_color;
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+
+      document.body.style.background = `linear-gradient(135deg, ${backgroundColor} 0%, #fff8e1 100%)`;
+      document.querySelector('.card').style.background = cardColor;
+      document.querySelector('.submit-btn').style.background = primaryColor;
+      document.querySelector('.title').style.color = textColor;
+      document.querySelectorAll('.badge').forEach(badge => {
+        badge.style.color = accentColor;
+      });
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.card_color || defaultConfig.card_color,
+              set: (value) => {
+                config.card_color = value;
+                window.elementSdk.setConfig({ card_color: value });
+              }
+            },
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["main_title", config.main_title || defaultConfig.main_title],
+          ["subtitle", config.subtitle || defaultConfig.subtitle],
+          ["email_label", config.email_label || defaultConfig.email_label],
+          ["code_label", config.code_label || defaultConfig.code_label],
+          ["code_hint", config.code_hint || defaultConfig.code_hint],
+          ["button_text", config.button_text || defaultConfig.button_text],
+          ["exclusivity_text", config.exclusivity_text || defaultConfig.exclusivity_text],
+          ["footer_text", config.footer_text || defaultConfig.footer_text]
+        ])
+      });
+    }
+
+    document.getElementById('beta-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('submit-btn');
+      const successMessage = document.getElementById('success-message');
+      
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sender...';
+      
+      setTimeout(() => {
+        successMessage.classList.add('show');
+        submitBtn.textContent = 'Sendt!';
+        
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.textContent = document.getElementById('button-text').textContent;
+        }, 3000);
+      }, 1000);
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99c57ddcf4ebb4f7',t:'MTc2Mjc3NzA5Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
