@@ -24,9 +24,6 @@
       padding: 2rem 1rem;
     }
     * { box-sizing: border-box; }
-    .logo { font-size: 3rem; margin-bottom: .5rem; animation: pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-    .app-name { font-size: 1.25rem; color:#2e7d32; font-weight:600; margin-bottom:2rem; display:flex; align-items:center; gap:.5rem; }
     .card { background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1); padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem; }
     .title { font-size:1.75rem; font-weight:700; color:#1b5e20; margin-bottom:.5rem; text-align:center; }
     .subtitle { font-size:1rem; color:#558b2f; margin-bottom:2rem; text-align:center; line-height:1.5; }
@@ -37,24 +34,14 @@
     .hint { font-size:.85rem; color:#689f38; margin-top:.5rem; line-height:1.4; }
     .submit-btn { width:100%; padding:1rem; background:#4caf50; color:#fff; border:none; border-radius:.5rem; font-size:1.1rem; font-weight:600; cursor:pointer; transition:all .3s ease; margin-top:1rem; }
     .submit-btn:hover { background:#45a049; transform:translateY(-2px); box-shadow:0 4px 12px rgba(76,175,80,.3); }
-    .submit-btn:active { transform:translateY(0); }
     .submit-btn:disabled { background:#a5d6a7; cursor:not-allowed; transform:none; }
-    .success-message { background:#e8f5e9; border:2px solid #4caf50; border-radius:.5rem; padding:1rem; margin-top:1rem; display:none; align-items:center; gap:.75rem; animation:slideIn .3s ease; }
+    .success-message { background:#e8f5e9; border:2px solid #4caf50; border-radius:.5rem; padding:1rem; margin-top:1rem; display:none; align-items:center; gap:.75rem; }
     .success-message.show { display:flex; }
-    @keyframes slideIn { from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)} }
-    .success-icon { font-size:1.5rem; }
     .success-text { color:#2e7d32; font-weight:600; flex:1; }
-    .info-box { background:#fff3e0; border-left:4px solid #ff9800; border-radius:.5rem; padding:1rem; margin-top:1.5rem; font-size:.9rem; color:#e65100; line-height:1.5; }
-    .progress-bar { background:#e0e0e0; border-radius:1rem; height:.5rem; margin-top:1.5rem; overflow:hidden; }
-    .progress-fill { background:linear-gradient(90deg,#4caf50,#8bc34a); height:100%; width:90%; border-radius:1rem; transition:width .5s ease; }
-    .progress-text { font-size:.85rem; color:#558b2f; text-align:center; margin-top:.5rem; font-weight:600; }
-    .security-badges { display:flex; justify-content:center; gap:1.5rem; margin-top:2rem; padding-top:1.5rem; border-top:1px solid #e0e0e0; flex-wrap:wrap; }
-    .badge { display:flex; align-items:center; gap:.5rem; font-size:.85rem; color:#558b2f; }
-    .footer { text-align:center; color:#689f38; font-size:.9rem; margin-top:1rem; }
     .login-link { text-align:center; margin-top:1.5rem; font-size:.9rem; color:#558b2f; }
     .login-link a { color:#2e7d32; text-decoration:none; font-weight:600; }
     .login-link a:hover { text-decoration:underline; }
-    @media (max-width:640px){ .card{padding:1.5rem} .title{font-size:1.5rem} .security-badges{gap:1rem} }
+    @media (max-width:640px){ .card{padding:1.5rem} .title{font-size:1.5rem} }
     @view-transition { navigation: auto; }
   </style>
 </head>
@@ -72,25 +59,26 @@
 
       <div class="form-group">
         <label for="invite" id="code-label">Husstandskode (invitasjonskode)</label>
-        <input type="text" id="invite" name="invite" required placeholder="" />
+        <input type="text" id="invite" name="invite" required placeholder="NORDMO2025" />
         <p class="hint" id="code-hint">Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.</p>
       </div>
 
       <button type="submit" class="submit-btn" id="submitBtn"><span id="button-text">Bli med i betaen</span></button>
 
+      <!-- Info etter utsending -->
       <div class="success-message" id="successBox">
-        <span class="success-icon">✔️</span>
-        <span class="success-text">Lenke sendt! Sjekk e-posten din.</span>
+        <span class="success-text">Kode sendt! Sjekk e-posten din og skriv inn 6-sifret kode under.</span>
       </div>
     </form>
 
-    <div class="info-box" id="exclusivity-text">
-      🎉 Du er blant de første som tester denne appen. Dine tilbakemeldinger gjør at vi kan gjøre den enda bedre før lansering.
-    </div>
-
- 
-
-    <div class="security-badges">
+    <!-- OTP-steg (vises etter at koden er sendt) -->
+    <div id="otpBox" style="display:none; margin-top:1rem;">
+      <label for="otp" style="display:block; font-weight:600; color:#2e7d32; margin-bottom:0.5rem;">Engangskode</label>
+      <input id="otp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="Skriv 6-sifret kode fra e-post"
+             style="width:100%; padding:0.875rem 1rem; border:2px solid #c8e6c9; border-radius:0.5rem;"/>
+      <button id="otpBtn" class="submit-btn" style="margin-top:0.75rem;">Bekreft kode</button>
+      <p class="hint" style="margin-top:0.5rem;">Tips: sjekk søppelpost hvis du ikke finner e-posten.</p>
     </div>
 
     <div class="login-link">Har du allerede konto? <a href="#login" id="loginAnchor">Logg inn</a></div>
@@ -99,12 +87,12 @@
   <div class="footer" id="footer-text">Laget i Uranusvegen 30 🌙 · Familieversjon 1.0</div>
 
   <script>
-    // TODO: Sett disse fra Supabase → Project Settings → API
+    // Supabase – dine verdier (anon key er OK i frontend)
     const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // (Valgfritt) Standard-konfig for Element SDK
+    // Element SDK – uendret (du kan redigere tekster/tema)
     const defaultConfig = {
       main_title: "Bli med i familie-betaen 👨‍👩‍👧‍👦",
       subtitle: "Du er invitert til å teste vår nye budsjett-app før alle andre.",
@@ -128,7 +116,6 @@
       document.getElementById('code-label').textContent = config.code_label || defaultConfig.code_label;
       document.getElementById('code-hint').textContent = config.code_hint || defaultConfig.code_hint;
       document.getElementById('button-text').textContent = config.button_text || defaultConfig.button_text;
-      document.getElementById('exclusivity-text').textContent = config.exclusivity_text || defaultConfig.exclusivity_text;
       document.getElementById('footer-text').textContent = config.footer_text || defaultConfig.footer_text;
 
       const backgroundColor = config.background_color || defaultConfig.background_color;
@@ -141,14 +128,14 @@
       document.querySelector('.card').style.background = cardColor;
       document.querySelector('.submit-btn').style.background = primaryColor;
       document.querySelector('.title').style.color = textColor;
-      document.querySelectorAll('.badge').forEach(b => b.style.color = accentColor);
+      document.querySelectorAll('.badge')?.forEach(b => b.style.color = accentColor);
     }
 
     if (window.elementSdk) {
       window.elementSdk.init({
         defaultConfig,
         onConfigChange,
-        mapToCapabilities: (config) => ({ recolorables: [], borderables: [], fontEditable: undefined, fontSizeable: undefined }),
+        mapToCapabilities: () => ({ recolorables: [], borderables: [], fontEditable: undefined, fontSizeable: undefined }),
         mapToEditPanelValues: (config) => new Map([
           ["main_title", config.main_title || defaultConfig.main_title],
           ["subtitle", config.subtitle || defaultConfig.subtitle],
@@ -156,7 +143,6 @@
           ["code_label", config.code_label || defaultConfig.code_label],
           ["code_hint", config.code_hint || defaultConfig.code_hint],
           ["button_text", config.button_text || defaultConfig.button_text],
-          ["exclusivity_text", config.exclusivity_text || defaultConfig.exclusivity_text],
           ["footer_text", config.footer_text || defaultConfig.footer_text]
         ])
       });
@@ -164,11 +150,17 @@
 
     // Hjelpefunksjoner
     const qs = (sel) => document.querySelector(sel);
+    let lastEmail = null;
+    let lastInvite = null;
 
-    // Redirect hvis allerede innlogget
+    // Redirect hvis allerede innlogget → rett til index
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await supa.auth.getSession();
-      if (session) window.location.href = '/app.html';
+      if (session) window.location.href = '/index.html';
+
+      // Autofyll ?code=XYZ i URL
+      const p = new URL(location.href).searchParams.get('code');
+      if (p) qs('#invite').value = p;
     });
 
     // Klikk på "Logg inn" -> fokus på e-postfelt
@@ -177,7 +169,7 @@
       qs('#email')?.focus();
     });
 
-    // Submit: sjekk husstandskode -> send magisk lenke
+    // 1) Send OTP til e-post (etter validering av invitasjonskode)
     async function handleSubmit(e) {
       e.preventDefault();
       const email = qs('#email').value.trim();
@@ -188,10 +180,10 @@
 
       btn.disabled = true;
       const old = btn.textContent;
-      btn.textContent = 'Sender...';
+      btn.textContent = 'Sender kode...';
 
       try {
-        // 1) Valider invitasjonskode i Supabase (households-tabellen må finnes der)
+        // Valider invitasjonskode
         const { data: household, error: hErr } = await supa
           .from('households')
           .select('id, max_members, active')
@@ -202,28 +194,66 @@
           throw new Error('Ugyldig eller deaktivert husstandskode');
         }
 
-        // 2) Send magisk lenke
+        // Send OTP (passwordless e-postkode)
         const { error } = await supa.auth.signInWithOtp({
           email,
           options: {
-            emailRedirectTo: window.location.origin + '/app.html',
-            data: { invite_code: inviteCode, beta: true } // metadata følger brukeren
+            // metadata blir knyttet når verifyOtp lykkes
+            data: { invite_code: inviteCode, beta: true }
           }
         });
         if (error) throw error;
 
-        // 3) Vis suksess
+        // Vis info + OTP-boks
         qs('#successBox').classList.add('show');
+        qs('#otpBox').style.display = 'block';
+
+        // Husk verdier for verify
+        lastEmail = email;
+        lastInvite = inviteCode;
+
+        // Fallback: lagre invitasjonskode lokalt (om metadata ikke er synlig umiddelbart)
+        localStorage.setItem('pending_invite', inviteCode);
+
       } catch (err) {
-        alert(err.message || 'Kunne ikke sende magisk lenke');
+        alert(err.message || 'Kunne ikke sende engangskode');
       } finally {
         btn.disabled = false;
         btn.textContent = old;
       }
     }
 
+    // 2) Verifiser OTP → logg inn → gå til index.html
+    async function handleOtpVerify() {
+      const token = qs('#otp').value.trim();
+      if (!lastEmail || token.length < 4) return alert('Skriv inn koden fra e-posten');
+
+      const otpBtn = qs('#otpBtn');
+      otpBtn.disabled = true;
+      const old = otpBtn.textContent;
+      otpBtn.textContent = 'Bekrefter...';
+
+      try {
+        const { error } = await supa.auth.verifyOtp({
+          email: lastEmail,
+          token,
+          type: 'email' // viktig
+        });
+        if (error) throw error;
+
+        // Innlogget – send til velkomst/guard
+        window.location.href = '/index.html';
+      } catch (err) {
+        alert(err.message || 'Feil kode. Prøv igjen.');
+      } finally {
+        otpBtn.disabled = false;
+        otpBtn.textContent = old;
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       qs('#loginForm').addEventListener('submit', handleSubmit);
+      qs('#otpBtn').addEventListener('click', handleOtpVerify);
     });
   </script>
 </body>
