@@ -22,67 +22,67 @@
       background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
       display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;
     }
-    html{height:100%;}
+    html{height:100%}
 
     /* KONFETTI */
     .confetti{
       position:absolute;top:-16px;width:10px;height:10px;background:#4caf50;animation:confetti-fall linear infinite;
     }
-    .confetti:nth-child(odd){background:#81c784;border-radius:50%;}
-    .confetti:nth-child(3n){background:#a5d6a7;width:8px;height:8px;}
-    .confetti:nth-child(4n){background:#c8e6c9;border-radius:50%;width:6px;height:6px;}
+    .confetti:nth-child(odd){background:#81c784;border-radius:50%}
+    .confetti:nth-child(3n){background:#a5d6a7;width:8px;height:8px}
+    .confetti:nth-child(4n){background:#c8e6c9;border-radius:50%;width:6px;height:6px}
     @keyframes confetti-fall{
-      0%{transform:translateY(0) rotate(0deg);opacity:1;}
-      100%{transform:translateY(calc(100vh + 40px)) rotate(360deg);opacity:0;}
+      0%{transform:translateY(0) rotate(0deg);opacity:1}
+      100%{transform:translateY(calc(100vh + 40px)) rotate(360deg);opacity:0}
     }
 
-    .container{width:90%;max-width:700px;text-align:center;padding:40px;position:relative;z-index:10;}
-    .celebration-icon{margin-bottom:32px;animation:fadeInDown .8s ease-out;}
-    .heart-icon{font-size:120px;color:#4caf50;animation:heartPulse 2s ease-in-out infinite;display:inline-block;}
+    .container{width:90%;max-width:700px;text-align:center;padding:40px;position:relative;z-index:10}
+    .celebration-icon{margin-bottom:32px;animation:fadeInDown .8s ease-out}
+    .heart-icon{font-size:120px;color:#4caf50;animation:heartPulse 2s ease-in-out infinite;display:inline-block}
 
-    .header{margin-bottom:18px;animation:fadeInUp .8s ease-out .2s both;}
-    .title{font-size:48px;font-weight:800;color:#2d5f4d;margin-bottom:16px;line-height:1.2;animation:titleBounce .8s ease-out .4s both;}
-    .description{font-size:20px;color:#5a7a6d;line-height:1.6;max-width:550px;margin:0 auto;}
+    .header{margin-bottom:18px;animation:fadeInUp .8s ease-out .2s both}
+    .title{font-size:48px;font-weight:800;color:#2d5f4d;margin-bottom:16px;line-height:1.2;animation:titleBounce .8s ease-out .4s both}
+    .description{font-size:20px;color:#5a7a6d;line-height:1.6;max-width:550px;margin:0 auto}
 
     .success-badge{
       display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,.1);
       color:#2d5f4d;padding:12px 20px;border-radius:50px;font-size:16px;font-weight:600;
-      margin:14px 0 34px;animation:fadeInUp .8s ease-out .35s both;
+      margin:14px 0 34px;animation:fadeInUp .8s ease-out .35s both
     }
-    .checkmark{width:20px;height:20px;background:#4caf50;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold;}
+    .checkmark{width:20px;height:20px;background:#4caf50;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold}
 
-    .button-section{margin-top:36px;animation:fadeInUp .8s ease-out .6s both;}
+    .button-section{margin-top:36px;animation:fadeInUp .8s ease-out .6s both}
     .start-button{
       background:linear-gradient(135deg,#4caf50 0%,#45a049 100%);color:#fff;border:none;
       padding:25px 70px;font-size:26px;font-weight:700;border-radius:50px;cursor:pointer;
-      box-shadow:0 10px 25px rgba(76,175,80,.4);transition:all .3s ease;margin-bottom:20px;position:relative;overflow:hidden;
+      box-shadow:0 10px 25px rgba(76,175,80,.4);transition:all .3s ease;margin-bottom:20px;position:relative;overflow:hidden
     }
     .start-button::before{
       content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
-      background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .5s;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transition:left .5s
     }
-    .start-button:hover::before{left:100%;}
-    .start-button:hover{transform:translateY(-4px);box-shadow:0 15px 35px rgba(76,175,80,.5);background:linear-gradient(135deg,#45a049 0%,#3d8b40 100%);}
-    .start-button:active{transform:translateY(-2px);box-shadow:0 8px 20px rgba(76,175,80,.4);}
+    .start-button:hover::before{left:100%}
+    .start-button:hover{transform:translateY(-4px);box-shadow:0 15px 35px rgba(76,175,80,.5);background:linear-gradient(135deg,#45a049 0%,#3d8b40 100%)}
+    .start-button:active{transform:translateY(-2px);box-shadow:0 8px 20px rgba(76,175,80,.4)}
 
     .back-button{
       background:transparent;color:#8a9a8d;border:2px solid #e0e7e3;
-      padding:15px 40px;font-size:18px;font-weight:500;border-radius:30px;cursor:pointer;transition:all .3s ease;
+      padding:15px 40px;font-size:18px;font-weight:500;border-radius:30px;cursor:pointer;transition:all .3s ease
     }
-    .back-button:hover{background:#f5f8f6;border-color:#c8d4cb;color:#5a7a6d;}
+    .back-button:hover{background:#f5f8f6;border-color:#c8d4cb;color:#5a7a6d}
 
-    @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
-    @keyframes titleBounce{0%{opacity:0;transform:scale(.8);}50%{transform:scale(1.05);}100%{opacity:1;transform:scale(1);}}
-    @keyframes heartPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+    @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes titleBounce{0%{opacity:0;transform:scale(.8)}50%{transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+    @keyframes heartPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
 
     @media (max-width:768px){
-      .heart-icon{font-size:80px;}
-      .title{font-size:36px;}
-      .description{font-size:18px;}
-      .start-button{font-size:22px;padding:20px 50px;}
+      .heart-icon{font-size:80px}
+      .title{font-size:36px}
+      .description{font-size:18px}
+      .start-button{font-size:22px;padding:20px 50px}
     }
-    @view-transition{navigation:auto;}
+    @view-transition{navigation:auto}
   </style>
 </head>
 <body>
@@ -113,19 +113,42 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Hjelp: finn uke-start (mandag 12:00 lokal tid) som YYYY-MM-DD
+    function getCurrentWeekMondayISO(dateObj = new Date()) {
+      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+      const day = (d.getDay() + 6) % 7; // 0=mandag
+      d.setDate(d.getDate() - day);
+      d.setHours(12,0,0,0);
+      return d.toISOString().slice(0,10);
+    }
+
+    // Sørg for at budsjettpost for aktiv uke finnes i DB (idempotent)
+    async function ensureWeekBudget(session){
+      try{
+        const week = localStorage.getItem('activeWeekISO') || getCurrentWeekMondayISO();
+        const amount = parseInt((localStorage.getItem('weeklyBudget')||'').replace(/\s|kr/g,''),10);
+        if (session && week && !Number.isNaN(amount)) {
+          await supa.from('household_budgets')
+            .upsert({ user_id: session.user.id, week_start: week, amount });
+        }
+        localStorage.setItem('activeWeekISO', week);
+      }catch(_){/* ignorer */}
+    }
+
     (async () => {
       const { data: { session } } = await supa.auth.getSession();
       if (!session) { location.href = '/innlogging.html'; return; }
 
-      // Marker onboarding som fullført i DB (valgfritt, men anbefalt)
+      // Marker onboarding som fullført i DB + lokalt
       try {
         await supa.from('members')
           .update({ onboarding_done: true })
           .eq('user_id', session.user.id);
-      } catch (_) { /* ignorer – localStorage fallback under */ }
-
-      // Lokal fallback/flag
+      } catch(_) {/* ignorer */}
       localStorage.setItem('onboarding_done', '1');
+
+      // Sikre at uke-budsjett eksisterer i DB (hvis satt tidligere)
+      await ensureWeekBudget(session);
     })();
 
     // ===== Element SDK / UI-tema =====
@@ -225,6 +248,9 @@
     // Navigasjon
     document.getElementById('startButton').addEventListener('click',()=>{
       const b=document.getElementById('startButton'); b.style.transform='scale(0.95)';
+      if (!localStorage.getItem('first_launch_ts')) {
+        localStorage.setItem('first_launch_ts', String(Date.now()));
+      }
       setTimeout(()=>{ b.style.transform=''; localStorage.setItem('setupComplete','true'); location.href='app.html'; },150);
     });
     document.getElementById('backButton').addEventListener('click',()=>{
@@ -232,8 +258,10 @@
       setTimeout(()=>{ b.style.transform=''; location.href='onboarding3.html'; },150);
     });
 
-    // Konfetti – moderat for ytelse
+    // Konfetti – moderat for ytelse (respekterer reduced motion)
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function createConfetti(){
+      if (reduceMotion) return;
       for(let i=0;i<40;i++){
         const c=document.createElement('div');
         c.className='confetti';
@@ -245,8 +273,8 @@
       }
     }
     setTimeout(createConfetti, 300);
-    const confettiInterval=setInterval(createConfetti, 3000);
-    window.addEventListener('beforeunload',()=>clearInterval(confettiInterval));
+    const confettiInterval = reduceMotion ? null : setInterval(createConfetti, 3000);
+    window.addEventListener('beforeunload',()=>{ if(confettiInterval) clearInterval(confettiInterval) });
 
     if(window.elementSdk){
       window.elementSdk.init({defaultConfig,onConfigChange,mapToCapabilities,mapToEditPanelValues});
