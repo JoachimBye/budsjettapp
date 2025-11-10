@@ -92,12 +92,12 @@
   </main>
 
   <script>
-    // === Supabase init (samme prosjekt som de andre sidene) ===================
+    // === Supabase init =======================================================
     const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // === Element SDK default-konfig ==========================================
+    // === Element SDK default-konfig =========================================
     const defaultConfig = {
       background_color:"#f8fffe", surface_color:"#ffffff", text_color:"#2d5f4d",
       primary_action_color:"#4caf50", secondary_text_color:"#5a7a6d",
@@ -108,14 +108,73 @@
     };
 
     let selectedCount = null;
+
+    // ---- helpers ------------------------------------------------------------
     function adjustColor(color,percent){
       const num=parseInt(color.replace('#',''),16),amt=Math.round(2.55*percent);
       const R=Math.max(0,Math.min(255,(num>>16)+amt));
-      const G=Math.max(0,Math.min(255,(num>>8&0x00FF)+amt));
+      const G=Math.max(0,Math.min(255,((num>>8)&0x00FF)+amt));
       const B=Math.max(0,Math.min(255,(num&0x0000FF)+amt));
       return '#'+(0x1000000+R*0x10000+G*0x100+B).toString(16).slice(1);
     }
 
+    async function ensureMemberRow() {
+      const { data:{ session } } = await supa.auth.getSession();
+      if (!session) return null;
+
+      // Finn eller opprett egen medlemsrad
+      try {
+        const { data: existing } = await supa
+          .from('members')
+          .select('user_id')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (!existing) {
+          // Krever INSERT-policy: using/check (auth.uid() = user_id)
+          await supa.from('members').insert({
+            user_id: session.user.id,
+            email: session.user.email ?? null
+          });
+        }
+      } catch (e) {
+        // Ikke kritisk – vi faller tilbake til localStorage
+        console.warn('ensureMemberRow:', e?.message || e);
+      }
+
+      return session.user.id;
+    }
+
+    async function restoreFromDBOrLocal() {
+      const { data:{ session } } = await supa.auth.getSession();
+      let size = null;
+
+      try {
+        if (session) {
+          const { data } = await supa
+            .from('members')
+            .select('household_size')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          if (data?.household_size) size = String(data.household_size);
+        }
+      } catch (_) { /* ignore */ }
+
+      if (!size) size = localStorage.getItem('householdCount');
+
+      if (size) {
+        // map "6" -> "6+"-knapp
+        const key = (size === '6') ? '6+' : size;
+        const btn = document.querySelector(`.person-button[data-count="${key}"]`);
+        if (btn) {
+          btn.classList.add('selected');
+          selectedCount = key;
+          document.getElementById('continueButton').classList.add('enabled');
+        }
+      }
+    }
+
+    // ---- Element SDK UI-binding --------------------------------------------
     async function onConfigChange(config){
       const bg=config.background_color||defaultConfig.background_color;
       const surface=config.surface_color||defaultConfig.surface_color;
@@ -170,22 +229,13 @@
       ]);
     }
 
-    // === Auth-guard ==========================================================
+    // === Auth-guard + init ===================================================
     document.addEventListener('DOMContentLoaded', async () => {
       const { data:{ session } } = await supa.auth.getSession();
       if(!session){ location.href='/innlogging.html'; return; }
 
-      // Gjenopprett tidligere valg (hvis bruker går frem/tilbake)
-      const saved = localStorage.getItem('householdCount');
-      if (saved) {
-        selectedCount = saved;
-        const btn = document.querySelector(`.person-button[data-count="${saved}"]`) ||
-                    (saved === '6' ? document.querySelector(`.person-button[data-count="6+"]`) : null);
-        if (btn) {
-          btn.classList.add('selected');
-          document.getElementById('continueButton').classList.add('enabled');
-        }
-      }
+      await ensureMemberRow();
+      await restoreFromDBOrLocal();
     });
 
     // === UI-hendelser ========================================================
@@ -196,7 +246,7 @@
         selectedCount = button.dataset.count;
         document.getElementById('continueButton').classList.add('enabled');
 
-        if(window.elementSdk && window.elementSdk.config){ onConfigChange(window.elementSdk.config); }
+        if(window.elementSdk?.config){ onConfigChange(window.elementSdk.config); }
       });
     });
 
@@ -211,21 +261,14 @@
       const normalized = (selectedCount === '6+') ? '6' : String(selectedCount);
       localStorage.setItem('householdCount', normalized);
 
-      // Prøv å lagre i DB (members.household_size), men ikke stopp flyt hvis det feiler
       try{
-        const { data:{ session } } = await supa.auth.getSession();
-        if(session){
+        const userId = await ensureMemberRow();
+        if (userId) {
           const sizeNumber = parseInt(normalized, 10);
-          // Forsøk direkte UPDATE; krever kolonnen "household_size" + RLS-policy
-          const { error } = await supa
+          await supa
             .from('members')
             .update({ household_size: sizeNumber })
-            .eq('user_id', session.user.id);
-
-          if (error) {
-            // Ikke fatal – vi fortsetter onboarding og bruker localStorage som fallback
-            console.warn('Kunne ikke lagre household_size i DB:', error.message || error);
-          }
+            .eq('user_id', userId);
         }
       } catch(e){
         console.warn('DB-oppdatering feilet:', e?.message || e);
