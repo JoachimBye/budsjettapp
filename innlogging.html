@@ -353,10 +353,13 @@
       }
     }
 
-    // ===== 2) Bekreft OTP for REGISTRERING ==================================
+    // ===== 2) Verifiser OTP → logg inn → gå til riktig side ==================
     async function handleOtpVerify() {
       const token = qs('#otp').value.trim();
-      if (!lastEmail || token.length < 4) return alert('Skriv inn koden fra e-posten');
+      if (!lastEmail || token.length < 4) {
+        alert('Skriv inn koden fra e-posten');
+        return;
+      }
 
       const otpBtn = qs('#otpBtn');
       otpBtn.disabled = true;
@@ -364,6 +367,7 @@
       otpBtn.textContent = 'Bekrefter...';
 
       try {
+        // Verifiser OTP (logger inn brukeren)
         const { error } = await supa.auth.verifyOtp({
           email: lastEmail,
           token,
@@ -371,8 +375,36 @@
         });
         if (error) throw error;
 
-        // Innlogget → index.html håndterer onboarding/videre
-        window.location.href = '/index.html';
+        // Hent session
+        const { data: { session } } = await supa.auth.getSession();
+        if (!session) {
+          // fallback hvis noe rart skjer
+          window.location.href = '/index.html';
+          return;
+        }
+
+        // Sjekk om onboarding er ferdig i members-tabellen
+        let onboardingDone = false;
+        try {
+          const { data: member, error: mErr } = await supa
+            .from('members')
+            .select('onboarding_done')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!mErr && member && member.onboarding_done) {
+            onboardingDone = true;
+          }
+        } catch (_) {}
+
+        // Lokal fallback (tidligere localStorage-flag)
+        if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
+          onboardingDone = true;
+        }
+
+        // Hvis onboarding er ferdig → rett til app.html, ellers til index/onboarding
+        window.location.href = onboardingDone ? '/app.html' : '/index.html';
+
       } catch (err) {
         console.error(err);
         alert(err.message || 'Feil kode. Prøv igjen.');
