@@ -24,8 +24,41 @@
     }
     html{height:100%;}
     .container{flex:1;display:flex;flex-direction:column;padding:30px;max-width:800px;margin:0 auto;width:100%;}
-    .header{text-align:center;margin-bottom:40px;animation:fadeInDown .6s ease-out;}
-    .week-info{font-size:20px;color:#5a7a6d;font-weight:500;}
+
+    .header{
+      text-align:center;
+      margin-bottom:32px;
+      animation:fadeInDown .6s ease-out;
+    }
+    .week-header-inner{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+    }
+    .week-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 18px;
+      border-radius:9999px;
+      background:#4caf50;
+      color:#ffffff;
+      font-weight:600;
+      font-size:14px;
+      box-shadow:0 4px 12px rgba(76,175,80,.35);
+      transition:all .2s ease;
+    }
+    .week-pill:hover{
+      transform:translateY(-1px);
+      box-shadow:0 6px 14px rgba(76,175,80,.4);
+    }
+    .week-range{
+      margin:0;
+      font-size:18px;
+      color:#5a7a6d;
+      font-weight:500;
+    }
 
     /* Logout knapp øverst til høyre */
     .logout-btn{
@@ -90,6 +123,7 @@
       .action-icon{font-size:32px;}
       .action-text{font-size:16px;}
       .meal-button{width:100%;}
+      .week-range{font-size:16px;}
     }
     @view-transition { navigation: auto; }
   </style>
@@ -99,8 +133,14 @@
   <button class="logout-btn" id="logoutBtn" title="Logg ut" aria-label="Logg ut">Logg ut</button>
 
   <main class="container">
+    <!-- Ny uke-header -->
     <div class="header">
-      <div class="week-info" id="weekInfo">Uke – dd.–dd. mmmm</div>
+      <div class="week-header-inner">
+        <div class="week-pill">
+          <span id="weekText">Uke 0</span>
+        </div>
+        <p class="week-range" id="dateRange">dd.–dd. mmmm</p>
+      </div>
     </div>
 
     <div class="budget-overview">
@@ -171,28 +211,21 @@
 
       const done = !!(m?.onboarding_done);
 
-      // Kun redirect dersom vi faktisk vet at onboarding IKKE er gjort,
-      // og vi heller ikke har lokalt flagg.
       if (!done && !localOnb) {
         location.href = '/onboarding1.html';
         return;
       }
     } catch(_) {
-      // DB utilgjengelig → stol på lokal status (ingen redirect)
+      // DB utilgjengelig → stol på lokal status
     }
 
-    // Sett aktiv uke hvis mangler (mandag 12:00, lokal tid)
     if (!localStorage.getItem('activeWeekISO')) {
       localStorage.setItem('activeWeekISO', mondayAtNoon().toISOString().slice(0,10));
     }
 
-    // Prøv å hente budsjett fra DB (ikke kritisk)
     await refreshBudgetFromDB();
-
-    // Tegn UI
     init();
 
-    // Reager på utlogging
     supa.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') location.href = '/innlogging.html';
     });
@@ -251,13 +284,16 @@
     const mon = getActiveMondayDate();
     const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
     const weekNo = isoWeekNumber(mon);
-    document.getElementById('weekInfo').textContent = `Uke ${weekNo} – ${formatRangeNoNO(mon, sun)}`;
+
+    const weekTextEl = document.getElementById('weekText');
+    const dateRangeEl = document.getElementById('dateRange');
+    if (weekTextEl) weekTextEl.textContent = `Uke ${weekNo}`;
+    if (dateRangeEl) dateRangeEl.textContent = formatRangeNoNO(mon, sun);
   }
 
   // ---------- Budsjett/kjøp ----------
   let budgetData = { total: 0, spent: 0, remaining: 0 };
 
-  // DB: prøv å lese weekly budget for aktiv uke
   async function readWeeklyBudgetFromDB(isoMonday){
     try {
       const { data:{ session } } = await supa.auth.getSession();
@@ -282,7 +318,6 @@
     }
   }
 
-  // Local fallback
   function readWeeklyBudgetFor(isoMonday){
     const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
@@ -403,19 +438,27 @@
       `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor,-2)} 100%)`;
 
     const elements = [
-      { id: 'weekInfo', size: baseSize * 1.11, color: secondaryTextColor },
-      { id: 'spentAmount', size: baseSize * 2, color: textColor },
-      { id: 'totalBudget', size: baseSize * 1.11, color: secondaryTextColor },
+      { id: 'weekText',      size: baseSize * 0.9,  color: '#ffffff' },
+      { id: 'dateRange',     size: baseSize * 1.05, color: secondaryTextColor },
+      { id: 'spentAmount',   size: baseSize * 2,    color: textColor },
+      { id: 'totalBudget',   size: baseSize * 1.11, color: secondaryTextColor },
       { id: 'remainingAmount', size: baseSize * 1.56, color: primaryActionColor },
       { id: 'remainingText', size: baseSize * 0.89, color: textColor },
-      { id: 'statusMessage', size: baseSize, color: secondaryTextColor }
+      { id: 'statusMessage', size: baseSize,        color: secondaryTextColor }
     ];
     elements.forEach(el => {
       const node = document.getElementById(el.id);
+      if (!node) return;
       node.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
       node.style.fontSize = `${el.size}px`;
       node.style.color = el.color;
     });
+
+    const weekPill = document.querySelector('.week-pill');
+    if (weekPill) {
+      weekPill.style.background = primaryActionColor;
+      weekPill.style.color = '#ffffff';
+    }
 
     document.querySelectorAll('.action-text').forEach(t=>{
       t.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
@@ -426,9 +469,12 @@
       b.style.borderColor = adjustColor(primaryActionColor, 60);
     });
 
-    document.querySelector('.circle-bg').style.background = adjustColor(primaryActionColor, 85);
-    document.querySelector('.remaining-info').style.background = `${primaryActionColor}1a`;
-    document.querySelector('.status-bar').style.background = `${surfaceColor}b3`;
+    const circleBg = document.querySelector('.circle-bg');
+    const remainingInfo = document.querySelector('.remaining-info');
+    const statusBar = document.querySelector('.status-bar');
+    if (circleBg) circleBg.style.background = adjustColor(primaryActionColor, 85);
+    if (remainingInfo) remainingInfo.style.background = `${primaryActionColor}1a`;
+    if (statusBar) statusBar.style.background = `${surfaceColor}b3`;
   }
 
   function mapToCapabilities(config) {
