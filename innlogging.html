@@ -241,34 +241,64 @@
       }
     }
 
-    // ===== 2) Verifiser OTP → innlogget ======================================
-    async function handleOtpVerify() {
-      const token = qs('#otp').value.trim();
-      if (!lastEmail || token.length < 4) return alert('Skriv inn koden fra e-posten');
+// 2) Verifiser OTP → logg inn → gå til riktig side
+async function handleOtpVerify() {
+  const token = qs('#otp').value.trim();
+  if (!lastEmail || token.length < 4) return alert('Skriv inn koden fra e-posten');
 
-      const otpBtn = qs('#otpBtn');
-      otpBtn.disabled = true;
-      const old = otpBtn.textContent;
-      otpBtn.textContent = 'Bekrefter...';
+  const otpBtn = qs('#otpBtn');
+  otpBtn.disabled = true;
+  const old = otpBtn.textContent;
+  otpBtn.textContent = 'Bekrefter...';
 
-      try {
-        const { error } = await supa.auth.verifyOtp({
-          email: lastEmail,
-          token,
-          type: 'email' // Email OTP
-        });
-        if (error) throw error;
+  try {
+    // Verifiser koden (logger inn brukeren)
+    const { error } = await supa.auth.verifyOtp({
+      email: lastEmail,
+      token,
+      type: 'email'
+    });
+    if (error) throw error;
 
-        // Innlogget → index.html tar seg av videre routing (onboarding/app)
-        window.location.href = '/index.html';
-      } catch (err) {
-        console.error(err);
-        alert(err.message || 'Feil kode. Prøv igjen.');
-      } finally {
-        otpBtn.disabled = false;
-        otpBtn.textContent = old;
-      }
+    // Hent session
+    const { data: { session } } = await supa.auth.getSession();
+    if (!session) {
+      // fallback hvis noe rart skjer
+      window.location.href = '/index.html';
+      return;
     }
+
+    // Sjekk om onboarding er ferdig i members-tabellen
+    let onboardingDone = false;
+    try {
+      const { data: member, error: mErr } = await supa
+        .from('members')
+        .select('onboarding_done')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (!mErr && member && member.onboarding_done) {
+        onboardingDone = true;
+      }
+    } catch (_) {}
+
+    // Lokal fallback (hvis du tidligere brukte localStorage-flagget)
+    if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
+      onboardingDone = true;
+    }
+
+    // Ruter:
+    // - Onboarding ferdig → rett til app.html
+    // - Ikke ferdig → til index.html (som så sender til onboarding1)
+    window.location.href = onboardingDone ? '/app.html' : '/index.html';
+
+  } catch (err) {
+    alert(err.message || 'Feil kode. Prøv igjen.');
+  } finally {
+    otpBtn.disabled = false;
+    otpBtn.textContent = old;
+  }
+}
 
     // Lyttere
     document.addEventListener('DOMContentLoaded', () => {
