@@ -205,17 +205,14 @@
             localStorage.getItem('pending_invite') ||
             null;
 
-          if (inviteCode) {
-            try {
-              await supa.rpc('join_with_code', {
-                p_code: inviteCode,
-                p_email: session.user.email
-              });
-              localStorage.removeItem('pending_invite');
-            } catch (e) {
-              console.warn('join_with_code feilet:', e?.message || e);
-            }
-          }
+if (inviteCode) {
+  try {
+    await supa.rpc('join_with_code', { p_code: inviteCode });
+    localStorage.removeItem('pending_invite');
+  } catch (e) {
+    console.warn('join_with_code feilet:', e?.message || e);
+  }
+}
         }
       } catch (e) {
         console.warn('Feil under join_with_code/session-henting:', e?.message || e);
