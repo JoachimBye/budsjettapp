@@ -15,6 +15,9 @@
   <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <!-- Ny: sentral auth/ruting-hjerne -->
+  <script src="/auth-helpers.js"></script>
+
   <style>
     body {
       box-sizing: border-box; margin: 0; padding: 0; min-height: 100%;
@@ -24,25 +27,65 @@
       padding: 2rem 1rem;
     }
     * { box-sizing: border-box; }
-    .card { background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1); padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem; }
-    .title { font-size:1.75rem; font-weight:700; color:#1b5e20; margin-bottom:.5rem; text-align:center; }
-    .subtitle { font-size:1rem; color:#558b2f; margin-bottom:2rem; text-align:center; line-height:1.5; }
+    .card {
+      background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1);
+      padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem;
+    }
+    .title {
+      font-size:1.75rem; font-weight:700; color:#1b5e20;
+      margin-bottom:.5rem; text-align:center;
+    }
+    .subtitle {
+      font-size:1rem; color:#558b2f; margin-bottom:2rem;
+      text-align:center; line-height:1.5;
+    }
     .form-group { margin-bottom:1.5rem; }
-    label { display:block; font-size:.9rem; font-weight:600; color:#2e7d32; margin-bottom:.5rem; }
-    input { width:100%; padding:.875rem 1rem; border:2px solid #c8e6c9; border-radius:.5rem; font-size:1rem; transition:all .3s ease; background:#fff; }
-    input:focus { outline:none; border-color:#4caf50; box-shadow:0 0 0 3px rgba(76,175,80,.1); }
+    label {
+      display:block; font-size:.9rem; font-weight:600;
+      color:#2e7d32; margin-bottom:.5rem;
+    }
+    input {
+      width:100%; padding:.875rem 1rem;
+      border:2px solid #c8e6c9; border-radius:.5rem;
+      font-size:1rem; transition:all .3s ease; background:#fff;
+    }
+    input:focus {
+      outline:none; border-color:#4caf50;
+      box-shadow:0 0 0 3px rgba(76,175,80,.1);
+    }
     .hint { font-size:.85rem; color:#689f38; margin-top:.5rem; line-height:1.4; }
-    .submit-btn { width:100%; padding:1rem; background:#4caf50; color:#fff; border:none; border-radius:.5rem; font-size:1.1rem; font-weight:600; cursor:pointer; transition:all .3s ease; margin-top:1rem; }
-    .submit-btn:hover { background:#45a049; transform:translateY(-2px); box-shadow:0 4px 12px rgba(76,175,80,.3); }
-    .submit-btn:disabled { background:#a5d6a7; cursor:not-allowed; transform:none; }
-    .success-message { background:#e8f5e9; border:2px solid #4caf50; border-radius:.5rem; padding:1rem; margin-top:1rem; display:none; align-items:center; gap:.75rem; }
+    .submit-btn {
+      width:100%; padding:1rem; background:#4caf50; color:#fff;
+      border:none; border-radius:.5rem; font-size:1.1rem;
+      font-weight:600; cursor:pointer; transition:all .3s ease; margin-top:1rem;
+    }
+    .submit-btn:hover {
+      background:#45a049; transform:translateY(-2px);
+      box-shadow:0 4px 12px rgba(76,175,80,.3);
+    }
+    .submit-btn:disabled {
+      background:#a5d6a7; cursor:not-allowed; transform:none;
+    }
+    .success-message {
+      background:#e8f5e9; border:2px solid #4caf50;
+      border-radius:.5rem; padding:1rem; margin-top:1rem;
+      display:none; align-items:center; gap:.75rem;
+    }
     .success-message.show { display:flex; }
     .success-text { color:#2e7d32; font-weight:600; flex:1; }
-    .login-link { text-align:center; margin-top:1.5rem; font-size:.9rem; color:#558b2f; }
-    .login-link a { color:#2e7d32; text-decoration:none; font-weight:600; }
+    .login-link {
+      text-align:center; margin-top:1.5rem;
+      font-size:.9rem; color:#558b2f;
+    }
+    .login-link a {
+      color:#2e7d32; text-decoration:none; font-weight:600;
+    }
     .login-link a:hover { text-decoration:underline; }
     .footer { text-align:center; color:#558b2f; font-size:.85rem; }
-    @media (max-width:640px){ .card{padding:1.5rem} .title{font-size:1.5rem} }
+    @media (max-width:640px){
+      .card{padding:1.5rem}
+      .title{font-size:1.5rem}
+    }
     @view-transition { navigation: auto; }
   </style>
 </head>
@@ -116,48 +159,6 @@
       text_color: "#1b5e20",
       accent_color: "#558b2f"
     };
-
-    // Felles redirect etter innlogging (brukes flere steder)
-    async function redirectAfterLogin() {
-      try {
-        const { data: { session } } = await supa.auth.getSession();
-        if (!session) {
-          window.location.href = '/index.html';
-          return;
-        }
-
-        let onboardingDone = false;
-
-        // 1) Sjekk i Supabase (members.onboarding_done)
-        try {
-          const { data: member, error: mErr } = await supa
-            .from('members')
-            .select('onboarding_done')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (!mErr && member && member.onboarding_done) {
-            onboardingDone = true;
-          }
-        } catch (e) {
-          console.warn('Klarte ikke å lese onboarding_done fra DB', e);
-        }
-
-        // 2) Lokal fallback (gammelt flagg)
-        if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
-          onboardingDone = true;
-        }
-
-        // 3) Hvis bruker har trykket "Start uke 1" tidligere
-        const setupComplete = localStorage.getItem('setupComplete') === 'true';
-
-        // 4) Endelig destinasjon
-        window.location.href = (onboardingDone || setupComplete) ? '/app.html' : '/index.html';
-      } catch (e) {
-        console.warn('redirectAfterLogin feilet', e);
-        window.location.href = '/index.html';
-      }
-    }
 
     async function onConfigChange(config) {
       document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
@@ -248,19 +249,30 @@
       if (otpBox) otpBox.style.display = 'none';
     }
 
-    // ===== Redirect hvis allerede innlogget ==================================
+    // ===== Initial load / redirect-håndtering via auth-helpers ===============
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await supa.auth.getSession();
-      if (session) { await redirectAfterLogin(); return; }
+      if (window.authHelpers?.protectPage) {
+        // La "hjernen" bestemme om vi skal være på /innlogging.html eller ikke
+        await window.authHelpers.protectPage(supa);
+
+        // Hvis vi ble sendt videre (f.eks. til /app.html), ikke gjør mer her
+        if (window.location.pathname !== '/innlogging.html') return;
+      }
 
       // Autofyll ?code=XYZ i URL (for registrering)
       const p = new URL(location.href).searchParams.get('code');
-      if (p) qs('#invite').value = p;
+      if (p && qs('#invite')) {
+        qs('#invite').value = p;
+      }
 
       // Hvis hash er #login → gå rett i login-modus
       if (location.hash === '#login') {
         switchToLoginMode();
       }
+
+      // Lyttere
+      qs('#loginForm')?.addEventListener('submit', handleSubmit);
+      qs('#otpBtn')?.addEventListener('click', handleOtpVerify);
     });
 
     // “Logg inn”-lenke (fra registreringsmodus) → bytt til login-modus
@@ -303,15 +315,15 @@
       }
     }
 
-    // ===== 1) Submit-knapp – send kode ELLER verifiser =======================
+    // ===== 1) Submit-knapp – send kode ELLER verifiser (login-modus steg 2) ==
     async function handleSubmit(e) {
       e.preventDefault();
       const emailInput = qs('#email');
+      if (!emailInput) return;
+
       const emailOrCode = emailInput.value.trim();
       const inviteCode = qs('#invite') ? qs('#invite').value.trim() : '';
       const btn = qs('#submitBtn');
-
-      if (!emailInput) return;
 
       // LOGIN: steg 2 – verifiser kode
       if (isLoginMode && loginStep === 'otp') {
@@ -332,7 +344,12 @@
           });
           if (error) throw error;
 
-          await redirectAfterLogin();
+          // La auth-helpers bestemme neste side
+          if (window.authHelpers?.protectPage) {
+            await window.authHelpers.protectPage(supa);
+          } else {
+            window.location.href = '/index.html';
+          }
         } catch (err) {
           console.error(err);
           alert(err.message || 'Feil kode. Prøv igjen.');
@@ -395,7 +412,7 @@
       }
     }
 
-    // ===== 2) Verifiser OTP → logg inn → gå til riktig side ==================
+    // ===== 2) Verifiser OTP (registrering) → logg inn → sentral ruting =======
     async function handleOtpVerify() {
       const token = qs('#otp').value.trim();
       if (!lastEmail || token.length < 4) {
@@ -417,8 +434,12 @@
         });
         if (error) throw error;
 
-        await redirectAfterLogin();
-        return;
+        // Etter vellykket registrering: la auth-helpers bestemme destinasjon
+        if (window.authHelpers?.protectPage) {
+          await window.authHelpers.protectPage(supa);
+        } else {
+          window.location.href = '/index.html';
+        }
       } catch (err) {
         console.error(err);
         alert(err.message || 'Feil kode. Prøv igjen.');
@@ -427,12 +448,6 @@
         otpBtn.textContent = old;
       }
     }
-
-    // Lyttere
-    document.addEventListener('DOMContentLoaded', () => {
-      qs('#loginForm').addEventListener('submit', handleSubmit);
-      qs('#otpBtn').addEventListener('click', handleOtpVerify);
-    });
   </script>
 </body>
 </html>
