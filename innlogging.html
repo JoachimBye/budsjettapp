@@ -25,11 +25,17 @@
       background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 2rem 1rem;
+      /* Sikrer at boblene ikke lager scrollbars */
+      overflow: hidden; 
+      position: relative;
     }
     * { box-sizing: border-box; }
     .card {
       background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1);
       padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem;
+      /* NYTT: Sørger for at kortet er over boblene */
+      position: relative;
+      z-index: 10;
     }
     .title {
       font-size:1.75rem; font-weight:700; color:#1b5e20;
@@ -48,6 +54,7 @@
       width:100%; padding:.875rem 1rem;
       border:2px solid #c8e6c9; border-radius:.5rem;
       font-size:1rem; transition:all .3s ease; background:#fff;
+      position: relative; /* For pulsanimeasjon */
     }
     input:focus {
       outline:none; border-color:#4caf50;
@@ -87,11 +94,107 @@
       .title{font-size:1.5rem}
     }
     @view-transition { navigation: auto; }
+
+    /* --- NYTT: 1. Flytende "boble"-bakgrunn --- */
+    .floating-bubbles {
+        position: fixed;
+        inset: 0;
+        z-index: 0; /* Bak kortet */
+        pointer-events: none;
+        overflow: hidden;
+    }
+    .bubble {
+        position: absolute;
+        border-radius: 9999px;
+        /* Myke grønne/gule toner som matcher ditt design */
+        background: radial-gradient(circle, rgba(200, 230, 201, 0.5), rgba(240, 244, 195, 0.3));
+        animation: floatUpDown 25s ease-in-out infinite;
+    }
+    .bubble-1 {
+        width: 200px;
+        height: 200px;
+        top: 10%;
+        left: 5%;
+        animation-duration: 30s;
+    }
+    .bubble-2 {
+        width: 300px;
+        height: 300px;
+        top: 60%;
+        right: -10%;
+        animation-duration: 25s;
+        animation-delay: 2s;
+    }
+    .bubble-3 {
+        width: 150px;
+        height: 150px;
+        bottom: 5%;
+        left: 30%;
+        animation-duration: 20s;
+    }
+    .bubble-4 {
+        width: 250px;
+        height: 250px;
+        top: -5%;
+        left: 60%;
+        animation-duration: 35s;
+        animation-delay: 1s;
+    }
+
+    @keyframes floatUpDown {
+        0%   { transform: translateY(0) translateX(0) scale(1);   opacity: 0.65; }
+        50%  { transform: translateY(-28px) translateX(10px) scale(1.05); opacity: 0.9; }
+        100% { transform: translateY(0) translateX(0) scale(1);   opacity: 0.65; }
+    }
+
+    /* --- NYTT: 2. "Pop-in" animasjon på kortet --- */
+    .login-card {
+        /* 'backwards' sørger for at den starter på 0% før animasjonen */
+        animation: cardEnter 0.6s 0.1s ease-out backwards;
+    }
+
+    @keyframes cardEnter {
+        0%   { opacity: 0; transform: translateY(24px) scale(0.96); }
+        60%  { opacity: 1; transform: translateY(0) scale(1.02); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* --- NYTT: 3. Invitasjonskode "pulse" --- */
+    /* Animasjonsklasse som legges til med JS */
+    input#invite.pulse-once {
+        /* Kjører 2 ganger, 0.8s etter at kortet har lastet inn */
+        animation: softPulse 1.4s ease-out 0.8s 2;
+    }
+
+    @keyframes softPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.40); }
+        100% { box-shadow: 0 0 0 14px rgba(76, 175, 80, 0.00); }
+    }
+
+    /* --- NYTT: 4. Redusert bevegelse (Tilgjengelighet) --- */
+    @media (prefers-reduced-motion: reduce) {
+        .floating-bubbles .bubble,
+        .login-card,
+        input#invite.pulse-once {
+            animation: none !important;
+            transition: none !important;
+        }
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="card">
+  <!-- NYTT: Lag for bakgrunnsbobler -->
+  <div class="floating-bubbles" aria-hidden="true">
+      <span class="bubble bubble-1"></span>
+      <span class="bubble bubble-2"></span>
+      <span class="bubble bubble-3"></span>
+      <span class="bubble bubble-4"></span>
+  </div>
+
+  <!-- NYTT: ".login-card" lagt til din eksisterende div -->
+  <div class="card login-card">
     <h1 class="title" id="main-title">Bli med i familie betaen</h1>
     <p class="subtitle" id="subtitle">Du er invitert til å teste vår nye budsjett app før alle andre.</p>
 
@@ -105,6 +208,7 @@
 
       <div class="form-group" id="inviteGroup">
         <label for="invite" id="code-label">Husstandskode (invitasjonskode)</label>
+        <!-- NYTT: Ingen HTML-endring her, pulsen styres av JS/CSS -->
         <input type="text" id="invite" name="invite" required placeholder="NORDMO2025" />
         <p class="hint" id="code-hint">Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.</p>
       </div>
@@ -269,6 +373,16 @@
       if (location.hash === '#login') {
         switchToLoginMode();
       }
+      
+      // --- NYTT: Aktiver puls-animasjon ---
+      // Vi sjekker om vi er i registreringsmodus før vi pulserer invitasjonsfeltet
+      if (!isLoginMode) {
+        const inviteInput = document.querySelector('#invite');
+        if (inviteInput) {
+          inviteInput.classList.add('pulse-once');
+        }
+      }
+      // --- Slutt på nytt ---
 
       // Lyttere
       qs('#loginForm')?.addEventListener('submit', handleSubmit);
