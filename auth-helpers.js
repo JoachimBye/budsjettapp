@@ -74,7 +74,7 @@ async function protectPage(supa) {
 
   // 2b. Ferdig med alt (setupComplete = true)
   if (status.isSetupComplete) {
-    const appPaths = ['/app.html', '/add-purchase.html']; // 👈 riktig filnavn
+    const appPaths = ['/app.html', '/add-purchase.html', '/ukesrapport.html']; // legg til ukesrapport
     if (!appPaths.includes(currentPath)) {
       // Innlogget + ferdig, men på "rar" side → rett til app
       window.location.href = '/app.html';
