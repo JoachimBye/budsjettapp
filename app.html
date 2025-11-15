@@ -15,6 +15,9 @@
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 
+  <!-- Ny: sentral auth/ruting-hjerne -->
+  <script src="/auth-helpers.js"></script>
+
   <style>
     body{
       box-sizing:border-box;margin:0;padding:0;height:100%;
@@ -183,55 +186,76 @@
   </main>
 
 <script>
-  // ===== Supabase init + auth/onboarding guard ================================
+  // ===== Supabase init + kobling til auth-helpers ============================
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Logg ut
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    try { await supa.auth.signOut(); } catch(_) {}
-    location.href = '/innlogging.html';
-  });
+  // Hoved-bootstrapping for denne siden
+  window.addEventListener('DOMContentLoaded', async () => {
+    const logoutBtn = document.getElementById('logoutBtn');
 
-  // Route-vakt (robust mot RLS/DB-feil)
-  (async () => {
-    const { data:{ session } } = await supa.auth.getSession();
-    if (!session) { location.href = '/innlogging.html'; return; }
-
-    // Lokal fallback hvis DB ikke kan nås
-    const localOnb = localStorage.getItem('onboarding_done') === '1' || localStorage.getItem('setupComplete') === 'true';
-
-    try {
-      const { data: m, error } = await supa
-        .from('members')
-        .select('onboarding_done')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      const done = !!(m?.onboarding_done);
-
-      if (!done && !localOnb) {
-        location.href = '/onboarding1.html';
-        return;
-      }
-    } catch(_) {
-      // DB utilgjengelig → stol på lokal status
+    // Koble logout-knapp til felles handleLogout
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        if (window.authHelpers?.handleLogout) {
+          window.authHelpers.handleLogout(supa);
+        } else {
+          // Fallback hvis auth-helpers.js ikke er lastet
+          supa.auth.signOut().finally(() => {
+            window.location.href = '/innlogging.html';
+          });
+        }
+      });
     }
 
+    // Global listener for eksterne SIGNED_OUT (token utløpt osv.)
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    } else {
+      try {
+        supa.auth.onAuthStateChange((event) => {
+          if (event === 'SIGNED_OUT' && window.location.pathname !== '/innlogging.html') {
+            window.location.href = '/innlogging.html';
+          }
+        });
+      } catch {}
+    }
+
+    // La "hjernen" bestemme om vi har lov å være på /app.html
+    if (window.authHelpers?.protectPage) {
+      await window.authHelpers.protectPage(supa);
+
+      // Hvis protectPage sendte oss et annet sted, stopp videre kjøring
+      if (window.location.pathname !== '/app.html') return;
+    } else {
+      // Fallback: enkel sjekk hvis auth-helpers ikke er lastet
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) {
+        window.location.href = '/innlogging.html';
+        return;
+      }
+    }
+
+    // På dette tidspunktet:
+    //  - Bruker er innlogget
+    //  - setupComplete = true (ellers hadde protectPage flyttet de)
+    //  - Vi er på /app.html
+
+    // Sørg for at activeWeekISO eksisterer
     if (!localStorage.getItem('activeWeekISO')) {
       localStorage.setItem('activeWeekISO', mondayAtNoon().toISOString().slice(0,10));
     }
 
+    // Hent ev. budsjett fra DB -> sync til localStorage -> kalkuler UI
     await refreshBudgetFromDB();
     init();
+  });
 
-    supa.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT') location.href = '/innlogging.html';
-    });
-  })();
+  // Når brukeren kommer tilbake via tilbakeknapp/BFCache, re-run init
+  window.addEventListener('pageshow', init);
 
-  // ===== Element/tema konfig =================================================
+  // ===== Element/tema konfig ================================================
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -522,8 +546,6 @@
     setWeekHeader();
     recalcFromStorage();
   }
-  window.addEventListener('DOMContentLoaded', init);
-  window.addEventListener('pageshow', init);
 
   if (window.elementSdk) {
     window.elementSdk.init({
