@@ -217,17 +217,6 @@
     .btn-secondary:hover { background: #e0e0e0; }
     .btn-secondary:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
 
-    .help-text p {
-      margin-bottom: 8px;
-      font-size: 14px;
-      line-height: 1.4;
-    }
-    .help-text ul {
-      margin: 8px 0 12px 18px;
-      padding: 0;
-      font-size: 14px;
-    }
-
     /* Footer */
     .footer {
       position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid rgba(76,175,80,0.1);
@@ -266,6 +255,75 @@
       height: 30px;
     }
 
+    /* Coach overlay (guide-bobler) */
+    .coach-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      pointer-events: auto;
+    }
+    .coach-highlight {
+      position: fixed;
+      border-radius: 16px;
+      border: 2px solid #4caf50;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .coach-tooltip {
+      position: fixed;
+      max-width: 320px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 16px 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      color: #2d5f4d;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .coach-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .coach-text {
+      margin: 0;
+    }
+    .coach-step-label {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #5a7a6d;
+    }
+    .coach-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .coach-btn {
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+    .coach-btn.coach-skip {
+      background: transparent;
+      color: #5a7a6d;
+    }
+    .coach-btn.coach-prev {
+      background: #f0f0f0;
+      color: #2d5f4d;
+    }
+    .coach-btn.coach-next {
+      background: #4caf50;
+      color: #ffffff;
+    }
+    .coach-btn.coach-next:hover { background: #45a049; }
+
     /* Responsive */
     @media (max-width: 600px) {
       .container { padding: 16px; }
@@ -294,7 +352,6 @@
           📨 Fra middagsplan (<span id="inboxCount">0</span>)
         </button>
         <button class="mode-toggle" id="modeToggleBtn">Start butikk-modus 🛒</button>
-        <button class="mode-toggle" id="helpBtn">❓ Hjelp</button>
       </div>
     </header>
 
@@ -325,7 +382,6 @@
 
   <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
 
-  <!-- Legg til vare-modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" role="dialog" aria-labelledby="modalTitle">
       <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
@@ -363,44 +419,6 @@
     </div>
   </div>
 
-  <!-- Hjelpe-popup -->
-  <div class="modal-overlay" id="helpOverlay">
-    <div class="modal" role="dialog" aria-labelledby="helpTitle">
-      <h2 class="modal-title" id="helpTitle">Slik bruker du handlelista 🛒</h2>
-      <div class="help-text">
-        <p>Denne siden hjelper dere å planlegge innkjøpene og holde dere innenfor ukesbudsjettet.</p>
-
-        <p><strong>1. Øverst: Budsjett og oversikt</strong><br>
-        Her ser dere hvor mye dere har i ukesbudsjett, hvor mye som er brukt så langt, hva lista koster og hvor mye som er igjen.</p>
-
-        <p><strong>2. Legg til ting dere trenger</strong><br>
-        Trykk på den grønne <strong>+</strong>-knappen for å legge til en vare. Skriv navn, velg kategori og gjerne en ca-pris.</p>
-
-        <p><strong>3. Når dere er i butikken</strong></p>
-        <ul>
-          <li>Trykk på <strong>“Start butikk-modus 🛒”</strong>.</li>
-          <li>Trykk på en vare for å merke den som kjøpt.</li>
-          <li>Kjøpte varer samles i en egen liste nederst.</li>
-        </ul>
-
-        <p><strong>4. Mengde og pris</strong><br>
-        Bruk <strong>+ / –</strong> for antall. Trykk på prisen for å endre den hvis den er annerledes i butikken.</p>
-
-        <p><strong>5. Når dere er ferdige</strong><br>
-        Trykk på <strong>“Ferdig – registrer kjøp”</strong> for å sende summen videre og oppdatere ukesbudsjettet.</p>
-
-        <p><strong>6. Varer fra middagsplanen</strong><br>
-        Hvis dere har valgt middager, kan dere bruke knappen <strong>“Fra middagsplan”</strong> for å legge inn forslag til varer.</p>
-
-        <p>Du kan alltid åpne denne forklaringen igjen ved å trykke på <strong>“❓ Hjelp”</strong>-knappen.</p>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-secondary" id="helpCloseBtn">Lukk</button>
-        <button type="button" class="btn btn-primary" id="helpOkBtn">Skjønner 👍</button>
-      </div>
-    </div>
-  </div>
-
   <footer class="footer">
     <div class="footer-total" id="footerTotal">Totalt i handlelista: 0 kr</div>
     <div class="footer-actions">
@@ -409,6 +427,21 @@
       <button class="footer-btn done" id="doneBtn" style="display:none;">Ferdig – registrer kjøp</button>
     </div>
   </footer>
+
+  <!-- Coach overlay root (guide-bobler) -->
+  <div class="coach-overlay" id="coachOverlay">
+    <div class="coach-highlight" id="coachHighlight"></div>
+    <div class="coach-tooltip" id="coachTooltip">
+      <div class="coach-title" id="coachTitle"></div>
+      <p class="coach-text" id="coachText"></p>
+      <div class="coach-step-label" id="coachStepLabel"></div>
+      <div class="coach-buttons">
+        <button type="button" class="coach-btn coach-skip" id="coachSkipBtn">Hopp over</button>
+        <button type="button" class="coach-btn coach-prev" id="coachPrevBtn">Tilbake</button>
+        <button type="button" class="coach-btn coach-next" id="coachNextBtn">Neste</button>
+      </div>
+    </div>
+  </div>
 
 <script>
   // ---------- Konfig ----------
@@ -429,6 +462,8 @@
     font_size: 16
   };
   let currentConfig = { ...defaultConfig };
+
+  const COACH_SEEN_KEY = 'shoppingList_coach_seen_v1';
 
   // ---------- Utils ----------
   const fmt = (n) => (Number(n)||0).toLocaleString('no-NO');
@@ -451,7 +486,6 @@
   const WEEK_ISO = getActiveWeekISO();
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
   const INBOX_KEY = `shoppingList_inbox_${WEEK_ISO}`;
-  const HELP_KEY = 'shopping_help_seen_v1';
 
   // ---------- Budsjettoppslag ----------
   function parseMoneyStr(s){
@@ -515,6 +549,20 @@
   let spentSoFar = 0;
   let isStoreMode = false;
 
+  // coach state
+  let coachCurrentStep = 0;
+  let coachActive = false;
+  let prevBodyOverflow = '';
+  const coachOverlay = document.getElementById('coachOverlay');
+  const coachHighlight = document.getElementById('coachHighlight');
+  const coachTooltip = document.getElementById('coachTooltip');
+  const coachTitleEl = document.getElementById('coachTitle');
+  const coachTextEl = document.getElementById('coachText');
+  const coachStepLabelEl = document.getElementById('coachStepLabel');
+  const coachSkipBtn = document.getElementById('coachSkipBtn');
+  const coachPrevBtn = document.getElementById('coachPrevBtn');
+  const coachNextBtn = document.getElementById('coachNextBtn');
+
   // ---------- DOM helpers ----------
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
@@ -532,7 +580,7 @@
   spentSoFar = sumPurchasesLocal(WEEK_ISO);
   $('#spentAmount').textContent = `${fmt(spentSoFar)} kr`;
 
-  // ---------- Rendering ----------
+  // ---------- Item card ----------
   function createItemCard(item, categoryIndex, itemIndex) {
     const card = document.createElement('div');
     card.className = `item-card ${item.checked ? 'checked' : ''}`;
@@ -643,6 +691,7 @@
     return card;
   }
 
+  // ---------- Rendering ----------
   function renderCategories() {
     const container = $('#categoriesContainer');
     const purchasedContainer = $('#purchasedContainer');
@@ -1116,57 +1165,200 @@
     });
   }
 
-  // ---------- Hjelpe-popup ----------
-  function openHelp() {
-    const overlay = $('#helpOverlay');
-    if (!overlay) return;
-    overlay.classList.add('open');
-  }
+  // ---------- Coach steps (guide-bobler) ----------
+  const coachSteps = [
+    {
+      id: 'addItem',
+      selector: '#fabBtn',
+      title: 'Legg til ny vare',
+      text: 'Trykk på denne grønne knappen når dere kommer på noe nytt dere trenger å kjøpe.',
+      ensure: () => {
+        // Vi vil være i planleggingsmodus
+        if (isStoreMode) {
+          isStoreMode = false;
+          document.body.classList.remove('store-mode');
+          if (modeToggleBtn) {
+            modeToggleBtn.textContent = 'Start butikk-modus 🛒';
+            modeToggleBtn.classList.remove('active');
+          }
+          if (doneBtn) doneBtn.style.display = 'none';
+          renderCategories();
+        }
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    },
+    {
+      id: 'storeMode',
+      selector: '#modeToggleBtn',
+      title: 'Start butikk-modus',
+      text: 'Når dere er i butikken, trykker dere her for å gjøre det enklere å krysse av varene etter hvert som dere finner dem.',
+      ensure: () => {
+        if (isStoreMode) {
+          isStoreMode = false;
+          document.body.classList.remove('store-mode');
+          if (modeToggleBtn) {
+            modeToggleBtn.textContent = 'Start butikk-modus 🛒';
+            modeToggleBtn.classList.remove('active');
+          }
+          if (doneBtn) doneBtn.style.display = 'none';
+          renderCategories();
+        }
+      }
+    },
+    {
+      id: 'finish',
+      selector: '#doneBtn',
+      title: 'Ferdig med handlingen',
+      text: 'Når dere er ferdige i butikken og har krysset av det dere har kjøpt, trykker dere her for å registrere kjøpet og oppdatere budsjettet.',
+      ensure: () => {
+        // Sørg for at butikk-modus er på, slik at knappen vises
+        if (!isStoreMode) {
+          isStoreMode = true;
+          document.body.classList.add('store-mode');
+          if (modeToggleBtn) {
+            modeToggleBtn.textContent = 'Avslutt butikk-modus';
+            modeToggleBtn.classList.add('active');
+          }
+          if (doneBtn) doneBtn.style.display = 'inline-flex';
+          renderCategories();
+        }
+      }
+    }
+  ];
 
-  function closeHelp() {
-    const overlay = $('#helpOverlay');
-    if (!overlay) return;
-    overlay.classList.remove('open');
-    try {
-      localStorage.setItem(HELP_KEY, '1');
-    } catch {}
-  }
+  function positionCoachForElement(el) {
+    if (!el || !coachHighlight || !coachTooltip) return;
 
-  const helpBtn = $('#helpBtn');
-  if (helpBtn) {
-    helpBtn.addEventListener('click', () => {
-      openHelp();
+    const rect = el.getBoundingClientRect();
+    const padding = 8;
+
+    const left = rect.left - padding;
+    const top = rect.top - padding;
+    const width = rect.width + padding * 2;
+    const height = rect.height + padding * 2;
+
+    coachHighlight.style.left = `${left}px`;
+    coachHighlight.style.top = `${top}px`;
+    coachHighlight.style.width = `${width}px`;
+    coachHighlight.style.height = `${height}px`;
+
+    coachTooltip.style.left = '50%';
+    coachTooltip.style.transform = 'translateX(-50%)';
+
+    // Vi må vite høyden på tooltip for å plassere den over/under feltet
+    requestAnimationFrame(() => {
+      const ttRect = coachTooltip.getBoundingClientRect();
+      const viewportH = window.innerHeight || document.documentElement.clientHeight;
+      const placeAbove = rect.top > viewportH / 2;
+
+      let ttTop;
+      if (placeAbove) {
+        ttTop = Math.max(16, rect.top - ttRect.height - 16);
+      } else {
+        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
+      }
+      coachTooltip.style.top = `${ttTop}px`;
     });
   }
 
-  const helpOverlay = $('#helpOverlay');
-  if (helpOverlay) {
-    helpOverlay.addEventListener('click', (e) => {
-      if (e.target === helpOverlay) closeHelp();
-    });
+  function goToCoachStep(index) {
+    if (!coachOverlay) return;
+    if (index < 0 || index >= coachSteps.length) {
+      endCoachTour();
+      return;
+    }
+    coachCurrentStep = index;
+    const step = coachSteps[coachCurrentStep];
+
+    if (step.ensure) step.ensure();
+
+    const target = document.querySelector(step.selector);
+    if (!target) {
+      // Hopp videre hvis elementet ikke finnes
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+      return;
+    }
+
+    coachTitleEl.textContent = step.title;
+    coachTextEl.textContent = step.text;
+    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+    coachPrevBtn.disabled = coachCurrentStep === 0;
+    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+    positionCoachForElement(target);
   }
 
-  const helpCloseBtn = $('#helpCloseBtn');
-  const helpOkBtn = $('#helpOkBtn');
-  if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelp);
-  if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelp);
+  function startCoachTour() {
+    if (!coachOverlay) return;
+    coachActive = true;
+    coachOverlay.style.display = 'block';
+    prevBodyOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
+    goToCoachStep(0);
+  }
 
-  function maybeShowHelpOnFirstUse() {
-    let seen = false;
+  function endCoachTour() {
+    coachActive = false;
+    if (coachOverlay) coachOverlay.style.display = 'none';
+    document.body.style.overflow = prevBodyOverflow || '';
+    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+  }
+
+  function shouldStartCoachTour() {
     try {
-      seen = localStorage.getItem(HELP_KEY) === '1';
+      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
     } catch {
-      seen = false;
-    }
-    if (!seen) {
-      openHelp();
+      return true;
     }
   }
+
+  // coach-knapper
+  if (coachSkipBtn) {
+    coachSkipBtn.addEventListener('click', () => {
+      endCoachTour();
+    });
+  }
+  if (coachPrevBtn) {
+    coachPrevBtn.addEventListener('click', () => {
+      if (coachCurrentStep > 0) {
+        goToCoachStep(coachCurrentStep - 1);
+      }
+    });
+  }
+  if (coachNextBtn) {
+    coachNextBtn.addEventListener('click', () => {
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (!coachActive) return;
+    const step = coachSteps[coachCurrentStep];
+    if (!step) return;
+    const target = document.querySelector(step.selector);
+    if (target) {
+      positionCoachForElement(target);
+    }
+  });
 
   // ---------- Første render ----------
   renderCategories();
   initInbox();
-  maybeShowHelpOnFirstUse();
+
+  if (shouldStartCoachTour()) {
+    setTimeout(() => {
+      startCoachTour();
+    }, 600);
+  }
 </script>
 </body>
 </html>
