@@ -18,7 +18,7 @@
     .container { max-width: 800px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 
     /* Header */
-    .header { margin-bottom: 24px; }
+    .header { margin-bottom: 16px; }
     .back-button {
       display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
       color: #5a7a6d; font-size: 14px; cursor: pointer; padding: 8px 12px; border-radius: 12px;
@@ -26,25 +26,77 @@
     }
     .back-button:hover { background: rgba(76, 175, 80, 0.1); }
     .back-button:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 8px 0; }
+    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 4px 0; }
     .page-subtitle { font-size: 16px; color: #5a7a6d; }
+
+    .header-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .inbox-button,
+    .mode-toggle {
+      border-radius: 9999px;
+      border: 1px solid rgba(76,175,80,0.2);
+      background: #ffffff;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #2d5f4d;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+      font-family: inherit;
+    }
+    .inbox-button:hover,
+    .mode-toggle:hover {
+      background: rgba(76,175,80,0.06);
+      box-shadow: 0 1px 4px rgba(45,95,77,0.12);
+    }
+    .mode-toggle.active {
+      background: #4caf50;
+      color: #ffffff;
+      border-color: #4caf50;
+    }
 
     /* Budget Card */
     .budget-card {
-      background: #ffffff; border-radius: 20px; padding: 20px; margin-bottom: 24px;
+      background: #ffffff; border-radius: 20px; padding: 16px 20px; margin-bottom: 8px;
       box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
     }
     .budget-item { display: flex; flex-direction: column; gap: 4px; }
     .budget-label { font-size: 13px; color: #5a7a6d; font-weight: 500; }
-    .budget-amount { font-size: 20px; font-weight: 700; color: #2d5f4d; transition: transform 0.3s; }
+    .budget-amount { font-size: 18px; font-weight: 700; color: #2d5f4d; transition: transform 0.3s; }
     .budget-amount.pulse { animation: pulse 0.4s ease; }
     @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
 
+    .budget-warning {
+      margin: 6px 2px 18px 2px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2d5f4d;
+    }
+    .budget-warning.ok { color: #2e7d32; }
+    .budget-warning.warn { color: #f9a825; }
+    .budget-warning.over { color: #d32f2f; }
+
     /* Category Cards */
-    .category-card { background: #ffffff; border-radius: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(45,95,77,0.08); overflow: hidden; transition: box-shadow 0.2s; }
+    .category-card {
+      background: #ffffff; border-radius: 20px; margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(45,95,77,0.08); overflow: hidden; transition: box-shadow 0.2s;
+    }
     .category-card:hover { box-shadow: 0 4px 12px rgba(45,95,77,0.12); }
-    .category-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+    .category-header {
+      padding: 20px; cursor: pointer; display: flex; justify-content: space-between;
+      align-items: center; user-select: none; transition: background 0.2s;
+    }
     .category-header:hover { background: rgba(76, 175, 80, 0.05); }
     .category-header:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
     .category-title { font-size: 18px; font-weight: 600; color: #2d5f4d; display: flex; align-items: center; gap: 8px; }
@@ -55,9 +107,18 @@
     .category-card.open .category-content { max-height: 2000px; opacity: 1; }
     .category-items { padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
 
+    .purchased-section .category-header {
+      background: #f8fffe;
+      border-top: 1px solid rgba(76,175,80,0.2);
+    }
+
     /* Item Card */
-    .item-card { background: #f8fffe; border-radius: 15px; padding: 16px; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border: 1px solid rgba(76,175,80,0.1); }
-    .item-card.checked { background: #f0f0f0; opacity: 0.7; }
+    .item-card {
+      background: #f8fffe; border-radius: 15px; padding: 16px;
+      display: flex; align-items: center; gap: 12px;
+      transition: all 0.2s; border: 1px solid rgba(76,175,80,0.1);
+    }
+    .item-card.checked { background: #f0f0f0; opacity: 0.8; }
     .item-card:hover { border-color: rgba(76,175,80,0.3); }
     .item-checkbox { width: 24px; height: 24px; cursor: pointer; accent-color: #4caf50; flex-shrink: 0; }
     .item-checkbox:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
@@ -65,7 +126,11 @@
     .item-name { font-size: 16px; font-weight: 500; color: #2d5f4d; transition: text-decoration 0.2s; }
     .item-card.checked .item-name { text-decoration: line-through; }
     .item-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .stepper { display: flex; align-items: center; gap: 8px; background: #ffffff; border-radius: 12px; padding: 4px; border: 1px solid rgba(76,175,80,0.2); }
+
+    .stepper {
+      display: flex; align-items: center; gap: 8px; background: #ffffff;
+      border-radius: 12px; padding: 4px; border: 1px solid rgba(76,175,80,0.2);
+    }
     .stepper-btn {
       width: 28px; height: 28px; border: none; background: #4caf50; color: white; border-radius: 8px; cursor: pointer;
       font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0;
@@ -74,17 +139,35 @@
     .stepper-btn:active { background: #3d8b40; }
     .stepper-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
     .stepper-value { min-width: 30px; text-align: center; font-weight: 600; color: #2d5f4d; font-size: 14px; }
-    .price-input { width: 80px; padding: 6px 10px; border: 1px solid rgba(76,175,80,0.2); border-radius: 10px; font-size: 14px; font-family: inherit; color: #2d5f4d; background: #ffffff; }
+
+    .price-input {
+      width: 80px; padding: 6px 10px; border: 1px solid rgba(76,175,80,0.2); border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #2d5f4d; background: #ffffff;
+    }
     .price-input:focus { outline: 2px solid #4caf50; outline-offset: 0; border-color: #4caf50; }
-    .item-total { font-size: 16px; font-weight: 700; color: #4caf50; min-width: 70px; text-align: right; transition: transform 0.3s; }
+    .item-total {
+      font-size: 16px; font-weight: 700; color: #4caf50; min-width: 70px; text-align: right;
+      transition: transform 0.3s;
+    }
     .item-total.pulse { animation: pulse 0.4s ease; }
 
-    .item-menu-btn { width: 32px; height: 32px; border: none; background: none; color: #5a7a6d; cursor: pointer; border-radius: 8px; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; position: relative; }
+    .item-menu-btn {
+      width: 32px; height: 32px; border: none; background: none; color: #5a7a6d; cursor: pointer;
+      border-radius: 8px; font-size: 18px; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; flex-shrink: 0; position: relative;
+    }
     .item-menu-btn:hover { background: rgba(76,175,80,0.1); }
     .item-menu-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .item-menu { position: absolute; top: 100%; right: 0; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 16px rgba(45,95,77,0.15); padding: 8px; min-width: 180px; z-index: 100; display: none; }
+    .item-menu {
+      position: absolute; top: 100%; right: 0; background: #ffffff; border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(45,95,77,0.15); padding: 8px; min-width: 180px; z-index: 100; display: none;
+    }
     .item-menu.open { display: block; }
-    .menu-item { padding: 10px 12px; cursor: pointer; border-radius: 8px; font-size: 14px; color: #2d5f4d; transition: background 0.2s; display: block; width: 100%; text-align: left; border: none; background: none; font-family: inherit; }
+    .menu-item {
+      padding: 10px 12px; cursor: pointer; border-radius: 8px; font-size: 14px; color: #2d5f4d;
+      transition: background 0.2s; display: block; width: 100%; text-align: left; border: none;
+      background: none; font-family: inherit;
+    }
     .menu-item:hover { background: rgba(76,175,80,0.1); }
     .menu-item:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
     .menu-item.delete { color: #d32f2f; }
@@ -94,25 +177,38 @@
     .fab {
       position: fixed; bottom: 100px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
       background: #4caf50; color: white; border: none; font-size: 28px; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(76,175,80,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 50;
+      box-shadow: 0 4px 16px rgba(76,175,80,0.4); display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; z-index: 50;
     }
     .fab:hover { background: #45a049; transform: scale(1.05); box-shadow: 0 6px 20px rgba(76,175,80,0.5); }
     .fab:active { transform: scale(0.95); }
     .fab:focus { outline: 3px solid #4caf50; outline-offset: 3px; }
 
     /* Modal */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45,95,77,0.5); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45,95,77,0.5);
+      display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+    }
     .modal-overlay.open { display: flex; }
-    .modal { background: #ffffff; border-radius: 24px; padding: 28px; max-width: 500px; width: 100%; box-shadow: 0 8px 32px rgba(45,95,77,0.2); max-height: 90%; overflow-y: auto; }
+    .modal {
+      background: #ffffff; border-radius: 24px; padding: 28px; max-width: 500px; width: 100%;
+      box-shadow: 0 8px 32px rgba(45,95,77,0.2); max-height: 90%; overflow-y: auto;
+    }
     .modal-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 24px; }
     .form-group { margin-bottom: 20px; }
     .form-label { display: block; font-size: 14px; font-weight: 600; color: #2d5f4d; margin-bottom: 8px; }
     .form-input, .form-select {
-      width: 100%; padding: 12px 16px; border: 1px solid rgba(76,175,80,0.2); border-radius: 12px; font-size: 16px; font-family: inherit; color: #2d5f4d; background: #f8fffe; transition: border-color 0.2s;
+      width: 100%; padding: 12px 16px; border: 1px solid rgba(76,175,80,0.2); border-radius: 12px;
+      font-size: 16px; font-family: inherit; color: #2d5f4d; background: #f8fffe; transition: border-color 0.2s;
     }
-    .form-input:focus, .form-select:focus { outline: none; border-color: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,0.1); }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
+    }
     .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
-    .btn { flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .btn {
+      flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
     .btn-primary { background: #4caf50; color: white; }
     .btn-primary:hover { background: #45a049; }
     .btn-primary:active { background: #3d8b40; }
@@ -124,18 +220,40 @@
     /* Footer */
     .footer {
       position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid rgba(76,175,80,0.1);
-      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; box-shadow: 0 -2px 8px rgba(45,95,77,0.08);
-      flex-wrap: wrap; z-index: 40;
+      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; box-shadow: 0 -2px 8px rgba(45,95,77,0.08); flex-wrap: wrap; z-index: 40;
     }
     .footer-total { font-size: 18px; font-weight: 700; color: #2d5f4d; }
     .footer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .footer-btn { padding: 10px 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+    .footer-btn {
+      padding: 10px 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
     .footer-btn.mark-all { background: #4caf50; color: white; }
     .footer-btn.mark-all:hover { background: #45a049; }
     .footer-btn.mark-all:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
     .footer-btn.clear { background: #f0f0f0; color: #5a7a6d; }
     .footer-btn.clear:hover { background: #e0e0e0; }
     .footer-btn.clear:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
+
+    .footer-btn.done {
+      background: #2d5f4d;
+      color: #ffffff;
+    }
+    .footer-btn.done:hover { background: #244538; }
+    .footer-btn.done:focus { outline: 2px solid #2d5f4d; outline-offset: 2px; }
+
+    /* Store mode */
+    .store-mode .fab {
+      display: none;
+    }
+    .store-mode .item-card {
+      padding: 18px;
+    }
+    .store-mode .item-checkbox {
+      width: 30px;
+      height: 30px;
+    }
 
     /* Responsive */
     @media (max-width: 600px) {
@@ -159,6 +277,13 @@
       <button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
       <h1 class="page-title" id="pageTitle">Handleliste</h1>
       <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
+
+      <div class="header-actions">
+        <button class="inbox-button" id="inboxBtn" style="display:none;">
+          📨 Fra middagsplan (<span id="inboxCount">0</span>)
+        </button>
+        <button class="mode-toggle" id="modeToggleBtn">Start butikk-modus 🛒</button>
+      </div>
     </header>
 
     <div class="budget-card">
@@ -167,12 +292,23 @@
         <span class="budget-amount" id="budgetAmount">3 000 kr</span>
       </div>
       <div class="budget-item">
+        <span class="budget-label" id="spentLabel">Brukt så langt</span>
+        <span class="budget-amount" id="spentAmount">0 kr</span>
+      </div>
+      <div class="budget-item">
         <span class="budget-label" id="estimatedLabel">Estimert sum i liste</span>
         <span class="budget-amount" id="estimatedSum">0 kr</span>
       </div>
+      <div class="budget-item">
+        <span class="budget-label" id="remainingLabel">Gjenstår etter handlelista</span>
+        <span class="budget-amount" id="remainingAfter">0 kr</span>
+      </div>
     </div>
 
+    <p id="budgetWarning" class="budget-warning" style="display:none;"></p>
+
     <div id="categoriesContainer"></div>
+    <div id="purchasedContainer"></div>
   </div>
 
   <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
@@ -195,7 +331,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="itemQuantity" class="form-label">Antall</label>
+          <label class="form-label">Antall</label>
           <div class="stepper">
             <button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button>
             <span class="stepper-value" id="modalQuantity">1</span>
@@ -219,6 +355,7 @@
     <div class="footer-actions">
       <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
       <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
+      <button class="footer-btn done" id="doneBtn" style="display:none;">Ferdig – registrer kjøp</button>
     </div>
   </footer>
 
@@ -262,6 +399,7 @@
   // ---------- Nøkler ----------
   const WEEK_ISO = getActiveWeekISO();
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
+  const INBOX_KEY = `shoppingList_inbox_${WEEK_ISO}`;
 
   // ---------- Budsjettoppslag ----------
   function parseMoneyStr(s){
@@ -271,7 +409,6 @@
     return isNaN(v) ? NaN : v;
   }
   function readWeeklyBudgetFor(isoMonday){
-    // Tillat både rene tall og "3 000 kr"
     const byWeekRaw = localStorage.getItem(`weeklyBudget_${isoMonday}`);
     const byWeek = parseMoneyStr(byWeekRaw);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
@@ -281,6 +418,26 @@
     if (!isNaN(global) && global > 0) return global;
 
     return 3000;
+  }
+  function sumPurchasesLocal(isoMonday) {
+    const key = `purchases_${isoMonday}`;
+    try {
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(arr)
+        ? arr.reduce((acc, p) => acc + (Number(p.amount) || 0), 0)
+        : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function getInboxItems() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(INBOX_KEY) || '[]');
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
   }
 
   // ---------- Default data ----------
@@ -303,6 +460,8 @@
   // ---------- State ----------
   let categories = get(WEEK_LIST_KEY, defaultCategories);
   let modalQuantity = 1;
+  let spentSoFar = 0;
+  let isStoreMode = false;
 
   // ---------- DOM helpers ----------
   const $ = (sel) => document.querySelector(sel);
@@ -318,11 +477,127 @@
 
   const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
   $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
+  spentSoFar = sumPurchasesLocal(WEEK_ISO);
+  $('#spentAmount').textContent = `${fmt(spentSoFar)} kr`;
 
   // ---------- Rendering ----------
+  function createItemCard(item, categoryIndex, itemIndex) {
+    const card = document.createElement('div');
+    card.className = `item-card ${item.checked ? 'checked' : ''}`;
+    card.dataset.categoryIndex = categoryIndex;
+    card.dataset.itemIndex = itemIndex;
+
+    let touchStartX = null;
+    card.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+      }
+    });
+    card.addEventListener('touchend', (e) => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (dx < -60) {
+        deleteItem(categoryIndex, itemIndex);
+      }
+      touchStartX = null;
+    });
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.item-checkbox') ||
+          e.target.closest('.stepper') ||
+          e.target.closest('.price-input') ||
+          e.target.closest('.item-menu-btn')) {
+        return;
+      }
+      toggleItemChecked(categoryIndex, itemIndex);
+    });
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'item-checkbox';
+    checkbox.checked = item.checked;
+    checkbox.setAttribute('aria-label', `Merk ${item.name} som kjøpt`);
+    checkbox.addEventListener('change', () => { toggleItemChecked(categoryIndex, itemIndex); });
+
+    const details = document.createElement('div');
+    details.className = 'item-details';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'item-name';
+    nameEl.textContent = item.name;
+
+    const controls = document.createElement('div');
+    controls.className = 'item-controls';
+
+    const stepper = document.createElement('div');
+    stepper.className = 'stepper';
+    stepper.innerHTML = `
+      <button class="stepper-btn" aria-label="Reduser antall">−</button>
+      <span class="stepper-value">${item.quantity}</span>
+      <button class="stepper-btn" aria-label="Øk antall">+</button>
+    `;
+    stepper.children[0].addEventListener('click', (ev) => { ev.stopPropagation(); updateQuantity(categoryIndex, itemIndex, -1); });
+    stepper.children[2].addEventListener('click', (ev) => { ev.stopPropagation(); updateQuantity(categoryIndex, itemIndex, 1); });
+
+    const price = document.createElement('input');
+    price.type = 'number';
+    price.className = 'price-input';
+    price.value = item.price;
+    price.min = '0';
+    price.step = '1';
+    price.setAttribute('aria-label', `Pris for ${item.name}`);
+    price.addEventListener('click', (ev) => ev.stopPropagation());
+    price.addEventListener('input', (e) => updatePrice(categoryIndex, itemIndex, e.target.value));
+
+    const total = document.createElement('div');
+    total.className = 'item-total';
+    total.textContent = `${fmt(item.quantity * item.price)} kr`;
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'item-menu-btn';
+    menuBtn.textContent = '•••';
+    menuBtn.setAttribute('aria-label', 'Åpne meny');
+    menuBtn.setAttribute('aria-haspopup', 'true');
+
+    const menu = document.createElement('div');
+    menu.className = 'item-menu';
+    menu.innerHTML = `
+      <button class="menu-item">Rediger</button>
+      <button class="menu-item">Flytt til...</button>
+      <button class="menu-item delete">Slett</button>
+    `;
+    menu.children[0].addEventListener('click', () => { closeAllMenus(); });
+    menu.children[1].addEventListener('click', () => { closeAllMenus(); });
+    menu.children[2].addEventListener('click', () => { deleteItem(categoryIndex, itemIndex); closeAllMenus(); });
+
+    menuBtn.appendChild(menu);
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAllMenus();
+      menu.classList.toggle('open');
+    });
+
+    controls.appendChild(stepper);
+    controls.appendChild(price);
+    controls.appendChild(total);
+
+    details.appendChild(nameEl);
+    details.appendChild(controls);
+
+    card.appendChild(checkbox);
+    card.appendChild(details);
+    card.appendChild(menuBtn);
+
+    return card;
+  }
+
   function renderCategories() {
     const container = $('#categoriesContainer');
+    const purchasedContainer = $('#purchasedContainer');
     container.innerHTML = '';
+    if (purchasedContainer) purchasedContainer.innerHTML = '';
+
+    const purchasedItems = [];
 
     categories.forEach((category, categoryIndex) => {
       const card = document.createElement('div');
@@ -353,96 +628,56 @@
       list.className = 'category-items';
 
       category.items.forEach((item, itemIndex) => {
-        list.appendChild(createItemCard(item, categoryIndex, itemIndex));
+        if (item.checked) {
+          purchasedItems.push({ item, categoryIndex, itemIndex, categoryName: category.name });
+        }
+        if (!isStoreMode || !item.checked) {
+          list.appendChild(createItemCard(item, categoryIndex, itemIndex));
+        }
       });
 
       content.appendChild(list);
       card.appendChild(header);
       card.appendChild(content);
-      container.appendChild(card);
+
+      if (!isStoreMode || category.items.length > 0) {
+        container.appendChild(card);
+      }
     });
 
+    if (isStoreMode && purchasedItems.length > 0 && purchasedContainer) {
+      const pCard = document.createElement('div');
+      pCard.className = 'category-card purchased-section open';
+
+      const pHeader = document.createElement('div');
+      pHeader.className = 'category-header';
+      pHeader.innerHTML = `
+        <div class="category-title">
+          Kjøpt denne turen
+          <span class="category-count">(${purchasedItems.length})</span>
+        </div>
+        <span class="category-chevron">▼</span>
+      `;
+
+      const pContent = document.createElement('div');
+      pContent.className = 'category-content';
+      pContent.style.maxHeight = '2000px';
+      pContent.style.opacity = '1';
+
+      const pList = document.createElement('div');
+      pList.className = 'category-items';
+
+      purchasedItems.forEach(p => {
+        pList.appendChild(createItemCard(p.item, p.categoryIndex, p.itemIndex));
+      });
+
+      pContent.appendChild(pList);
+      pCard.appendChild(pHeader);
+      pCard.appendChild(pContent);
+      purchasedContainer.appendChild(pCard);
+    }
+
     updateTotals(false);
-  }
-
-  function createItemCard(item, categoryIndex, itemIndex) {
-    const card = document.createElement('div');
-    card.className = `item-card ${item.checked ? 'checked' : ''}`;
-    card.dataset.categoryIndex = categoryIndex;
-    card.dataset.itemIndex = itemIndex;
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'item-checkbox';
-    checkbox.checked = item.checked;
-    checkbox.setAttribute('aria-label', `Merk ${item.name} som kjøpt`);
-    checkbox.addEventListener('change', () => { toggleItemChecked(categoryIndex, itemIndex); });
-
-    const details = document.createElement('div');
-    details.className = 'item-details';
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 'item-name';
-    nameEl.textContent = item.name;
-
-    const controls = document.createElement('div');
-    controls.className = 'item-controls';
-
-    const stepper = document.createElement('div');
-    stepper.className = 'stepper';
-    stepper.innerHTML = `
-      <button class="stepper-btn" aria-label="Reduser antall">−</button>
-      <span class="stepper-value">${item.quantity}</span>
-      <button class="stepper-btn" aria-label="Øk antall">+</button>
-    `;
-    stepper.children[0].addEventListener('click', () => updateQuantity(categoryIndex, itemIndex, -1));
-    stepper.children[2].addEventListener('click', () => updateQuantity(categoryIndex, itemIndex, 1));
-
-    const price = document.createElement('input');
-    price.type = 'number';
-    price.className = 'price-input';
-    price.value = item.price;
-    price.min = '0';
-    price.step = '1';
-    price.setAttribute('aria-label', `Pris for ${item.name}`);
-    price.addEventListener('input', (e) => updatePrice(categoryIndex, itemIndex, e.target.value));
-
-    const total = document.createElement('div');
-    total.className = 'item-total';
-    total.textContent = `${fmt(item.quantity * item.price)} kr`;
-
-    const menuBtn = document.createElement('button');
-    menuBtn.className = 'item-menu-btn';
-    menuBtn.textContent = '•••';
-    menuBtn.setAttribute('aria-label', 'Åpne meny');
-    menuBtn.setAttribute('aria-haspopup', 'true');
-
-    const menu = document.createElement('div');
-    menu.className = 'item-menu';
-    menu.innerHTML = `
-      <button class="menu-item">Rediger</button>
-      <button class="menu-item">Flytt til...</button>
-      <button class="menu-item delete">Slett</button>
-    `;
-    menu.children[0].addEventListener('click', () => { /* placeholder */ closeAllMenus(); });
-    menu.children[1].addEventListener('click', () => { /* placeholder */ closeAllMenus(); });
-    menu.children[2].addEventListener('click', () => { deleteItem(categoryIndex, itemIndex); closeAllMenus(); });
-
-    menuBtn.appendChild(menu);
-    menuBtn.addEventListener('click', (e) => { e.stopPropagation(); closeAllMenus(); menu.classList.toggle('open'); });
-
-    controls.appendChild(stepper);
-    controls.appendChild(price);
-    controls.appendChild(total);
-
-    details.appendChild(nameEl);
-    details.appendChild(controls);
-
-    card.appendChild(checkbox);
-    card.appendChild(details);
-    card.appendChild(menuBtn);
-
-    return card;
   }
 
   // ---------- Mutators ----------
@@ -462,37 +697,22 @@
     const it = categories[ci].items[ii];
     it.checked = !it.checked;
 
-    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
-    card?.classList.toggle('checked');
-
     persist();
-    updateTotals();
+    renderCategories();
   }
 
   function updateQuantity(ci, ii, delta) {
     const it = categories[ci].items[ii];
     it.quantity = Math.max(1, it.quantity + delta);
-    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
-    const stepperValue = card.querySelector('.stepper-value');
-    const itemTotal = card.querySelector('.item-total');
-    stepperValue.textContent = it.quantity;
-    itemTotal.textContent = `${fmt(it.quantity * it.price)} kr`;
-    itemTotal.classList.add('pulse');
-    setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    updateTotals();
+    renderCategories();
   }
 
   function updatePrice(ci, ii, value) {
     const it = categories[ci].items[ii];
     it.price = parseFloat(value) || 0;
-    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
-    const itemTotal = card.querySelector('.item-total');
-    itemTotal.textContent = `${fmt(it.quantity * it.price)} kr`;
-    itemTotal.classList.add('pulse');
-    setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    updateTotals();
+    renderCategories();
   }
 
   function deleteItem(ci, ii) {
@@ -501,32 +721,89 @@
     renderCategories();
   }
 
-  // ---------- Totals ----------
+  // ---------- Totals + budsjett-hint ----------
   function updateTotals(pulse = true) {
     let total = 0;
-    categories.forEach(c => c.items.forEach(i => total += i.quantity * i.price));
+    categories.forEach(c => c.items.forEach(i => {
+      total += i.quantity * i.price;
+    }));
+
     const estimatedSum = $('#estimatedSum');
     const footerTotal = $('#footerTotal');
+    const remainingAfterEl = $('#remainingAfter');
+    const warningEl = $('#budgetWarning');
+
     if (estimatedSum) {
       estimatedSum.textContent = `${fmt(total)} kr`;
-      if (pulse) { estimatedSum.classList.add('pulse'); setTimeout(()=>estimatedSum.classList.remove('pulse'), 400); }
+      if (pulse) {
+        estimatedSum.classList.add('pulse');
+        setTimeout(()=>estimatedSum.classList.remove('pulse'), 400);
+      }
     }
+
     if (footerTotal) {
       const label = currentConfig.total_label || defaultConfig.total_label;
       footerTotal.textContent = `${label}: ${fmt(total)} kr`;
+    }
+
+    const remainingBefore = weeklyBudget - spentSoFar;
+    const remainingAfter = remainingBefore - total;
+
+    if (remainingAfterEl) {
+      remainingAfterEl.textContent = `${fmt(remainingAfter)} kr`;
+      if (pulse) {
+        remainingAfterEl.classList.add('pulse');
+        setTimeout(()=>remainingAfterEl.classList.remove('pulse'), 400);
+      }
+    }
+
+    if (!warningEl) return;
+
+    warningEl.classList.remove('ok', 'warn', 'over');
+
+    if (remainingBefore <= 0 && total > 0) {
+      warningEl.style.display = 'block';
+      warningEl.classList.add('over');
+      warningEl.textContent =
+        `Du er allerede over ukesbudsjettet med ${fmt(Math.abs(remainingBefore))} kr før denne handlelista. ` +
+        `Vurder å kutte ned på enkelte varer.`;
+    } else if (remainingAfter < 0) {
+      warningEl.style.display = 'block';
+      warningEl.classList.add('over');
+      warningEl.textContent =
+        `💡 Lista di vil ta dere ${fmt(Math.abs(remainingAfter))} kr over det som er igjen av ukesbudsjettet. ` +
+        `Se om du kan fjerne eller bytte ut noen varer.`;
+    } else if (remainingAfter <= remainingBefore * 0.1 && total > 0) {
+      warningEl.style.display = 'block';
+      warningEl.classList.add('warn');
+      warningEl.textContent =
+        `Du vil sitte igjen med ${fmt(remainingAfter)} kr etter denne handelen. ` +
+        `Det kan være lurt å være ekstra bevisst på snacks/drikke og impulskjøp.`;
+    } else if (total > 0) {
+      warningEl.style.display = 'block';
+      warningEl.classList.add('ok');
+      warningEl.textContent =
+        `Bra! Etter denne handlelista vil dere fortsatt ha ${fmt(remainingAfter)} kr igjen av ukesbudsjettet.`;
+    } else {
+      warningEl.style.display = 'none';
+      warningEl.textContent = '';
     }
   }
 
   // ---------- Meny lukking ----------
   function closeAllMenus() { document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('open')); }
-  document.addEventListener('click', (e) => { if (!e.target.closest('.item-menu-btn')) closeAllMenus(); });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.item-menu-btn')) closeAllMenus();
+  });
 
   // ---------- FAB / Modal ----------
   $('#fabBtn').addEventListener('click', () => {
     $('#modalOverlay').classList.add('open');
     $('#itemName').focus();
   });
-  $('#modalOverlay').addEventListener('click', (e) => { if (e.target === $('#modalOverlay')) closeModal(); });
+  $('#modalOverlay').addEventListener('click', (e) => {
+    if (e.target === $('#modalOverlay')) closeModal();
+  });
   $('#cancelBtn').addEventListener('click', closeModal);
   function closeModal() {
     $('#modalOverlay').classList.remove('open');
@@ -534,8 +811,14 @@
     modalQuantity = 1;
     $('#modalQuantity').textContent = '1';
   }
-  $('#modalDecrement').addEventListener('click', () => { modalQuantity = Math.max(1, modalQuantity-1); $('#modalQuantity').textContent = modalQuantity; });
-  $('#modalIncrement').addEventListener('click', () => { modalQuantity += 1; $('#modalQuantity').textContent = modalQuantity; });
+  $('#modalDecrement').addEventListener('click', () => {
+    modalQuantity = Math.max(1, modalQuantity-1);
+    $('#modalQuantity').textContent = modalQuantity;
+  });
+  $('#modalIncrement').addEventListener('click', () => {
+    modalQuantity += 1;
+    $('#modalQuantity').textContent = modalQuantity;
+  });
 
   $('#addItemForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -571,6 +854,24 @@
     });
     persist();
     renderCategories();
+  });
+
+  // ---------- Ferdig – registrer kjøp ----------
+  $('#doneBtn').addEventListener('click', () => {
+    let totalChecked = 0;
+    categories.forEach(c => c.items.forEach(i => {
+      if (i.checked) totalChecked += i.quantity * i.price;
+    }));
+    if (totalChecked <= 0) {
+      alert('Kryss av minst én vare før du registrerer kjøpet.');
+      return;
+    }
+    set(`shoppingRun_total_${WEEK_ISO}`, {
+      total: totalChecked,
+      weekISO: WEEK_ISO,
+      ts: Date.now()
+    });
+    window.location.href = `add-purchase.html?from=shopping&week=${encodeURIComponent(WEEK_ISO)}`;
   });
 
   // ---------- Tilbake-knapp ----------
@@ -616,8 +917,12 @@
       footerTotal.textContent = `${currentConfig.total_label || defaultConfig.total_label}: ${fmt(parseFloat(totalNumber)||0)} kr`;
     }
 
-    $$('.btn-primary, .fab, .stepper-btn').forEach(el => { el.style.background = currentConfig.primary_color || defaultConfig.primary_color; });
-    $$('.budget-card, .category-card, .modal').forEach(el => { el.style.background = currentConfig.surface_color || defaultConfig.surface_color; });
+    $$('.btn-primary, .fab, .stepper-btn').forEach(el => {
+      el.style.background = currentConfig.primary_color || defaultConfig.primary_color;
+    });
+    $$('.budget-card, .category-card, .modal').forEach(el => {
+      el.style.background = currentConfig.surface_color || defaultConfig.surface_color;
+    });
   }
 
   if (window.elementSdk) {
@@ -667,20 +972,17 @@
   }
 
   function mergeInboxItems() {
-    const inboxKey = `shoppingList_inbox_${WEEK_ISO}`;
     let inbox = [];
-    try { inbox = JSON.parse(localStorage.getItem(inboxKey)) || []; } catch {}
+    try { inbox = JSON.parse(localStorage.getItem(INBOX_KEY)) || []; } catch {}
 
     if (!Array.isArray(inbox) || inbox.length === 0) return 0;
 
-    // Finn/lag Matvarer-kategori
     let matIdx = categories.findIndex(c => c.name === 'Matvarer');
     if (matIdx === -1) {
       categories.push({ name: 'Matvarer', open: true, items: [] });
       matIdx = categories.length - 1;
     }
 
-    // Sett med eksisterende varenavn (case-insensitive)
     const existing = new Set(
       categories.flatMap(c => c.items).map(i => String(i.name).trim().toLowerCase())
     );
@@ -690,7 +992,7 @@
       const clean = String(name || '').trim();
       if (!clean) return;
       const key = clean.toLowerCase();
-      if (existing.has(key)) return; // unngå duplikat
+      if (existing.has(key)) return;
       categories[matIdx].items.push({
         name: clean,
         quantity: 1,
@@ -701,29 +1003,70 @@
       added++;
     });
 
-    // Tøm inbox etter merge
-    try { localStorage.setItem(inboxKey, JSON.stringify([])); } catch {}
+    try { localStorage.setItem(INBOX_KEY, JSON.stringify([])); } catch {}
 
-    // Åpne Matvarer hvis vi la til noe
     if (added > 0) categories[matIdx].open = true;
 
     persist();
     return added;
   }
 
-  // ---------- Første render (med merge fra inbox) ----------
-  const params = new URLSearchParams(location.search);
-  const addedFrom = params.get('added') || 'oppskrift';
+  function initInbox() {
+    const inboxBtn = $('#inboxBtn');
+    const inboxCountSpan = $('#inboxCount');
+    const items = getInboxItems();
+    const params = new URLSearchParams(location.search);
+    const addedFrom = params.get('added') || 'oppskrift';
 
-  const mergedCount = mergeInboxItems();   // henter fra shoppingList_inbox_<uke> og legger i Matvarer
-  renderCategories();
+    if (!inboxBtn || !inboxCountSpan) return;
+    if (items.length === 0) {
+      inboxBtn.style.display = 'none';
+      return;
+    }
 
-  if (mergedCount > 0) {
-    showToast(`La til ${mergedCount} varer fra “${addedFrom}”`);
-    const matCard = Array.from(document.querySelectorAll('.category-card'))
-      .find(card => card.querySelector('.category-title')?.textContent?.includes('Matvarer'));
-    if (matCard) matCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    inboxBtn.style.display = 'inline-flex';
+    inboxCountSpan.textContent = items.length;
+
+    inboxBtn.addEventListener('click', () => {
+      const confirmed = confirm(`Legg til ${items.length} varer fra ${addedFrom}?`);
+      if (!confirmed) return;
+
+      const mergedCount = mergeInboxItems();
+      renderCategories();
+      if (mergedCount > 0) {
+        showToast(`La til ${mergedCount} varer fra “${addedFrom}”`);
+        const matCard = Array.from(document.querySelectorAll('.category-card'))
+          .find(card => card.querySelector('.category-title')?.textContent?.includes('Matvarer'));
+        if (matCard) matCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        inboxBtn.style.display = 'none';
+      }
+    });
   }
+
+  // ---------- Butikk-modus ----------
+  const modeToggleBtn = $('#modeToggleBtn');
+  const doneBtn = $('#doneBtn');
+
+  if (modeToggleBtn) {
+    modeToggleBtn.addEventListener('click', () => {
+      isStoreMode = !isStoreMode;
+      document.body.classList.toggle('store-mode', isStoreMode);
+      if (isStoreMode) {
+        modeToggleBtn.textContent = 'Avslutt butikk-modus';
+        modeToggleBtn.classList.add('active');
+        if (doneBtn) doneBtn.style.display = 'inline-flex';
+      } else {
+        modeToggleBtn.textContent = 'Start butikk-modus 🛒';
+        modeToggleBtn.classList.remove('active');
+        if (doneBtn) doneBtn.style.display = 'none';
+      }
+      renderCategories();
+    });
+  }
+
+  // ---------- Første render ----------
+  renderCategories();
+  initInbox();
 </script>
 </body>
 </html>
