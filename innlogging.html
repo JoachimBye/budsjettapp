@@ -117,6 +117,48 @@
       accent_color: "#558b2f"
     };
 
+    // Felles redirect etter innlogging (brukes flere steder)
+    async function redirectAfterLogin() {
+      try {
+        const { data: { session } } = await supa.auth.getSession();
+        if (!session) {
+          window.location.href = '/index.html';
+          return;
+        }
+
+        let onboardingDone = false;
+
+        // 1) Sjekk i Supabase (members.onboarding_done)
+        try {
+          const { data: member, error: mErr } = await supa
+            .from('members')
+            .select('onboarding_done')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!mErr && member && member.onboarding_done) {
+            onboardingDone = true;
+          }
+        } catch (e) {
+          console.warn('Klarte ikke å lese onboarding_done fra DB', e);
+        }
+
+        // 2) Lokal fallback (gammelt flagg)
+        if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
+          onboardingDone = true;
+        }
+
+        // 3) Hvis bruker har trykket "Start uke 1" tidligere
+        const setupComplete = localStorage.getItem('setupComplete') === 'true';
+
+        // 4) Endelig destinasjon
+        window.location.href = (onboardingDone || setupComplete) ? '/app.html' : '/index.html';
+      } catch (e) {
+        console.warn('redirectAfterLogin feilet', e);
+        window.location.href = '/index.html';
+      }
+    }
+
     async function onConfigChange(config) {
       document.getElementById('main-title').textContent = config.main_title || defaultConfig.main_title;
       document.getElementById('subtitle').textContent = config.subtitle || defaultConfig.subtitle;
@@ -209,7 +251,7 @@
     // ===== Redirect hvis allerede innlogget ==================================
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await supa.auth.getSession();
-      if (session) { window.location.href = '/index.html'; return; }
+      if (session) { await redirectAfterLogin(); return; }
 
       // Autofyll ?code=XYZ i URL (for registrering)
       const p = new URL(location.href).searchParams.get('code');
@@ -290,7 +332,7 @@
           });
           if (error) throw error;
 
-          window.location.href = '/index.html';
+          await redirectAfterLogin();
         } catch (err) {
           console.error(err);
           alert(err.message || 'Feil kode. Prøv igjen.');
@@ -375,36 +417,8 @@
         });
         if (error) throw error;
 
-        // Hent session
-        const { data: { session } } = await supa.auth.getSession();
-        if (!session) {
-          // fallback hvis noe rart skjer
-          window.location.href = '/index.html';
-          return;
-        }
-
-        // Sjekk om onboarding er ferdig i members-tabellen
-        let onboardingDone = false;
-        try {
-          const { data: member, error: mErr } = await supa
-            .from('members')
-            .select('onboarding_done')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (!mErr && member && member.onboarding_done) {
-            onboardingDone = true;
-          }
-        } catch (_) {}
-
-        // Lokal fallback (tidligere localStorage-flag)
-        if (!onboardingDone && localStorage.getItem('onboarding_done') === '1') {
-          onboardingDone = true;
-        }
-
-        // Hvis onboarding er ferdig → rett til app.html, ellers til index/onboarding
-        window.location.href = onboardingDone ? '/app.html' : '/index.html';
-
+        await redirectAfterLogin();
+        return;
       } catch (err) {
         console.error(err);
         alert(err.message || 'Feil kode. Prøv igjen.');
