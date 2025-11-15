@@ -498,20 +498,19 @@
       btn.textContent = 'Sender kode...';
 
       try {
-        // Registrering: valider invitasjonskode og lagre pending_invite
-        if (!isLoginMode) {
-          const { data: household, error: hErr } = await supa
-            .from('households')
-            .select('id, max_members, active')
-            .eq('invite_code', inviteCode)
-            .single();
+// Registrering: valider invitasjonskode via RPC + lagre pending_invite
+if (!isLoginMode) {
+  const { data: household, error: hErr } = await supa
+    .rpc('validate_invite_code', { p_code: inviteCode })
+    .single();
 
-          if (hErr || !household || !household.active) {
-            throw new Error('Ugyldig eller deaktivert husstandskode');
-          }
-          localStorage.setItem('pending_invite', inviteCode);
-          lastInvite = inviteCode;
-        }
+  if (hErr || !household || !household.active) {
+    throw new Error('Ugyldig eller deaktivert husstandskode');
+  }
+
+  // Hvis vi kommer hit, er koden både gyldig og aktiv
+  localStorage.setItem('pending_invite', inviteCode);
+}
 
         const { error } = await supa.auth.signInWithOtp({
           email,
