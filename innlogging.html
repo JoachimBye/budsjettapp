@@ -224,8 +224,9 @@
   <script>
     // Supabase – dine verdier (anon key er OK i frontend)
     const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibn'
-      + 'lsbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const SUPABASE_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Element SDK – tema/tekster
@@ -289,7 +290,6 @@
     let isLoginMode = false;   // false = "Bli med i betaen", true = "Logg inn"
     let flowStep = 'email';    // 'email' eller 'otp'
     let lastEmail = null;
-    let lastInvite = null;
 
     // Bytt til "Logg inn"-modus
     function switchToLoginMode() {
@@ -399,7 +399,6 @@
         emailHint.textContent = 'Tips: sjekk søppelpost hvis du ikke finner e-posten.';
       }
 
-      // Skjul invitasjonsfeltet i OTP-steget (verdien er allerede lagret)
       const group = document.getElementById('inviteGroup');
       if (group) group.style.display = 'none';
     }
@@ -498,19 +497,22 @@
       btn.textContent = 'Sender kode...';
 
       try {
-// Registrering: valider invitasjonskode via RPC + lagre pending_invite
-if (!isLoginMode) {
-  const { data: household, error: hErr } = await supa
-    .rpc('validate_invite_code', { p_code: inviteCode })
-    .single();
+        // Registrering: valider invitasjonskode via RPC + lagre pending_invite
+        if (!isLoginMode) {
+          if (!inviteCode) {
+            throw new Error('Skriv inn invitasjonskode');
+          }
 
-  if (hErr || !household || !household.active) {
-    throw new Error('Ugyldig eller deaktivert husstandskode');
-  }
+          const { data: household, error: hErr } = await supa
+            .rpc('validate_invite_code', { p_code: inviteCode })
+            .single();
 
-  // Hvis vi kommer hit, er koden både gyldig og aktiv
-  localStorage.setItem('pending_invite', inviteCode);
-}
+          if (hErr || !household || !household.active) {
+            throw new Error('Ugyldig eller deaktivert husstandskode');
+          }
+
+          localStorage.setItem('pending_invite', inviteCode);
+        }
 
         const { error } = await supa.auth.signInWithOtp({
           email,
