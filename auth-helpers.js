@@ -73,12 +73,14 @@ async function protectPage(supa) {
   }
 
   // 2b. Ferdig med alt (setupComplete = true)
-  if (status.isSetupComplete) {
-    const appPaths = ['/app.html', '/legg-til-kjøp.html'];
-    if (!appPaths.includes(currentPath)) {
-      // Innlogget + ferdig, men på "rar" side → rett til app
-      window.location.href = '/app.html';
-    }
+// 2b. Ferdig med alt (setupComplete = true)
+if (status.isSetupComplete) {
+  const appPaths = ['/app.html', '/add-purchase.html']; // 👈 riktig filnavn
+  if (!appPaths.includes(currentPath)) {
+    window.location.href = '/app.html';
+  }
+  return;
+}
     // Hvis de allerede er på app/legg-til-kjøp → gjør ingenting
     return;
   }
