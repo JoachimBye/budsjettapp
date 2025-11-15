@@ -25,15 +25,13 @@
       background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 2rem 1rem;
-      /* Sikrer at boblene ikke lager scrollbars */
-      overflow: hidden; 
+      overflow: hidden;
       position: relative;
     }
     * { box-sizing: border-box; }
     .card {
       background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1);
       padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem;
-      /* NYTT: Sørger for at kortet er over boblene */
       position: relative;
       z-index: 10;
     }
@@ -54,7 +52,7 @@
       width:100%; padding:.875rem 1rem;
       border:2px solid #c8e6c9; border-radius:.5rem;
       font-size:1rem; transition:all .3s ease; background:#fff;
-      position: relative; /* For pulsanimeasjon */
+      position: relative;
     }
     input:focus {
       outline:none; border-color:#4caf50;
@@ -95,18 +93,17 @@
     }
     @view-transition { navigation: auto; }
 
-    /* --- NYTT: 1. Flytende "boble"-bakgrunn --- */
+    /* --- Flytende "boble"-bakgrunn --- */
     .floating-bubbles {
         position: fixed;
         inset: 0;
-        z-index: 0; /* Bak kortet */
+        z-index: 0;
         pointer-events: none;
         overflow: hidden;
     }
     .bubble {
         position: absolute;
         border-radius: 9999px;
-        /* Myke grønne/gule toner som matcher ditt design */
         background: radial-gradient(circle, rgba(200, 230, 201, 0.5), rgba(240, 244, 195, 0.3));
         animation: floatUpDown 25s ease-in-out infinite;
     }
@@ -147,9 +144,8 @@
         100% { transform: translateY(0) translateX(0) scale(1);   opacity: 0.65; }
     }
 
-    /* --- NYTT: 2. "Pop-in" animasjon på kortet --- */
+    /* Pop-in animasjon på kortet */
     .login-card {
-        /* 'backwards' sørger for at den starter på 0% før animasjonen */
         animation: cardEnter 0.6s 0.1s ease-out backwards;
     }
 
@@ -159,10 +155,8 @@
         100% { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* --- NYTT: 3. Invitasjonskode "pulse" --- */
-    /* Animasjonsklasse som legges til med JS */
+    /* Invitasjonskode "pulse" */
     input#invite.pulse-once {
-        /* Kjører 2 ganger, 0.8s etter at kortet har lastet inn */
         animation: softPulse 1.4s ease-out 0.8s 2;
     }
 
@@ -171,7 +165,7 @@
         100% { box-shadow: 0 0 0 14px rgba(76, 175, 80, 0.00); }
     }
 
-    /* --- NYTT: 4. Redusert bevegelse (Tilgjengelighet) --- */
+    /* Redusert bevegelse */
     @media (prefers-reduced-motion: reduce) {
         .floating-bubbles .bubble,
         .login-card,
@@ -180,12 +174,11 @@
             transition: none !important;
         }
     }
-
   </style>
 </head>
 <body>
 
-  <!-- NYTT: Lag for bakgrunnsbobler -->
+  <!-- Bakgrunnsbobler -->
   <div class="floating-bubbles" aria-hidden="true">
       <span class="bubble bubble-1"></span>
       <span class="bubble bubble-2"></span>
@@ -193,7 +186,6 @@
       <span class="bubble bubble-4"></span>
   </div>
 
-  <!-- NYTT: ".login-card" lagt til din eksisterende div -->
   <div class="card login-card">
     <h1 class="title" id="main-title">Bli med i familie betaen</h1>
     <p class="subtitle" id="subtitle">Du er invitert til å teste vår nye budsjett app før alle andre.</p>
@@ -202,13 +194,11 @@
       <div class="form-group">
         <label for="email" id="email-label">E-postadresse</label>
         <input type="email" id="email" name="email" required placeholder="din@epost.no" autocomplete="email"/>
-        <!-- Denne hint-teksten bruker vi om igjen i login-OTP-steget -->
         <p class="hint" id="email-hint" style="display:none;"></p>
       </div>
 
       <div class="form-group" id="inviteGroup">
         <label for="invite" id="code-label">Husstandskode (invitasjonskode)</label>
-        <!-- NYTT: Ingen HTML-endring her, pulsen styres av JS/CSS -->
         <input type="text" id="invite" name="invite" required placeholder="NORDMO2025" />
         <p class="hint" id="code-hint">Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.</p>
       </div>
@@ -217,23 +207,12 @@
         <span id="button-text">Bli med i betaen</span>
       </button>
 
-      <!-- Info etter utsending -->
       <div class="success-message" id="successBox">
         <span class="success-text" id="successText">
           Kode sendt! Sjekk e-posten din og skriv inn 6-sifret kode under.
         </span>
       </div>
     </form>
-
-    <!-- OTP-steg for REGISTRERING (brukes ikke i login-modus) -->
-    <div id="otpBox" style="display:none; margin-top:1rem;">
-      <label for="otp" style="display:block; font-weight:600; color:#2e7d32; margin-bottom:0.5rem;">Engangskode</label>
-      <input id="otp" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6"
-             placeholder="Skriv 6-sifret kode fra e-post"
-             style="width:100%; padding:0.875rem 1rem; border:2px solid #c8e6c9; border-radius:0.5rem;"/>
-      <button id="otpBtn" class="submit-btn" style="margin-top:0.75rem;">Bekreft kode</button>
-      <p class="hint" style="margin-top:0.5rem;">Tips: sjekk søppelpost hvis du ikke finner e-posten.</p>
-    </div>
 
     <div class="login-link" id="login-link-row">
       Har du allerede konto? <a href="#login" id="loginAnchor">Logg inn</a>
@@ -245,10 +224,11 @@
   <script>
     // Supabase – dine verdier (anon key er OK i frontend)
     const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibn'
+      + 'lsbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Element SDK – uendret (du kan redigere tekster/tema)
+    // Element SDK – tema/tekster
     const defaultConfig = {
       main_title: "Bli med i familie-betaen 👨‍👩‍👧‍👦",
       subtitle: "Du er invitert til å teste vår nye budsjett-app før alle andre.",
@@ -303,37 +283,38 @@
       });
     }
 
-    // ===== Login / register state ============================================
+    // ===== State for login/registrering ======================================
     const qs = (sel) => document.querySelector(sel);
+
+    let isLoginMode = false;   // false = "Bli med i betaen", true = "Logg inn"
+    let flowStep = 'email';    // 'email' eller 'otp'
     let lastEmail = null;
     let lastInvite = null;
-    let isLoginMode = false;
-    let loginStep = 'email'; // 'email' -> send kode, 'otp' -> verifiser
 
+    // Bytt til "Logg inn"-modus
     function switchToLoginMode() {
       isLoginMode = true;
-      loginStep = 'email';
+      flowStep = 'email';
 
-      // Oppdater tekster
       document.getElementById('main-title').textContent = 'Logg inn';
-      document.getElementById('subtitle').textContent = 'Skriv e-posten din, så sender vi en 6-sifret kode.';
+      document.getElementById('subtitle').textContent =
+        'Skriv e-posten din, så sender vi en 6-sifret kode.';
       document.getElementById('button-text').textContent = 'Send kode';
-      document.getElementById('successText').textContent = 'Kode sendt! Skriv den inn for å logge inn.';
+      document.getElementById('successText').textContent =
+        'Kode sendt! Skriv den inn for å logge inn.';
 
-      // Skjul invitasjonsfelt
       const group = document.getElementById('inviteGroup');
       if (group) group.style.display = 'none';
       const invite = document.getElementById('invite');
       if (invite) invite.required = false;
 
-      // Skjul "Har du allerede konto? Logg inn"
       const loginRow = document.getElementById('login-link-row');
       if (loginRow) loginRow.style.display = 'none';
 
-      // Reset e-postfelt til e-post-modus (første steg)
       const emailInput = qs('#email');
       const emailLabel = qs('#email-label');
       const emailHint = qs('#email-hint');
+
       if (emailInput && emailLabel) {
         emailLabel.textContent = 'E-postadresse';
         emailInput.type = 'email';
@@ -348,57 +329,13 @@
         emailHint.textContent = '';
       }
 
-      // Skjul registrerings-OTP-boks hvis den skulle være synlig
-      const otpBox = qs('#otpBox');
-      if (otpBox) otpBox.style.display = 'none';
+      const successBox = qs('#successBox');
+      if (successBox) successBox.classList.remove('show');
     }
 
-    // ===== Initial load / redirect-håndtering via auth-helpers ===============
-    document.addEventListener('DOMContentLoaded', async () => {
-      if (window.authHelpers?.protectPage) {
-        // La "hjernen" bestemme om vi skal være på /innlogging.html eller ikke
-        await window.authHelpers.protectPage(supa);
-
-        // Hvis vi ble sendt videre (f.eks. til /app.html), ikke gjør mer her
-        if (window.location.pathname !== '/innlogging.html') return;
-      }
-
-      // Autofyll ?code=XYZ i URL (for registrering)
-      const p = new URL(location.href).searchParams.get('code');
-      if (p && qs('#invite')) {
-        qs('#invite').value = p;
-      }
-
-      // Hvis hash er #login → gå rett i login-modus
-      if (location.hash === '#login') {
-        switchToLoginMode();
-      }
-      
-      // --- NYTT: Aktiver puls-animasjon ---
-      // Vi sjekker om vi er i registreringsmodus før vi pulserer invitasjonsfeltet
-      if (!isLoginMode) {
-        const inviteInput = document.querySelector('#invite');
-        if (inviteInput) {
-          inviteInput.classList.add('pulse-once');
-        }
-      }
-      // --- Slutt på nytt ---
-
-      // Lyttere
-      qs('#loginForm')?.addEventListener('submit', handleSubmit);
-      qs('#otpBtn')?.addEventListener('click', handleOtpVerify);
-    });
-
-    // “Logg inn”-lenke (fra registreringsmodus) → bytt til login-modus
-    qs('#loginAnchor').addEventListener('click', (e) => {
-      e.preventDefault();
-      switchToLoginMode();
-      qs('#email')?.focus();
-    });
-
-    // Hjelpefunksjon: gå til OTP-steg i LOGIN-modus
+    // OTP-steget for LOGIN
     function enterLoginOtpStep(email) {
-      loginStep = 'otp';
+      flowStep = 'otp';
       lastEmail = email;
 
       const emailInput = qs('#email');
@@ -429,19 +366,60 @@
       }
     }
 
-    // ===== 1) Submit-knapp – send kode ELLER verifiser (login-modus steg 2) ==
+    // OTP-steget for REGISTRERING
+    function enterRegisterOtpStep(email) {
+      flowStep = 'otp';
+      lastEmail = email;
+
+      const emailInput = qs('#email');
+      const emailLabel = qs('#email-label');
+      const emailHint = qs('#email-hint');
+      const btnText = qs('#button-text');
+      const successBox = qs('#successBox');
+      const successText = qs('#successText');
+
+      if (emailLabel) emailLabel.textContent = 'Engangskode';
+      if (emailInput) {
+        emailInput.type = 'text';
+        emailInput.value = '';
+        emailInput.placeholder = 'Skriv 6-sifret kode';
+        emailInput.inputMode = 'numeric';
+        emailInput.pattern = '[0-9]*';
+        emailInput.maxLength = 6;
+        emailInput.focus();
+      }
+      if (btnText) btnText.textContent = 'Fullfør';
+      if (successBox) successBox.classList.add('show');
+      if (successText) {
+        successText.textContent =
+          `Vi har sendt en kode til ${email}. Skriv den inn for å fullføre registreringen.`;
+      }
+      if (emailHint) {
+        emailHint.style.display = 'block';
+        emailHint.textContent = 'Tips: sjekk søppelpost hvis du ikke finner e-posten.';
+      }
+
+      // Skjul invitasjonsfeltet i OTP-steget (verdien er allerede lagret)
+      const group = document.getElementById('inviteGroup');
+      if (group) group.style.display = 'none';
+    }
+
+    // ===== Submit-knappen: håndter begge steg + begge modi ===================
     async function handleSubmit(e) {
       e.preventDefault();
+
       const emailInput = qs('#email');
       if (!emailInput) return;
 
-      const emailOrCode = emailInput.value.trim();
-      const inviteCode = qs('#invite') ? qs('#invite').value.trim() : '';
+      const value = emailInput.value.trim();
+      const inviteInput = qs('#invite');
+      const inviteCode = inviteInput ? inviteInput.value.trim() : '';
       const btn = qs('#submitBtn');
 
       // LOGIN: steg 2 – verifiser kode
-      if (isLoginMode && loginStep === 'otp') {
-        if (!lastEmail || emailOrCode.length < 4) {
+      if (isLoginMode && flowStep === 'otp') {
+        const token = value;
+        if (!lastEmail || token.length < 4) {
           alert('Skriv inn koden fra e-posten');
           return;
         }
@@ -453,12 +431,46 @@
         try {
           const { error } = await supa.auth.verifyOtp({
             email: lastEmail,
-            token: emailOrCode,
+            token,
             type: 'email'
           });
           if (error) throw error;
 
-          // La auth-helpers bestemme neste side
+          if (window.authHelpers?.protectPage) {
+            await window.authHelpers.protectPage(supa);
+          } else {
+            window.location.href = '/index.html';
+          }
+        } catch (err) {
+          console.error(err);
+          alert(err.message || 'Feil kode. Prøv igjen.');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = oldText;
+        }
+        return;
+      }
+
+      // REGISTRERING: steg 2 – verifiser kode
+      if (!isLoginMode && flowStep === 'otp') {
+        const token = value;
+        if (!lastEmail || token.length < 4) {
+          alert('Skriv inn koden fra e-posten');
+          return;
+        }
+
+        btn.disabled = true;
+        const oldText = btn.textContent;
+        btn.textContent = 'Fullfører...';
+
+        try {
+          const { error } = await supa.auth.verifyOtp({
+            email: lastEmail,
+            token,
+            type: 'email'
+          });
+          if (error) throw error;
+
           if (window.authHelpers?.protectPage) {
             await window.authHelpers.protectPage(supa);
           } else {
@@ -475,7 +487,7 @@
       }
 
       // Felles: steg 1 – send kode (login ELLER registrering)
-      const email = emailOrCode;
+      const email = value;
       if (!email) {
         alert('Skriv inn e-post');
         return;
@@ -486,7 +498,7 @@
       btn.textContent = 'Sender kode...';
 
       try {
-        // Registrering: valider invitasjonskode + lagre pending_invite
+        // Registrering: valider invitasjonskode og lagre pending_invite
         if (!isLoginMode) {
           const { data: household, error: hErr } = await supa
             .from('households')
@@ -498,6 +510,7 @@
             throw new Error('Ugyldig eller deaktivert husstandskode');
           }
           localStorage.setItem('pending_invite', inviteCode);
+          lastInvite = inviteCode;
         }
 
         const { error } = await supa.auth.signInWithOtp({
@@ -507,14 +520,9 @@
         if (error) throw error;
 
         if (isLoginMode) {
-          // Login: gå til OTP-steg med samme input/knapp
           enterLoginOtpStep(email);
         } else {
-          // Registrering: vis eksisterende OTP-boks
-          qs('#successBox').classList.add('show');
-          qs('#otpBox').style.display = 'block';
-          lastEmail = email;
-          lastInvite = inviteCode;
+          enterRegisterOtpStep(email);
         }
 
       } catch (err) {
@@ -526,42 +534,38 @@
       }
     }
 
-    // ===== 2) Verifiser OTP (registrering) → logg inn → sentral ruting =======
-    async function handleOtpVerify() {
-      const token = qs('#otp').value.trim();
-      if (!lastEmail || token.length < 4) {
-        alert('Skriv inn koden fra e-posten');
-        return;
+    // ===== Initial load / auth-guard ========================================
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.authHelpers?.protectPage) {
+        await window.authHelpers.protectPage(supa);
+        if (window.location.pathname !== '/innlogging.html') return;
       }
 
-      const otpBtn = qs('#otpBtn');
-      otpBtn.disabled = true;
-      const old = otpBtn.textContent;
-      otpBtn.textContent = 'Bekrefter...';
+      const p = new URL(location.href).searchParams.get('code');
+      if (p && qs('#invite')) {
+        qs('#invite').value = p;
+      }
 
-      try {
-        // Verifiser OTP (logger inn brukeren)
-        const { error } = await supa.auth.verifyOtp({
-          email: lastEmail,
-          token,
-          type: 'email'
-        });
-        if (error) throw error;
+      if (location.hash === '#login') {
+        switchToLoginMode();
+      }
 
-        // Etter vellykket registrering: la auth-helpers bestemme destinasjon
-        if (window.authHelpers?.protectPage) {
-          await window.authHelpers.protectPage(supa);
-        } else {
-          window.location.href = '/index.html';
+      if (!isLoginMode) {
+        const inviteInput = document.querySelector('#invite');
+        if (inviteInput) {
+          inviteInput.classList.add('pulse-once');
         }
-      } catch (err) {
-        console.error(err);
-        alert(err.message || 'Feil kode. Prøv igjen.');
-      } finally {
-        otpBtn.disabled = false;
-        otpBtn.textContent = old;
       }
-    }
+
+      qs('#loginForm')?.addEventListener('submit', handleSubmit);
+    });
+
+    // "Har du allerede konto? Logg inn"
+    qs('#loginAnchor').addEventListener('click', (e) => {
+      e.preventDefault();
+      switchToLoginMode();
+      qs('#email')?.focus();
+    });
   </script>
 </body>
 </html>
