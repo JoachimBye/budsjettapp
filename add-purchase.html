@@ -411,7 +411,7 @@
     }, 900);
   }
 
-  // ---------- Lagring til Supabase (ikke localStorage) ----------
+  // ---------- Lagring til Supabase + localStorage fallback ----------
   async function handleSubmit(e){
     e.preventDefault();
 
@@ -479,6 +479,28 @@
         alert('Kunne ikke lagre kjøpet.');
         return;
       }
+
+      // Oppdater localStorage-fallback slik at andre sider som bare leser local får med seg kjøpet
+      try {
+        const localKey = `purchases_${weekISO}`;
+        const raw = localStorage.getItem(localKey);
+        let list = [];
+        if (raw) {
+          try { list = JSON.parse(raw); } catch { list = []; }
+        }
+        if (!Array.isArray(list)) list = [];
+        list.push({
+          amount: amountInt,
+          store,
+          date: dateISO
+        });
+        localStorage.setItem(localKey, JSON.stringify(list));
+      } catch (e) {
+        console.warn('Klarte ikke å oppdatere lokal purchases-cache', e);
+      }
+
+      // Oppdater internt "spent" for budsjett-hintet (i samme økt)
+      state.currentSpent += amountInt;
 
       showSuccessMessage();
 
@@ -567,6 +589,11 @@
         // Ble redirectet til f.eks. /innlogging.html
         return;
       }
+    }
+
+    // Lytt på ekstern utlogging
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
     }
 
     // Sett dagens dato
