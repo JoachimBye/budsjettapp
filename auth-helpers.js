@@ -108,8 +108,8 @@ async function protectPage(supa) {
 /**
  * Robust utlogging:
  * 1. Logger ut fra Supabase.
- * 2. Rydder sesjonsspesifikk localStorage.
- * 3. Sender brukeren til innlogging.
+ * 2. RYDDER KUN trygge, midlertidige nøkler i localStorage.
+ * 3. Lar onboarding-/budsjettdata leve videre mellom innlogginger.
  */
 async function handleLogout(supa) {
   try {
@@ -120,24 +120,25 @@ async function handleLogout(supa) {
   } catch (e) {
     console.error('Feil under utlogging:', e);
   } finally {
+    // ⚠️ Viktig:
+    // Vi sletter IKKE:
+    //  - 'setupComplete'
+    //  - 'onboarding_done'
+    //  - 'weeklyBudget' / 'weeklyBudget_*'
+    //  - 'purchases_*'
+    //  - 'shoppingList_*'
+    //  - 'budget_total'
+    //
+    // De er fortsatt eneste sannhet for budsjett og forbruk.
+
     const keysToClear = [
-      'onboarding_done',
-      'setupComplete',
-      'weeklyBudget',
-      'activeWeekISO',
-      'householdCount',
-      'trackingScope',
       'pending_invite',
-      'budget_total',
+      'trackingScope',
+      // Legg til andre rene "engangs"-verdier her hvis du får flere senere
     ];
 
     Object.keys(localStorage).forEach((k) => {
-      if (
-        keysToClear.includes(k) ||
-        k.startsWith('purchases_') ||
-        k.startsWith('shoppingList_') ||
-        k.startsWith('weeklyBudget_')
-      ) {
+      if (keysToClear.includes(k)) {
         localStorage.removeItem(k);
       }
     });
