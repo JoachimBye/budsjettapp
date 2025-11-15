@@ -326,14 +326,17 @@
       const mondayISO = getCurrentWeekMondayISO();
       localStorage.setItem('activeWeekISO', mondayISO);
 
-      // 3) Lagre uke-spesifikt budsjett for aktiv uke
+// 3) Lagre uke-spesifikt budsjett for aktiv uke
       localStorage.setItem(`weeklyBudget_${mondayISO}`, String(budgetInt));
 
-      // Tøm ev. ukedata for ny start i denne uken
-      ['purchases_', 'shoppingList_'].forEach(prefix => {
-        localStorage.removeItem(`${prefix}${mondayISO}`);
-      });
+// 4) Nullstill ukedata KUN første gang appen settes opp
+// Hvis setupComplete ikke er true enda, betyr det at dette er "første uke"-oppsett.
+      if (localStorage.getItem('setupComplete') !== 'true') {
+        ['purchases_', 'shoppingList_'].forEach(prefix => {
+      localStorage.removeItem(`${prefix}${mondayISO}`);
+      }); 
       localStorage.removeItem('budget_total');
+      }
 
       // 4) DB-lagring (hvis tabellen finnes og RLS er satt)
       try {
