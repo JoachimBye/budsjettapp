@@ -294,7 +294,7 @@
 
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
-  // ---------- Hent uke-data fra Supabase -------------------------------
+  // ---------- Hent uke-data fra Supabase + cache til localStorage -------
   async function loadWeekData() {
     const iso = state.activeWeekISO || getActiveWeekISO();
     state.activeWeekISO = iso;
@@ -326,13 +326,16 @@
 
     // 2) Kjøp – primærkilde: Supabase; fallback: localStorage
     let spent = 0;
+
     try {
       const { data: rows, error } = await supa
         .from('purchases')
-        .select('amount')
+        .select('amount, category')
         .eq('week_start', iso);
 
       if (!error && rows) {
+        // cache hele listen slik at week-report kan lese den fra localStorage
+        localStorage.setItem(`purchases_${iso}`, JSON.stringify(rows));
         spent = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
       } else if (error) {
         console.warn('Feil ved henting kjøp (DB):', error);
