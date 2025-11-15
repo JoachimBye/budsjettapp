@@ -1,4 +1,4 @@
-  <!doctype html>
+<!doctype html>
 <html lang="no">
 <head>
   <meta charset="UTF-8">
@@ -255,11 +255,6 @@
   function getActiveWeekISO(){
     return localStorage.getItem('activeWeekISO') || mondayISO12();
   }
-  const isoLocalToday = ()=>{
-    const d=new Date();
-    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  };
 
   const get = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(fb)); } catch { return fb; } };
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
@@ -267,7 +262,6 @@
   // ---------- Nøkler ----------
   const WEEK_ISO = getActiveWeekISO();
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
-  const PURCHASES_KEY = `purchases_${WEEK_ISO}`;
 
   // ---------- Budsjettoppslag ----------
   function parseMoneyStr(s){
@@ -324,54 +318,6 @@
 
   const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
   $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
-
-  // ---------- Purchases helpers ----------
-  function getPurchases(){ return get(PURCHASES_KEY, []); }
-  function setPurchases(arr){ set(PURCHASES_KEY, arr); }
-
-  function lineId(ci, ii){ return `hl_${ci}_${ii}`; }
-
-  function upsertPurchaseForLine(ci, ii){
-    const cat = categories[ci];
-    const it  = cat.items[ii];
-    const amount = Number(it.quantity) * Number(it.price || 0);
-    const lid = lineId(ci, ii);
-    const todayISO = isoLocalToday();
-
-    const purchases = getPurchases();
-    const idx = purchases.findIndex(p => p.lineId === lid);
-
-    const payload = {
-      lineId: lid,
-      amount,
-      dateISO: todayISO,
-      category: cat.name || 'Uten kategori',
-      note: `${it.name} (x${it.quantity})`,
-      source: 'handleliste'
-    };
-
-    if (idx >= 0){
-      purchases[idx] = payload;
-    } else {
-      purchases.push(payload);
-    }
-    setPurchases(purchases);
-    it.booked = true; // markert som bokført i lista
-  }
-
-  function removePurchaseForLine(ci, ii){
-    const lid = lineId(ci, ii);
-    const purchases = getPurchases().filter(p => p.lineId !== lid);
-    setPurchases(purchases);
-    const it = categories[ci].items[ii];
-    if (it) it.booked = false;
-  }
-
-  // Når bokført vare endres i antall/pris – synk kjøpet
-  function resyncIfBooked(ci, ii){
-    const it = categories[ci].items[ii];
-    if (it?.booked){ upsertPurchaseForLine(ci, ii); }
-  }
 
   // ---------- Rendering ----------
   function renderCategories() {
@@ -437,7 +383,7 @@
 
     const nameEl = document.createElement('div');
     nameEl.className = 'item-name';
-    nameEl.textContent = item.name + (item.booked ? ' • (bokført)' : '');
+    nameEl.textContent = item.name;
 
     const controls = document.createElement('div');
     controls.className = 'item-controls';
@@ -512,28 +458,12 @@
     persist();
   }
 
-  function updateItemBookedBadge(ci, ii){
-    const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
-    const nameEl = card?.querySelector('.item-name');
-    if (!nameEl) return;
-    const it = categories[ci].items[ii];
-    nameEl.textContent = it.name + (it.booked ? ' • (bokført)' : '');
-  }
-
   function toggleItemChecked(ci, ii) {
     const it = categories[ci].items[ii];
     it.checked = !it.checked;
 
     const card = document.querySelector(`.item-card[data-category-index="${ci}"][data-item-index="${ii}"]`);
     card?.classList.toggle('checked');
-
-    // Bokfør/angre kjøp når man haker av/på
-    if (it.checked) {
-      upsertPurchaseForLine(ci, ii);
-    } else {
-      if (it.booked) removePurchaseForLine(ci, ii);
-    }
-    updateItemBookedBadge(ci, ii);
 
     persist();
     updateTotals();
@@ -550,7 +480,6 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    resyncIfBooked(ci, ii);
     updateTotals();
   }
 
@@ -563,13 +492,10 @@
     itemTotal.classList.add('pulse');
     setTimeout(() => itemTotal.classList.remove('pulse'), 400);
     persist();
-    resyncIfBooked(ci, ii);
     updateTotals();
   }
 
   function deleteItem(ci, ii) {
-    const it = categories[ci].items[ii];
-    if (it?.booked) removePurchaseForLine(ci, ii);
     categories[ci].items.splice(ii, 1);
     persist();
     renderCategories();
@@ -629,10 +555,9 @@
 
   // ---------- “Merk alle som kjøpt” ----------
   $('#markAllBtn').addEventListener('click', () => {
-    categories.forEach((cat, ci) => {
-      cat.items.forEach((it, ii) => {
+    categories.forEach((cat) => {
+      cat.items.forEach((it) => {
         it.checked = true;
-        upsertPurchaseForLine(ci, ii);
       });
     });
     persist();
@@ -641,10 +566,9 @@
 
   // ---------- Tøm kjøpte ----------
   $('#clearBtn').addEventListener('click', () => {
-    categories.forEach((c, ci) => {
-      c.items.forEach((i, ii) => { if (i.checked && i.booked) removePurchaseForLine(ci, ii); });
+    categories.forEach(c => {
+      c.items = c.items.filter(i => !i.checked);
     });
-    categories.forEach(c => { c.items = c.items.filter(i => !i.checked); });
     persist();
     renderCategories();
   });
