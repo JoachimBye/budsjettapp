@@ -406,6 +406,8 @@
     setTimeout(() => {
       overlay.classList.remove('show');
       successMessage.classList.remove('show');
+      // Flytt redirect hit slik at brukeren faktisk rekker å se meldingen
+      window.location.href = 'app.html';
     }, 900);
   }
 
@@ -479,10 +481,6 @@
       }
 
       showSuccessMessage();
-
-      setTimeout(() => {
-        window.location.href = 'app.html';
-      }, 400);
 
     } catch (err) {
       console.error(err);
