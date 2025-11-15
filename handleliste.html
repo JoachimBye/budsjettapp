@@ -217,6 +217,17 @@
     .btn-secondary:hover { background: #e0e0e0; }
     .btn-secondary:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
 
+    .help-text p {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .help-text ul {
+      margin: 8px 0 12px 18px;
+      padding: 0;
+      font-size: 14px;
+    }
+
     /* Footer */
     .footer {
       position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid rgba(76,175,80,0.1);
@@ -283,6 +294,7 @@
           📨 Fra middagsplan (<span id="inboxCount">0</span>)
         </button>
         <button class="mode-toggle" id="modeToggleBtn">Start butikk-modus 🛒</button>
+        <button class="mode-toggle" id="helpBtn">❓ Hjelp</button>
       </div>
     </header>
 
@@ -313,6 +325,7 @@
 
   <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
 
+  <!-- Legg til vare-modal -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal" role="dialog" aria-labelledby="modalTitle">
       <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
@@ -347,6 +360,44 @@
           <button type="submit" class="btn btn-primary">Legg til</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Hjelpe-popup -->
+  <div class="modal-overlay" id="helpOverlay">
+    <div class="modal" role="dialog" aria-labelledby="helpTitle">
+      <h2 class="modal-title" id="helpTitle">Slik bruker du handlelista 🛒</h2>
+      <div class="help-text">
+        <p>Denne siden hjelper dere å planlegge innkjøpene og holde dere innenfor ukesbudsjettet.</p>
+
+        <p><strong>1. Øverst: Budsjett og oversikt</strong><br>
+        Her ser dere hvor mye dere har i ukesbudsjett, hvor mye som er brukt så langt, hva lista koster og hvor mye som er igjen.</p>
+
+        <p><strong>2. Legg til ting dere trenger</strong><br>
+        Trykk på den grønne <strong>+</strong>-knappen for å legge til en vare. Skriv navn, velg kategori og gjerne en ca-pris.</p>
+
+        <p><strong>3. Når dere er i butikken</strong></p>
+        <ul>
+          <li>Trykk på <strong>“Start butikk-modus 🛒”</strong>.</li>
+          <li>Trykk på en vare for å merke den som kjøpt.</li>
+          <li>Kjøpte varer samles i en egen liste nederst.</li>
+        </ul>
+
+        <p><strong>4. Mengde og pris</strong><br>
+        Bruk <strong>+ / –</strong> for antall. Trykk på prisen for å endre den hvis den er annerledes i butikken.</p>
+
+        <p><strong>5. Når dere er ferdige</strong><br>
+        Trykk på <strong>“Ferdig – registrer kjøp”</strong> for å sende summen videre og oppdatere ukesbudsjettet.</p>
+
+        <p><strong>6. Varer fra middagsplanen</strong><br>
+        Hvis dere har valgt middager, kan dere bruke knappen <strong>“Fra middagsplan”</strong> for å legge inn forslag til varer.</p>
+
+        <p>Du kan alltid åpne denne forklaringen igjen ved å trykke på <strong>“❓ Hjelp”</strong>-knappen.</p>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="helpCloseBtn">Lukk</button>
+        <button type="button" class="btn btn-primary" id="helpOkBtn">Skjønner 👍</button>
+      </div>
     </div>
   </div>
 
@@ -400,6 +451,7 @@
   const WEEK_ISO = getActiveWeekISO();
   const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
   const INBOX_KEY = `shoppingList_inbox_${WEEK_ISO}`;
+  const HELP_KEY = 'shopping_help_seen_v1';
 
   // ---------- Budsjettoppslag ----------
   function parseMoneyStr(s){
@@ -1064,9 +1116,57 @@
     });
   }
 
+  // ---------- Hjelpe-popup ----------
+  function openHelp() {
+    const overlay = $('#helpOverlay');
+    if (!overlay) return;
+    overlay.classList.add('open');
+  }
+
+  function closeHelp() {
+    const overlay = $('#helpOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    try {
+      localStorage.setItem(HELP_KEY, '1');
+    } catch {}
+  }
+
+  const helpBtn = $('#helpBtn');
+  if (helpBtn) {
+    helpBtn.addEventListener('click', () => {
+      openHelp();
+    });
+  }
+
+  const helpOverlay = $('#helpOverlay');
+  if (helpOverlay) {
+    helpOverlay.addEventListener('click', (e) => {
+      if (e.target === helpOverlay) closeHelp();
+    });
+  }
+
+  const helpCloseBtn = $('#helpCloseBtn');
+  const helpOkBtn = $('#helpOkBtn');
+  if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelp);
+  if (helpOkBtn) helpOkBtn.addEventListener('click', closeHelp);
+
+  function maybeShowHelpOnFirstUse() {
+    let seen = false;
+    try {
+      seen = localStorage.getItem(HELP_KEY) === '1';
+    } catch {
+      seen = false;
+    }
+    if (!seen) {
+      openHelp();
+    }
+  }
+
   // ---------- Første render ----------
   renderCategories();
   initInbox();
+  maybeShowHelpOnFirstUse();
 </script>
 </body>
 </html>
