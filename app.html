@@ -136,7 +136,7 @@
   <button class="logout-btn" id="logoutBtn" title="Logg ut" aria-label="Logg ut">Logg ut</button>
 
   <main class="container">
-    <!-- Ny uke-header -->
+    <!-- Uke-header -->
     <div class="header">
       <div class="week-header-inner">
         <div class="week-pill">
@@ -186,76 +186,12 @@
   </main>
 
 <script>
-  // ===== Supabase init + kobling til auth-helpers ============================
+  // ===== Supabase init ===================================================
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Hoved-bootstrapping for denne siden
-  window.addEventListener('DOMContentLoaded', async () => {
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    // Koble logout-knapp til felles handleLogout
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        if (window.authHelpers?.handleLogout) {
-          window.authHelpers.handleLogout(supa);
-        } else {
-          // Fallback hvis auth-helpers.js ikke er lastet
-          supa.auth.signOut().finally(() => {
-            window.location.href = '/innlogging.html';
-          });
-        }
-      });
-    }
-
-    // Global listener for eksterne SIGNED_OUT (token utløpt osv.)
-    if (window.authHelpers?.initializeAuthListener) {
-      window.authHelpers.initializeAuthListener(supa);
-    } else {
-      try {
-        supa.auth.onAuthStateChange((event) => {
-          if (event === 'SIGNED_OUT' && window.location.pathname !== '/innlogging.html') {
-            window.location.href = '/innlogging.html';
-          }
-        });
-      } catch {}
-    }
-
-    // La "hjernen" bestemme om vi har lov å være på /app.html
-    if (window.authHelpers?.protectPage) {
-      await window.authHelpers.protectPage(supa);
-
-      // Hvis protectPage sendte oss et annet sted, stopp videre kjøring
-      if (window.location.pathname !== '/app.html') return;
-    } else {
-      // Fallback: enkel sjekk hvis auth-helpers ikke er lastet
-      const { data: { session } } = await supa.auth.getSession();
-      if (!session) {
-        window.location.href = '/innlogging.html';
-        return;
-      }
-    }
-
-    // På dette tidspunktet:
-    //  - Bruker er innlogget
-    //  - setupComplete = true (ellers hadde protectPage flyttet de)
-    //  - Vi er på /app.html
-
-    // Sørg for at activeWeekISO eksisterer
-    if (!localStorage.getItem('activeWeekISO')) {
-      localStorage.setItem('activeWeekISO', mondayAtNoon().toISOString().slice(0,10));
-    }
-
-    // Hent ev. budsjett fra DB -> sync til localStorage -> kalkuler UI
-    await refreshBudgetFromDB();
-    init();
-  });
-
-  // Når brukeren kommer tilbake via tilbakeknapp/BFCache, re-run init
-  window.addEventListener('pageshow', init);
-
-  // ===== Element/tema konfig ================================================
+  // ===== Element/tema konfig ============================================
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -273,7 +209,15 @@
     status_message: "Bra kontroll så langt 💪"
   };
 
-  // ---------- Uke-hjelpere ----------
+  // ===== Global state ====================================================
+  const state = {
+    activeWeekISO: '',
+    budget: 0,
+    spent: 0,
+    remaining: 0
+  };
+
+  // ---------- Uke-hjelpere ----------------------------------------------
   function mondayAtNoon(d = new Date()){
     const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const day = (x.getDay()+6)%7; // 0=man
@@ -281,6 +225,7 @@
     x.setHours(12,0,0,0);
     return x;
   }
+
   function isoWeekNumber(date = new Date()) {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
     const dayNum = d.getUTCDay() || 7;
@@ -288,22 +233,33 @@
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
+
   function formatRangeNoNO(fromDate, toDate) {
     const optsDayMonth = { day:'numeric', month:'long' };
     const optsDay = { day:'numeric' };
     const from = fromDate.toLocaleDateString('no-NO', optsDayMonth);
-    const to = toDate.toLocaleDateString('no-NO', (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth));
+    const to = toDate.toLocaleDateString(
+      'no-NO',
+      (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth)
+    );
     return `${from}–${to}`;
   }
 
   function getActiveWeekISO(){
-    return localStorage.getItem('activeWeekISO') || mondayAtNoon().toISOString().slice(0,10);
+    let iso = localStorage.getItem('activeWeekISO');
+    if (!iso) {
+      iso = mondayAtNoon().toISOString().slice(0,10);
+      localStorage.setItem('activeWeekISO', iso);
+    }
+    return iso;
   }
+
   function getActiveMondayDate(){
-    const iso = getActiveWeekISO();
+    const iso = state.activeWeekISO || getActiveWeekISO();
     const [y,m,d] = iso.split('-').map(Number);
     return new Date(y, m-1, d, 12, 0, 0, 0);
   }
+
   function setWeekHeader() {
     const mon = getActiveMondayDate();
     const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
@@ -315,34 +271,8 @@
     if (dateRangeEl) dateRangeEl.textContent = formatRangeNoNO(mon, sun);
   }
 
-  // ---------- Budsjett/kjøp ----------
-  let budgetData = { total: 0, spent: 0, remaining: 0 };
-
-  async function readWeeklyBudgetFromDB(isoMonday){
-    try {
-      const { data:{ session } } = await supa.auth.getSession();
-      if (!session) return null;
-      const { data, error } = await supa
-        .from('household_budgets')
-        .select('amount')
-        .eq('user_id', session.user.id)
-        .eq('week_start', isoMonday)
-        .maybeSingle();
-      if (error) return null;
-      if (data && typeof data.amount === 'number') return data.amount;
-      return null;
-    } catch { return null; }
-  }
-
-  async function refreshBudgetFromDB(){
-    const iso = getActiveWeekISO();
-    const dbAmount = await readWeeklyBudgetFromDB(iso);
-    if (dbAmount !== null && !Number.isNaN(dbAmount)) {
-      localStorage.setItem(`weeklyBudget_${iso}`, String(dbAmount));
-    }
-  }
-
-  function readWeeklyBudgetFor(isoMonday){
+  // ---------- Local fallback for budsjett/kjøp --------------------------
+  function readWeeklyBudgetLocal(isoMonday){
     const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
     if (!isNaN(byWeek) && byWeek > 0) return byWeek;
     const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
@@ -350,27 +280,88 @@
     return 3000;
   }
 
-  function sumPurchasesFor(isoMonday) {
+  function sumPurchasesLocal(isoMonday) {
     const key = `purchases_${isoMonday}`;
     try {
       const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      return Array.isArray(arr) ? arr.reduce((acc, p) => acc + (Number(p.amount)||0), 0) : 0;
-    } catch { return 0; }
+      return Array.isArray(arr)
+        ? arr.reduce((acc, p) => acc + (Number(p.amount)||0), 0)
+        : 0;
+    } catch {
+      return 0;
+    }
   }
+
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
-  function updateBudgetDisplay() {
-    const spentElement = document.getElementById('spentAmount');
-    const totalElement = document.getElementById('totalBudget');
-    const remainingElement = document.getElementById('remainingAmount');
-    const remainingText = document.getElementById('remainingText');
-    const remainingBox = document.getElementById('remainingBox');
-    const circleProgress = document.getElementById('circleProgress');
-    const statusMsg = document.getElementById('statusMessage');
+  // ---------- Hent uke-data fra Supabase -------------------------------
+  async function loadWeekData() {
+    const iso = state.activeWeekISO || getActiveWeekISO();
+    state.activeWeekISO = iso;
 
-    const { total, spent } = budgetData;
+    // 1) Budsjett – start med local fallback
+    let budget = readWeeklyBudgetLocal(iso);
+
+    try {
+      const { data:{ session } } = await supa.auth.getSession();
+      if (session) {
+        const { data, error } = await supa
+          .from('household_budgets')
+          .select('amount')
+          .eq('user_id', session.user.id)
+          .eq('week_start', iso)
+          .maybeSingle();
+
+        if (!error && data && typeof data.amount === 'number') {
+          budget = data.amount;
+          localStorage.setItem(`weeklyBudget_${iso}`, String(budget));
+        }
+      }
+    } catch (err) {
+      console.warn('Feil ved henting budsjett:', err);
+    }
+
+    state.budget = Number(budget) || 0;
+    localStorage.setItem('budget_total', String(state.budget));
+
+    // 2) Kjøp – primærkilde: Supabase; fallback: localStorage
+    let spent = 0;
+    try {
+      const { data: rows, error } = await supa
+        .from('purchases')
+        .select('amount')
+        .eq('week_start', iso);
+
+      if (!error && rows) {
+        spent = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+      } else if (error) {
+        console.warn('Feil ved henting kjøp (DB):', error);
+        spent = sumPurchasesLocal(iso);
+      }
+    } catch (err) {
+      console.warn('Feil ved henting kjøp (nett):', err);
+      spent = sumPurchasesLocal(iso);
+    }
+
+    state.spent = spent;
+    state.remaining = state.budget - state.spent;
+  }
+
+  // ---------- Oppdater UI ----------------------------------------------
+  function updateBudgetDisplay() {
+    const spentElement     = document.getElementById('spentAmount');
+    const totalElement     = document.getElementById('totalBudget');
+    const remainingElement = document.getElementById('remainingAmount');
+    const remainingText    = document.getElementById('remainingText');
+    const remainingBox     = document.getElementById('remainingBox');
+    const circleProgress   = document.getElementById('circleProgress');
+    const statusMsg        = document.getElementById('statusMessage');
+    const mealBtn          = document.getElementById('mealPlanBtn');
+
+    const total = state.budget;
+    const spent = state.spent;
     const remainingRaw = total > 0 ? (total - spent) : 0;
-    budgetData.remaining = remainingRaw;
+    state.remaining = remainingRaw;
 
     spentElement.textContent = `${formatAmount(spent)} kr`;
     totalElement.textContent = `av ${formatAmount(total)} kr`;
@@ -419,10 +410,11 @@
     circleProgress.style.setProperty('--ring-color', color);
     circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
 
-    const mealBtn = document.getElementById('mealPlanBtn');
-    mealBtn.textContent = (budgetData.remaining < 0)
-      ? `Middag – billige forslag`
-      : `Middag for ${formatAmount(budgetData.remaining)} kr – vis forslag`;
+    if (mealBtn) {
+      mealBtn.textContent = (state.remaining < 0)
+        ? `Middag – billige forslag`
+        : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
+    }
 
     statusMsg.textContent = status;
 
@@ -432,15 +424,7 @@
     });
   }
 
-  function recalcFromStorage() {
-    const weekISO = getActiveWeekISO();
-    budgetData.total = readWeeklyBudgetFor(weekISO);
-    localStorage.setItem('budget_total', String(budgetData.total));
-    budgetData.spent = sumPurchasesFor(weekISO);
-    updateBudgetDisplay();
-  }
-
-  // ---------- UI farger fra config ----------
+  // ---------- Farge/tema fra Element SDK -------------------------------
   function adjustColor(color, percent) {
     const num = parseInt(color.replace('#',''),16), amt=Math.round(2.55*percent);
     const R=Math.max(0,Math.min(255,(num>>16)+amt));
@@ -450,25 +434,25 @@
   }
 
   async function onConfigChange(config) {
-    const backgroundColor   = config.background_color   || defaultConfig.background_color;
-    const surfaceColor      = config.surface_color      || defaultConfig.surface_color;
-    const textColor         = config.text_color         || defaultConfig.text_color;
-    const primaryActionColor= config.primary_action_color|| defaultConfig.primary_action_color;
-    const secondaryTextColor= config.secondary_text_color|| defaultConfig.secondary_text_color;
-    const customFont        = config.font_family        || defaultConfig.font_family;
-    const baseSize          = config.font_size          || defaultConfig.font_size;
+    const backgroundColor    = config.background_color    || defaultConfig.background_color;
+    const surfaceColor       = config.surface_color       || defaultConfig.surface_color;
+    const textColor          = config.text_color          || defaultConfig.text_color;
+    const primaryActionColor = config.primary_action_color|| defaultConfig.primary_action_color;
+    const secondaryTextColor = config.secondary_text_color|| defaultConfig.secondary_text_color;
+    const customFont         = config.font_family         || defaultConfig.font_family;
+    const baseSize           = config.font_size           || defaultConfig.font_size;
 
     document.body.style.background =
       `linear-gradient(135deg, ${backgroundColor} 0%, ${adjustColor(backgroundColor,-2)} 100%)`;
 
     const elements = [
-      { id: 'weekText',      size: baseSize * 0.9,  color: '#ffffff' },
-      { id: 'dateRange',     size: baseSize * 1.05, color: secondaryTextColor },
-      { id: 'spentAmount',   size: baseSize * 2,    color: textColor },
-      { id: 'totalBudget',   size: baseSize * 1.11, color: secondaryTextColor },
+      { id: 'weekText',        size: baseSize * 0.9,  color: '#ffffff' },
+      { id: 'dateRange',       size: baseSize * 1.05, color: secondaryTextColor },
+      { id: 'spentAmount',     size: baseSize * 2,    color: textColor },
+      { id: 'totalBudget',     size: baseSize * 1.11, color: secondaryTextColor },
       { id: 'remainingAmount', size: baseSize * 1.56, color: primaryActionColor },
-      { id: 'remainingText', size: baseSize * 0.89, color: textColor },
-      { id: 'statusMessage', size: baseSize,        color: secondaryTextColor }
+      { id: 'remainingText',   size: baseSize * 0.89, color: textColor },
+      { id: 'statusMessage',   size: baseSize,        color: secondaryTextColor }
     ];
     elements.forEach(el => {
       const node = document.getElementById(el.id);
@@ -493,41 +477,53 @@
       b.style.borderColor = adjustColor(primaryActionColor, 60);
     });
 
-    const circleBg = document.querySelector('.circle-bg');
-    const remainingInfo = document.querySelector('.remaining-info');
-    const statusBar = document.querySelector('.status-bar');
-    if (circleBg) circleBg.style.background = adjustColor(primaryActionColor, 85);
+    const circleBg     = document.querySelector('.circle-bg');
+    const remainingInfo= document.querySelector('.remaining-info');
+    const statusBar    = document.querySelector('.status-bar');
+    if (circleBg)      circleBg.style.background = adjustColor(primaryActionColor, 85);
     if (remainingInfo) remainingInfo.style.background = `${primaryActionColor}1a`;
-    if (statusBar) statusBar.style.background = `${surfaceColor}b3`;
+    if (statusBar)     statusBar.style.background = `${surfaceColor}b3`;
   }
 
   function mapToCapabilities(config) {
     return {
       recolorables: [
-        { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk && window.elementSdk.setConfig({ background_color: v }) },
-        { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk && window.elementSdk.setConfig({ surface_color: v }) },
-        { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk && window.elementSdk.setConfig({ text_color: v }) },
-        { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: v => window.elementSdk && window.elementSdk.setConfig({ primary_action_color: v }) },
-        { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk && window.elementSdk.setConfig({ secondary_text_color: v }) },
+        { get: () => config.background_color || defaultConfig.background_color,
+          set: v => window.elementSdk && window.elementSdk.setConfig({ background_color: v }) },
+        { get: () => config.surface_color || defaultConfig.surface_color,
+          set: v => window.elementSdk && window.elementSdk.setConfig({ surface_color: v }) },
+        { get: () => config.text_color || defaultConfig.text_color,
+          set: v => window.elementSdk && window.elementSdk.setConfig({ text_color: v }) },
+        { get: () => config.primary_action_color || defaultConfig.primary_action_color,
+          set: v => window.elementSdk && window.elementSdk.setConfig({ primary_action_color: v }) },
+        { get: () => config.secondary_text_color || defaultConfig.secondary_text_color,
+          set: v => window.elementSdk && window.elementSdk.setConfig({ secondary_text_color: v }) },
       ],
       borderables: [],
-      fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk && window.elementSdk.setConfig({ font_family: v }) },
-      fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk && window.elementSdk.setConfig({ font_size: v }) }
+      fontEditable: {
+        get: () => config.font_family || defaultConfig.font_family,
+        set: v => window.elementSdk && window.elementSdk.setConfig({ font_family: v })
+      },
+      fontSizeable: {
+        get: () => config.font_size || defaultConfig.font_size,
+        set: v => window.elementSdk && window.elementSdk.setConfig({ font_size: v })
+      }
     };
   }
+
   function mapToEditPanelValues(config) {
     return new Map([
-      ["week_text", config.week_text || defaultConfig.week_text],
-      ["spent_text", config.spent_text || defaultConfig.spent_text],
-      ["remaining_text", config.remaining_text || defaultConfig.remaining_text],
-      ["add_purchase_text", config.add_purchase_text || defaultConfig.add_purchase_text],
+      ["week_text",          config.week_text          || defaultConfig.week_text],
+      ["spent_text",         config.spent_text         || defaultConfig.spent_text],
+      ["remaining_text",     config.remaining_text     || defaultConfig.remaining_text],
+      ["add_purchase_text",  config.add_purchase_text  || defaultConfig.add_purchase_text],
       ["shopping_list_text", config.shopping_list_text || defaultConfig.shopping_list_text],
-      ["week_report_text", config.week_report_text || defaultConfig.week_report_text],
-      ["status_message", config.status_message || defaultConfig.status_message]
+      ["week_report_text",   config.week_report_text   || defaultConfig.week_report_text],
+      ["status_message",     config.status_message     || defaultConfig.status_message]
     ]);
   }
 
-  // ---------- Navigasjon ----------
+  // ---------- Navigasjon ------------------------------------------------
   document.getElementById('addPurchaseBtn').addEventListener('click', () => {
     location.href = 'add-purchase.html';
   });
@@ -541,20 +537,76 @@
     location.href = 'middag.html';
   });
 
-  // ---------- Init / refresh ----------
-  function init() {
+  // ---------- Auth + bootstrapping -------------------------------------
+  async function main() {
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Logout-knapp
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        if (window.authHelpers?.handleLogout) {
+          window.authHelpers.handleLogout(supa);
+        } else {
+          supa.auth.signOut().finally(() => {
+            window.location.href = '/innlogging.html';
+          });
+        }
+      });
+    }
+
+    // Global auth-listener
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    } else {
+      try {
+        supa.auth.onAuthStateChange((event) => {
+          if (event === 'SIGNED_OUT' && window.location.pathname !== '/innlogging.html') {
+            window.location.href = '/innlogging.html';
+          }
+        });
+      } catch {}
+    }
+
+    // Auth-guard
+    if (window.authHelpers?.protectPage) {
+      await window.authHelpers.protectPage(supa);
+      if (window.location.pathname !== '/app.html') return;
+    } else {
+      const { data:{ session } } = await supa.auth.getSession();
+      if (!session) {
+        window.location.href = '/innlogging.html';
+        return;
+      }
+    }
+
+    // Sett uke og last data
+    state.activeWeekISO = getActiveWeekISO();
+    await loadWeekData();
     setWeekHeader();
-    recalcFromStorage();
+    updateBudgetDisplay();
+
+    // Element SDK init
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
   }
 
-  if (window.elementSdk) {
-    window.elementSdk.init({
-      defaultConfig,
-      onConfigChange,
-      mapToCapabilities,
-      mapToEditPanelValues
-    });
-  }
+  window.addEventListener('DOMContentLoaded', main);
+
+  // Når man kommer tilbake via tilbakeknappen (BFCache), refreshe tall
+  window.addEventListener('pageshow', async (event) => {
+    if (event.persisted) {
+      state.activeWeekISO = getActiveWeekISO();
+      await loadWeekData();
+      setWeekHeader();
+      updateBudgetDisplay();
+    }
+  });
 </script>
 </body>
 </html>
