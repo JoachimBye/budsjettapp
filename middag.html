@@ -330,7 +330,7 @@
 
       setText('pageTitle', config.page_title || defaultConfig.page_title);
       setText('pageSubtitle', config.page_subtitle || defaultConfig.page_subtitle);
-      setText('budgetRemainingLabel', config.budget_remaining_label || defaultConfig.budget_remaining_label);
+      setText('budgetRemainingLabel', (config.budget_remaining_label || defaultConfig.budget_remaining_label) + ':');
       setText('maxPriceLabel', config.max_price_label || defaultConfig.max_price_label);
       setText('peopleCountLabel', config.people_count_label || defaultConfig.people_count_label);
 
@@ -391,9 +391,16 @@
       d.setHours(12, 0, 0, 0); // DST-safe
       return d.toISOString().slice(0, 10); // YYYY-MM-DD
     }
+
     function getActiveWeekISO() {
-      return localStorage.getItem('activeWeekISO') || getCurrentWeekMondayISO();
+      let iso = localStorage.getItem('activeWeekISO');
+      if (!iso) {
+        iso = getCurrentWeekMondayISO();
+        localStorage.setItem('activeWeekISO', iso);
+      }
+      return iso;
     }
+
     function formatKr(n) {
       const v = Number.isFinite(n) ? n : 0;
       return v.toLocaleString('no-NO');
