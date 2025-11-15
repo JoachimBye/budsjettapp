@@ -600,8 +600,9 @@
       }
     }
 
+    // 🔧 OPPDATERT FUNKSJON HER
     function switchToLoginMode(e) {
-      e?.preventDefault();
+      if (e) e.preventDefault();
       setState({
         mode: 'login',
         step: 'email',
@@ -609,7 +610,12 @@
         error: null,
         lastEmail: null
       });
-      if (ui.elements.emailInput) ui.elements.emailInput.focus();
+
+      // Bare auto-fokuser e-postfeltet når vi *ikke* kommer fra et klikk-event
+      // (f.eks. når siden åpnes med #login i URL).
+      if (!e && ui.elements.emailInput) {
+        ui.elements.emailInput.focus();
+      }
     }
 
     // ===== Init / bootstrap ==================================================
