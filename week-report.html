@@ -5,492 +5,319 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Ukesrapport – Husholdningsbudsjett</title>
   <style>
-    body {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
-      overflow-y: auto;
+    body{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      height:100%;
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
+      overflow-y:auto;
     }
-    html {
-      height: 100%;
+    html{height:100%;}
+    .container{
+      max-width:800px;
+      margin:0 auto;
+      padding:30px;
+      min-height:100%;
+      display:flex;
+      flex-direction:column;
     }
-    * {
-      box-sizing: border-box;
+    .header{
+      text-align:center;
+      margin-bottom:32px;
+      animation:fadeInDown .6s ease-out;
     }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 30px;
-      min-height: 100%;
-      display: flex;
-      flex-direction: column;
+    .title{
+      font-size:32px;
+      font-weight:700;
+      color:#2d5f4d;
+      margin-bottom:10px;
+      line-height:1.3;
     }
-
-    .header {
-      text-align: center;
-      margin-bottom: 30px;
-      animation: fadeInDown .6s ease-out;
-    }
-    .title {
-      font-size: 32px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-    .description {
-      font-size: 17px;
-      color: #5a7a6d;
-      line-height: 1.5;
-      max-width: 620px;
-      margin: 0 auto;
+    .description{
+      font-size:18px;
+      color:#5a7a6d;
+      line-height:1.5;
+      max-width:600px;
+      margin:0 auto;
     }
 
-    .content-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-      margin-bottom: 32px;
+    .content-section{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:30px;
+      margin-bottom:40px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 20px;
-      padding: 24px 24px 26px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+    .card{
+      background:#fff;
+      border-radius:20px;
+      padding:24px 24px 22px 24px;
+      box-shadow:0 6px 20px rgba(0,0,0,.08);
     }
 
-    /* Status / hero-kort */
-    .budget-overview {
-      animation: fadeInUp .8s ease-out .1s both;
-    }
-    .budget-overview.status-under {
-      border-left: 6px solid #4caf50;
-    }
-    .budget-overview.status-near {
-      border-left: 6px solid #f9a825;
-    }
-    .budget-overview.status-over {
-      border-left: 6px solid #f57c00;
+    /* --- Uke-kort (enklere struktur) --- */
+    .week-card{
+      animation:fadeInUp .8s ease-out .1s both;
     }
 
-    .status-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
+    /* Topp: status */
+    .status-top{
+      margin-bottom:20px;
     }
-    .status-emoji {
-      font-size: 40px;
-      flex-shrink: 0;
+    .status-line{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:4px;
     }
-    .status-text-block {
-      flex: 1;
-      min-width: 0;
+    .status-emoji{
+      font-size:26px;
     }
-    .status-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 4px;
+    .status-title{
+      font-size:20px;
+      font-weight:700;
+      color:#2d5f4d;
     }
-    .status-subtitle {
-      font-size: 15px;
-      color: #5a7a6d;
+    .status-subtitle{
+      margin:0;
+      font-size:16px;
+      color:#5a7a6d;
     }
 
-    .week-like-btn {
-      border-radius: 9999px;
-      border: 1px solid rgba(76,175,80,0.2);
-      background: #ffffff;
-      padding: 8px 14px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #2d5f4d;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
-      flex-shrink: 0;
+    /* Midten: termometer */
+    .thermo{
+      margin:18px 0 18px 0;
     }
-    .week-like-btn:hover {
-      box-shadow: 0 2px 8px rgba(45,95,77,0.2);
-      background: #f8fffe;
-      transform: translateY(-1px);
+    .thermo-caption{
+      font-size:14px;
+      color:#5a7a6d;
+      margin-bottom:8px;
     }
-    .week-like-btn.liked {
-      background: #4caf50;
-      color: #fff;
-      border-color: #4caf50;
-      transform: translateY(-1px) scale(1.03);
-      box-shadow: 0 4px 14px rgba(76,175,80,0.4);
+    .thermo-track{
+      width:100%;
+      height:18px;
+      background:#e8f5f0;
+      border-radius:999px;
+      overflow:hidden;
+      position:relative;
     }
-
-    /* Termometer / budsjettlinje */
-    .thermo-container {
-      margin-top: 10px;
+    .thermo-fill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      transition:width .7s ease-out, background-color .3s ease-out;
     }
-    .thermo-label-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      color: #5a7a6d;
-      margin-bottom: 8px;
-      flex-wrap: wrap;
-      gap: 4px 12px;
+    .thermo-fill.green{
+      background:#4caf50;
     }
-    .thermo-track {
-      position: relative;
-      width: 100%;
-      height: 18px;
-      background: #e8f5f0;
-      border-radius: 9999px;
-      overflow: hidden;
-      margin-bottom: 10px;
+    .thermo-fill.yellow{
+      background:#f9a825;
     }
-    .thermo-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 0%;
-      border-radius: 9999px;
-      transition: width 0.8s ease-out, background 0.4s ease-out;
-      background: #4caf50;
+    .thermo-fill.red{
+      background:#d32f2f;
     }
-    .thermo-fill.near {
-      background: #f9a825;
-    }
-    .thermo-fill.over {
-      background: #f57c00;
+    .thermo-percent{
+      margin-top:8px;
+      font-size:15px;
+      color:#2d5f4d;
+      font-weight:500;
     }
 
-    .thermo-values-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 6px 12px;
-      font-size: 15px;
-      color: #2d5f4d;
+    /* Bunn: én rad med tall */
+    .numbers-row{
+      display:flex;
+      gap:16px;
+      margin-top:10px;
+      flex-wrap:wrap;
+      border-top:1px solid #f0f4f2;
+      padding-top:12px;
     }
-    .thermo-value-label {
-      font-weight: 600;
+    .numbers-item{
+      flex:1;
+      min-width:120px;
     }
-
-    .budget-numbers {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
-      gap: 8px 18px;
-      margin-top: 10px;
+    .numbers-label{
+      font-size:13px;
+      color:#5a7a6d;
+      margin-bottom:2px;
     }
-    .budget-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 4px;
+    .numbers-value{
+      font-size:18px;
+      font-weight:700;
+      color:#2d5f4d;
     }
-    .budget-label {
-      font-size: 15px;
-      font-weight: 500;
-      color: #5a7a6d;
+    .numbers-value.positive{
+      color:#2e7d32;
     }
-    .budget-amount {
-      font-size: 17px;
-      font-weight: 700;
-      color: #2d5f4d;
-    }
-    .budget-amount.saved {
-      color: #4caf50;
-      font-size: 18px;
-    }
-    .celebration-icon {
-      margin-left: 6px;
-      font-size: 20px;
+    .numbers-value.negative{
+      color:#d32f2f;
     }
 
-    /* Seksjonstitler */
-    .section-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #2d5f4d;
-      margin-bottom: 18px;
-      text-align: center;
+    /* Liten tommel-opp nederst */
+    .status-footer{
+      margin-top:10px;
+      display:flex;
+      justify-content:flex-end;
+    }
+    .week-like-link{
+      border:none;
+      background:none;
+      padding:0;
+      font-size:14px;
+      color:#5a7a6d;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .week-like-link:hover{
+      color:#2d5f4d;
+      text-decoration:underline;
     }
 
-    /* Kategorier */
-    .categories-section {
-      animation: fadeInUp .8s ease-out .2s both;
+    /* Kategorier & innsikter (fra tidligere) */
+    .categories-section{
+      animation:fadeInUp .8s ease-out .2s both;
     }
-    .categories-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-      gap: 16px;
+    .insights-section{
+      animation:fadeInUp .8s ease-out .3s both;
     }
-    .category-item {
-      text-align: center;
-      padding: 18px 14px 16px;
-      background: #fafffe;
-      border-radius: 15px;
-      border: 2px solid #e8f5f0;
+    .section-title{
+      font-size:22px;
+      font-weight:700;
+      color:#2d5f4d;
+      margin-bottom:18px;
+      text-align:center;
     }
-    .category-icon {
-      font-size: 34px;
-      margin-bottom: 6px;
-      display: block;
+    .categories-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:18px;
     }
-    .category-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: #2d5f4d;
-      margin-bottom: 6px;
+    .category-item{
+      text-align:center;
+      padding:16px 12px 18px 12px;
+      background:#fafffe;
+      border-radius:15px;
+      border:2px solid #e8f5f0;
     }
-    .category-bar {
-      width: 100%;
-      height: 8px;
-      background: #e8f5f0;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 6px;
+    .category-icon{
+      font-size:34px;
+      margin-bottom:6px;
+      display:block;
     }
-    .category-progress {
-      height: 100%;
-      background: #4caf50;
-      border-radius: 4px;
-      transition: width 1s ease-out .2s;
+    .category-name{
+      font-size:15px;
+      font-weight:600;
+      color:#2d5f4d;
+      margin-bottom:6px;
     }
-    .category-percentage {
-      font-size: 16px;
-      font-weight: 700;
-      color: #4caf50;
+    .category-bar{
+      width:100%;
+      height:8px;
+      background:#e8f5f0;
+      border-radius:4px;
+      overflow:hidden;
+      margin-bottom:6px;
     }
-    .category-tag {
-      margin-top: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #f57c00;
+    .category-progress{
+      height:100%;
+      background:#4caf50;
+      border-radius:4px;
+      transition:width 1s ease-out .2s;
     }
-
-    /* Innsikter */
-    .insights-section {
-      animation: fadeInUp .8s ease-out .3s both;
-    }
-    .insights-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .insight-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 12px 12px 12px;
-      background: #f8fffe;
-      border-radius: 14px;
-      border-left: 4px solid #4caf50;
-    }
-    .insight-item.warn {
-      border-left-color: #f9a825;
-    }
-    .insight-item.over {
-      border-left-color: #f57c00;
-    }
-    .insight-icon {
-      font-size: 20px;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .insight-text {
-      font-size: 15px;
-      color: #2d5f4d;
-      line-height: 1.5;
-      margin: 0;
+    .category-percentage{
+      font-size:16px;
+      font-weight:700;
+      color:#4caf50;
     }
 
-    /* Tips / fokus for neste uke */
-    .tips-section {
-      animation: fadeInUp .8s ease-out .35s both;
+    .insights-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
-    .tips-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .insight-item{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      padding:14px 12px;
+      background:#f8fffe;
+      border-radius:15px;
+      border-left:4px solid #4caf50;
     }
-    .tip-card {
-      padding: 14px 14px 12px;
-      border-radius: 14px;
-      background: #f8fffe;
-      border: 1px solid #e0efe6;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .insight-icon{
+      font-size:20px;
+      flex-shrink:0;
+      margin-top:1px;
     }
-    .tip-text {
-      font-size: 15px;
-      color: #2d5f4d;
-    }
-    .tip-focus-btn {
-      align-self: flex-start;
-      border-radius: 9999px;
-      border: none;
-      padding: 7px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      background: #4caf50;
-      color: #ffffff;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-    }
-    .tip-focus-btn:hover {
-      background: #45a049;
-      box-shadow: 0 2px 8px rgba(76,175,80,0.3);
-      transform: translateY(-1px);
-    }
-    .tip-focus-btn.selected {
-      background: #2d5f4d;
+    .insight-text{
+      font-size:15px;
+      color:#2d5f4d;
+      line-height:1.5;
+      margin:0;
     }
 
-    /* Mini-historikk */
-    .history-section {
-      animation: fadeInUp .8s ease-out .4s both;
+    /* Knappene nederst */
+    .button-section{
+      text-align:center;
+      animation:fadeInUp .8s ease-out .4s both;
     }
-    .history-row {
-      display: flex;
-      gap: 10px;
-      justify-content: space-between;
-      flex-wrap: wrap;
+    .start-week-button{
+      background:linear-gradient(135deg,#4caf50 0%,#45a049 100%);
+      color:#fff;
+      border:none;
+      padding:18px 48px;
+      font-size:18px;
+      font-weight:700;
+      border-radius:50px;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(76,175,80,.3);
+      transition:all .3s ease;
+      margin-bottom:14px;
     }
-    .history-item {
-      flex: 1;
-      min-width: 120px;
-      padding: 10px 10px 8px;
-      border-radius: 12px;
-      background: #f8fffe;
-      text-align: center;
-      border: 1px solid #e0efe6;
+    .start-week-button:hover{
+      transform:translateY(-3px);
+      box-shadow:0 12px 28px rgba(76,175,80,.4);
+      background:linear-gradient(135deg,#45a049 0%,#3d8b40 100%);
     }
-    .history-week {
-      font-size: 13px;
-      color: #5a7a6d;
-      margin-bottom: 4px;
+    .start-week-button:active{transform:translateY(-1px);}
+    .back-button{
+      background:transparent;
+      color:#8a9a8d;
+      border:2px solid #e0e7e3;
+      padding:12px 34px;
+      font-size:15px;
+      font-weight:500;
+      border-radius:30px;
+      cursor:pointer;
+      transition:all .3s ease;
     }
-    .history-emoji {
-      font-size: 20px;
-      margin-bottom: 2px;
-    }
-    .history-label {
-      font-size: 13px;
-      color: #2d5f4d;
-      font-weight: 500;
-    }
-
-    /* Knappeseksjon */
-    .button-section {
-      text-align: center;
-      animation: fadeInUp .8s ease-out .45s both;
-      margin-bottom: 10px;
-    }
-    .start-week-button {
-      background: linear-gradient(135deg,#4caf50 0%,#45a049 100%);
-      color: #fff;
-      border: none;
-      padding: 18px 46px;
-      font-size: 18px;
-      font-weight: 700;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(76,175,80,.3);
-      transition: all .3s ease;
-      margin-bottom: 12px;
-    }
-    .start-week-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(76,175,80,.4);
-      background: linear-gradient(135deg,#45a049 0%,#3d8b40 100%);
-    }
-    .start-week-button:active {
-      transform: translateY(-1px);
-    }
-    .back-button-main {
-      background: transparent;
-      color: #8a9a8d;
-      border: 2px solid #e0e7e3;
-      padding: 12px 32px;
-      font-size: 15px;
-      font-weight: 500;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all .3s ease;
-    }
-    .back-button-main:hover {
+    .back-button:hover{
       background:#f5f8f6;
       border-color:#c8d4cb;
       color:#5a7a6d;
     }
 
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #2d5f4d;
-      color: #fff;
-      padding: 10px 16px;
-      border-radius: 9999px;
-      font-size: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.25);
-      z-index: 2000;
-      opacity: 0;
-      animation: toastFade .2s ease-out forwards;
+    @keyframes fadeInDown{
+      from{opacity:0;transform:translateY(-30px);}
+      to{opacity:1;transform:translateY(0);}
     }
-    @keyframes toastFade {
-      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-
-    /* Konfetti */
-    .confetti-piece {
-      position: fixed;
-      top: -10px;
-      font-size: 20px;
-      animation: confettiFall 1.2s ease-out forwards;
-      pointer-events: none;
-      z-index: 2000;
-    }
-    @keyframes confettiFall {
-      from { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
-      to   { transform: translateY(120px) translateX(10px) rotate(360deg); opacity: 0; }
-    }
-
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+    @keyframes fadeInUp{
+      from{opacity:0;transform:translateY(30px);}
+      to{opacity:1;transform:translateY(0);}
     }
 
     @media (max-width:768px){
       .container{padding:20px;}
-      .title{font-size:26px;}
-      .description{font-size:15px;}
-      .status-title{font-size:18px;}
-      .status-subtitle{font-size:14px;}
-      .thermo-track{height:16px;}
+      .title{font-size:28px;}
+      .description{font-size:16px;}
       .categories-grid{grid-template-columns:1fr;}
       .start-week-button{font-size:17px;padding:16px 40px;}
+      .numbers-row{flex-direction:column;}
     }
   </style>
 
@@ -502,53 +329,59 @@
   <main class="container">
     <div class="header">
       <h1 class="title" id="mainTitle">Ukesrapport – <span id="weekLabel">Uke</span></h1>
-      <p class="description" id="descriptionText">En vennlig oppsummering av uka – er dere under, på eller over budsjett?</p>
+      <p class="description" id="descriptionText">
+        Oppsummering av ukens forbruk og hvordan dere ligger an.
+      </p>
     </div>
 
     <div class="content-section">
-      <!-- Status + budsjett-termometer -->
-      <section class="card budget-overview" id="statusCard">
-        <div class="status-header">
-          <div class="status-emoji" id="statusEmoji">👏</div>
-          <div class="status-text-block">
-            <div class="status-title" id="statusTitle">Kjempebra jobba!</div>
-            <div class="status-subtitle" id="statusSubtitle">Dere sparte 0 kr denne uka.</div>
+      <!-- Enkelt uke-kort -->
+      <section class="card week-card">
+        <!-- 1. Topp: status -->
+        <div class="status-top">
+          <div class="status-line">
+            <span class="status-emoji" id="statusEmoji">🕒</span>
+            <span class="status-title" id="statusTitle">Rolig uke så langt</span>
           </div>
-          <button class="week-like-btn" id="weekLikeBtn">
-            <span>👍</span><span>Gi uka en tommel opp</span>
-          </button>
+          <p class="status-subtitle" id="statusSubtitle">
+            Ingen registrerte kjøp enda denne uka.
+          </p>
         </div>
 
-        <div class="thermo-container">
-          <div class="thermo-label-row">
-            <span>Ukens budsjett</span>
-            <span id="thermoPctLabel">Brukt 0 % av budsjettet</span>
+        <!-- 2. Midten: termometer -->
+        <div class="thermo">
+          <div class="thermo-caption">
+            Slik ligger dere an mot ukens budsjett
           </div>
           <div class="thermo-track">
             <div class="thermo-fill" id="thermoFill"></div>
           </div>
-          <div class="thermo-values-row">
-            <span><span class="thermo-value-label">Budsjett:</span> <span id="budgetAmount">0 kr</span></span>
-            <span><span class="thermo-value-label">Brukt:</span> <span id="spentAmount">0 kr</span></span>
-            <span><span class="thermo-value-label" id="diffLabel">Igjen:</span> <span id="diffAmount">0 kr</span></span>
+          <div class="thermo-percent" id="thermoPercentText">
+            Brukt 0 % av budsjettet
           </div>
         </div>
 
-        <div class="budget-numbers">
-          <div class="budget-item">
-            <span class="budget-label">Ukens budsjett</span>
-            <span class="budget-amount" id="budgetAmountDetail">0 kr</span>
+        <!-- 3. Bunn: én rad med tall -->
+        <div class="numbers-row">
+          <div class="numbers-item">
+            <div class="numbers-label">Budsjett</div>
+            <div class="numbers-value" id="nrBudget">0 kr</div>
           </div>
-          <div class="budget-item">
-            <span class="budget-label">Totalt brukt</span>
-            <span class="budget-amount" id="spentAmountDetail">0 kr</span>
+          <div class="numbers-item">
+            <div class="numbers-label">Brukt</div>
+            <div class="numbers-value" id="nrSpent">0 kr</div>
           </div>
-          <div class="budget-item" id="savedRow" style="display:none;">
-            <span class="budget-label">Sparte denne uka</span>
-            <span class="budget-amount saved" id="savedAmount">
-              0 kr<span class="celebration-icon">🎉</span>
-            </span>
+          <div class="numbers-item">
+            <div class="numbers-label" id="nrDiffLabel">Igjen</div>
+            <div class="numbers-value positive" id="nrDiffValue">0 kr</div>
           </div>
+        </div>
+
+        <!-- 4. Liten feel-good nederst -->
+        <div class="status-footer">
+          <button class="week-like-link" id="weekLikeBtn">
+            👍 Gi denne uka en tommel opp
+          </button>
         </div>
       </section>
 
@@ -563,23 +396,11 @@
         <h2 class="section-title">Dette la vi merke til</h2>
         <div class="insights-list" id="insightsList"></div>
       </section>
-
-      <!-- Tips for neste uke -->
-      <section class="card tips-section">
-        <h2 class="section-title">Prøv dette neste uke</h2>
-        <div class="tips-list" id="tipsList"></div>
-      </section>
-
-      <!-- Mini-historikk -->
-      <section class="card history-section">
-        <h2 class="section-title">Slik har de siste ukene gått</h2>
-        <div class="history-row" id="historyRow"></div>
-      </section>
     </div>
 
     <div class="button-section">
-      <button class="start-week-button" id="startWeekButton">Start planlegging for neste uke</button><br/>
-      <button class="back-button-main" id="backButton">Tilbake til handlelisten</button>
+      <button class="start-week-button" id="startWeekButton">Start ny uke</button><br/>
+      <button class="back-button" id="backButton">Tilbake til oversikten</button>
     </div>
   </main>
 
@@ -597,37 +418,11 @@
     spent: 0,
     saved: 0,
     pct: 0,
-    byCategory: {},
-    status: null
+    byCategory: {}
   };
 
-  const TIP_CANDIDATES = [
-    {
-      id: 'restemiddag',
-      text: 'Prøv å ha én restemiddag denne uken. Bruk opp det dere har i kjøleskap og skap.'
-    },
-    {
-      id: 'planlegg-middager',
-      text: 'Planlegg middager for 3 dager av gangen før dere skriver handlelista. Det sparer dere for dyre småturer.'
-    },
-    {
-      id: 'sjekk-kjoleskap',
-      text: 'Se hva dere allerede har i kjøleskapet før dere handler, så unngår dere dobbeltkjøp.'
-    },
-    {
-      id: 'lørdagsgodt',
-      text: 'Bestem på forhånd hvor mye dere vil bruke på snacks og lørdagsgodt denne uka.'
-    },
-    {
-      id: 'drikke-en-gang',
-      text: 'Kjøp inn brus og juice kun én gang denne uken, ikke litt og litt hver dag.'
-    }
-  ];
-
   // ---------- Utils ----------
-  function formatAmount(n){
-    return (Number(n)||0).toLocaleString('no-NO');
-  }
+  function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
   function mondayOf(dateObj = new Date()){
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
@@ -662,12 +457,6 @@
   function getActiveWeekISO(){
     return localStorage.getItem('activeWeekISO') || mondayOf().toISOString().slice(0,10);
   }
-  function addWeeksToISO(isoMonday, offset){
-    const [y,m,d] = isoMonday.split('-').map(Number);
-    const base = new Date(y, m-1, d, 12,0,0,0);
-    base.setDate(base.getDate() + offset*7);
-    return base.toISOString().slice(0,10);
-  }
 
   function guessIcon(name){
     const n = (name||'').toLowerCase();
@@ -686,93 +475,6 @@
       .replace(/>/g,'&gt;')
       .replace(/"/g,'&quot;')
       .replace(/'/g,'&#039;');
-  }
-
-  function showToast(text){
-    const el = document.createElement('div');
-    el.className = 'toast';
-    el.textContent = text;
-    document.body.appendChild(el);
-    setTimeout(() => {
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 250);
-    }, 2000);
-  }
-
-  function launchConfetti(){
-    const emojis = ['🎉','✨','🎊','👏'];
-    for (let i = 0; i < 14; i++){
-      const piece = document.createElement('div');
-      piece.className = 'confetti-piece';
-      piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-      const left = 20 + Math.random()*60; // 20–80%
-      piece.style.left = left + 'vw';
-      piece.style.animationDelay = (Math.random()*0.3).toFixed(2) + 's';
-      document.body.appendChild(piece);
-      setTimeout(() => piece.remove(), 1500);
-    }
-  }
-
-  // ---------- Status-tekst / tone ----------
-  function computeStatus(){
-    const budget = state.totalBudget;
-    const spent  = state.spent;
-
-    if (spent === 0){
-      return {
-        type: 'empty',
-        emoji: '🕒',
-        title: 'Rolig uke så langt',
-        subtitle: 'Ingen registrerte kjøp ennå. Husk å legge inn handlekvitteringer når dere har vært i butikken.'
-      };
-    }
-
-    if (!budget || budget <= 0){
-      return {
-        type: 'neutral',
-        emoji: 'ℹ️',
-        title: 'Uka er registrert',
-        subtitle: `Dere har registrert kjøp for ${formatAmount(spent)} kr denne uken.`
-      };
-    }
-
-    const diff = spent - budget;
-    const ratio = spent / budget;
-
-    if (diff < -50) {
-      return {
-        type: 'under',
-        emoji: '👏',
-        title: 'Kjempebra jobba!',
-        subtitle: `Dere brukte mindre enn planlagt og sparte ${formatAmount(-diff)} kr denne uka.`
-      };
-    }
-
-    if (Math.abs(diff) <= budget * 0.05) {
-      return {
-        type: 'near',
-        emoji: '👍',
-        title: 'God kontroll!',
-        subtitle: 'Dere traff omtrent på budsjettet denne uka. Fortsett på samme måte neste uke.'
-      };
-    }
-
-    if (diff > 0) {
-      return {
-        type: 'over',
-        emoji: '💡',
-        title: 'Denne uka ble litt dyrere',
-        subtitle: `Forbruket ble cirka ${formatAmount(diff)} kr over budsjettet. Under ser dere hvor pengene gikk og noen enkle tips.`
-      };
-    }
-
-    // Litt under, men ikke så mye
-    return {
-      type: 'under',
-      emoji: '👏',
-      title: 'Bra gjennomført!',
-      subtitle: `Dere ligger litt under budsjett – ${formatAmount(-diff)} kr spart denne uka.`
-    };
   }
 
   // ---------- Hent budsjett + kjøp ----------
@@ -811,7 +513,7 @@
       }
     }
 
-    // Fallback til localStorage hvis ingen budsjett-rad
+    // Fallback til localStorage
     if (!totalBudget) {
       const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
       const byWeek = parseInt(byWeekStr || '', 10);
@@ -846,11 +548,10 @@
       }
     }
 
-    // Local fallback-kjøp (tidligere handleliste/middag-data)
+    // Local fallback-kjøp
     const localKey = `purchases_${weekISO}`;
     const localPurchases = safeGet(localKey, []);
 
-    // Kombiner (DB + lokal cache)
     purchases = [...dbRows, ...localPurchases];
 
     const spent = purchases.reduce((s,p)=> s + (Number(p.amount)||0), 0);
@@ -868,82 +569,113 @@
     state.saved       = saved;
     state.pct         = pct;
     state.byCategory  = byCategory;
-    state.status      = computeStatus();
 
-    // Speil litt til localStorage for andre sider
+    // Speil litt til localStorage
     localStorage.setItem('budget_total', String(totalBudget));
     localStorage.setItem('activeWeekISO', weekISO);
   }
 
-  // ---------- Render ----------
+  // ---------- Render header ----------
   function renderHeader(){
-    document.getElementById('weekLabel').textContent = weekLabelFromISO(state.weekISO);
-    // Header-tekst kan stå som er, hero-kortet tar hovedbudskapet
+    const weekLabel = document.getElementById('weekLabel');
+    if (weekLabel && state.weekISO){
+      weekLabel.textContent = weekLabelFromISO(state.weekISO);
+    }
   }
 
-  function renderStatusCard(){
-    const status = state.status || { type:'neutral', emoji:'ℹ️', title:'Ukesrapport', subtitle:'' };
+  // ---------- Render uke-kort ----------
+  function renderOverview(){
+    const b = state.totalBudget || 0;
+    const s = state.spent || 0;
+    const saved = Math.max(0, b - s);
+    const over = Math.max(0, s - b);
+    const pctUsedRaw = b > 0 ? Math.round((s / b) * 100) : 0;
+    const pctUsed = Math.max(0, pctUsedRaw);
 
-    const statusCard   = document.getElementById('statusCard');
-    const statusEmoji  = document.getElementById('statusEmoji');
-    const statusTitle  = document.getElementById('statusTitle');
-    const statusSub    = document.getElementById('statusSubtitle');
-    const budgetAmount = document.getElementById('budgetAmount');
-    const budgetDetail = document.getElementById('budgetAmountDetail');
-    const spentAmount  = document.getElementById('spentAmount');
-    const spentDetail  = document.getElementById('spentAmountDetail');
-    const diffAmount   = document.getElementById('diffAmount');
-    const diffLabel    = document.getElementById('diffLabel');
-    const savedRow     = document.getElementById('savedRow');
-    const savedEl      = document.getElementById('savedAmount');
-    const thermoFill   = document.getElementById('thermoFill');
-    const thermoPctLabel = document.getElementById('thermoPctLabel');
+    const statusEmojiEl = document.getElementById('statusEmoji');
+    const statusTitleEl = document.getElementById('statusTitle');
+    const statusSubtitleEl = document.getElementById('statusSubtitle');
+    const thermoFill = document.getElementById('thermoFill');
+    const thermoPercentText = document.getElementById('thermoPercentText');
+    const nrBudget = document.getElementById('nrBudget');
+    const nrSpent = document.getElementById('nrSpent');
+    const nrDiffLabel = document.getElementById('nrDiffLabel');
+    const nrDiffValue = document.getElementById('nrDiffValue');
 
-    statusCard.classList.remove('status-under','status-near','status-over');
-    if (status.type === 'under') statusCard.classList.add('status-under');
-    if (status.type === 'near')  statusCard.classList.add('status-near');
-    if (status.type === 'over')  statusCard.classList.add('status-over');
+    if (!thermoFill) return;
 
-    statusEmoji.textContent = status.emoji;
-    statusTitle.textContent = status.title;
-    statusSub.textContent   = status.subtitle;
+    // Tall i bunnen
+    if (nrBudget) nrBudget.textContent = `${formatAmount(b)} kr`;
+    if (nrSpent) nrSpent.textContent = `${formatAmount(s)} kr`;
 
-    budgetAmount.textContent = `${formatAmount(state.totalBudget)} kr`;
-    budgetDetail.textContent = `${formatAmount(state.totalBudget)} kr`;
-    spentAmount.textContent  = `${formatAmount(state.spent)} kr`;
-    spentDetail.textContent  = `${formatAmount(state.spent)} kr`;
-
-    const diff = state.spent - state.totalBudget;
-    if (state.totalBudget > 0){
-      if (diff <= 0){
-        diffLabel.textContent = 'Igjen:';
-        diffAmount.textContent = `${formatAmount(-diff)} kr`;
-      } else {
-        diffLabel.textContent = 'Over budsjett:';
-        diffAmount.textContent = `${formatAmount(diff)} kr`;
+    if (over > 0) {
+      if (nrDiffLabel) nrDiffLabel.textContent = 'Over';
+      if (nrDiffValue) {
+        nrDiffValue.textContent = `${formatAmount(over)} kr`;
+        nrDiffValue.classList.remove('positive');
+        nrDiffValue.classList.add('negative');
       }
     } else {
-      diffLabel.textContent = 'Totalt:';
-      diffAmount.textContent = `${formatAmount(state.spent)} kr`;
+      if (nrDiffLabel) nrDiffLabel.textContent = 'Igjen';
+      if (nrDiffValue) {
+        nrDiffValue.textContent = `${formatAmount(saved)} kr`;
+        nrDiffValue.classList.remove('negative');
+        nrDiffValue.classList.add('positive');
+      }
     }
 
-    if (state.saved > 0){
-      savedRow.style.display = '';
-      savedEl.innerHTML = `${formatAmount(state.saved)} kr<span class="celebration-icon">🎉</span>`;
+    // Termometer-bredde
+    let widthPct = 0;
+    if (b > 0 && s > 0) {
+      widthPct = Math.min(100, Math.max(5, pctUsed)); // minst litt synlig hvis brukt >0
+    }
+    thermoFill.style.width = widthPct + '%';
+
+    // Termometer-farge
+    thermoFill.classList.remove('green','yellow','red');
+    if (s === 0) {
+      // ingen farge, bare lys bakgrunn
+    } else if (pctUsed <= 90) {
+      thermoFill.classList.add('green');
+    } else if (pctUsed <= 110) {
+      thermoFill.classList.add('yellow');
     } else {
-      savedRow.style.display = 'none';
+      thermoFill.classList.add('red');
     }
 
-    const pct = Math.max(0, Math.min(150, state.pct));
-    thermoFill.style.width = Math.min(100, pct) + '%';
-    thermoFill.classList.remove('near','over');
-    if (status.type === 'near') thermoFill.classList.add('near');
-    if (status.type === 'over') thermoFill.classList.add('over');
-    thermoPctLabel.textContent = `Brukt ${Math.min(pct,150)} % av budsjettet`;
+    if (thermoPercentText) {
+      const pctText = Math.max(0, Math.round(pctUsed));
+      thermoPercentText.textContent = `Brukt ${pctText}% av budsjettet`;
+    }
+
+    // Status-tekst (topp)
+    if (s === 0) {
+      if (statusEmojiEl) statusEmojiEl.textContent = '🕒';
+      if (statusTitleEl) statusTitleEl.textContent = 'Rolig uke så langt';
+      if (statusSubtitleEl) statusSubtitleEl.textContent =
+        'Ingen registrerte kjøp enda denne uka.';
+    } else if (over <= 0 && pctUsed <= 90) {
+      if (statusEmojiEl) statusEmojiEl.textContent = '👏';
+      if (statusTitleEl) statusTitleEl.textContent = 'Kjempebra uke!';
+      if (statusSubtitleEl) statusSubtitleEl.textContent =
+        `Dere har brukt ${formatAmount(s)} kr og har ${formatAmount(saved)} kr igjen.`;
+    } else if (over <= 0) {
+      if (statusEmojiEl) statusEmojiEl.textContent = '👍';
+      if (statusTitleEl) statusTitleEl.textContent = 'God kontroll';
+      if (statusSubtitleEl) statusSubtitleEl.textContent =
+        'Dere ligger omtrent på budsjett denne uka.';
+    } else {
+      if (statusEmojiEl) statusEmojiEl.textContent = '⚠️';
+      if (statusTitleEl) statusTitleEl.textContent = 'Litt dyrere uke';
+      if (statusSubtitleEl) statusSubtitleEl.textContent =
+        `Dere brukte ca. ${formatAmount(over)} kr mer enn planlagt.`;
+    }
   }
 
+  // ---------- Render kategorier ----------
   function renderCategories(){
     const grid = document.getElementById('categoriesGrid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     const entries = Object.entries(state.byCategory).sort((a,b)=> b[1]-a[1]);
@@ -958,223 +690,111 @@
       return;
     }
 
-    // Vis maks 5 største kategorier
-    const maxToShow = 5;
-    entries.slice(0, maxToShow).forEach(([name, value], idx)=>{
+    entries.forEach(([name, value])=>{
       const percent = Math.round((value/total)*100);
       const item = document.createElement('div');
       item.className = 'category-item';
-      const isTop = (idx === 0);
       item.innerHTML = `
         <span class="category-icon">${guessIcon(name)}</span>
         <div class="category-name">${escapeHTML(name)}</div>
         <div class="category-bar">
-          <div class="category-progress" style="width:${percent}%;"></div>
+          <div class="category-progress" style="width:${percent}%"></div>
         </div>
         <div class="category-percentage">${percent}%</div>
-        ${isTop ? '<div class="category-tag">Mest denne uka</div>' : ''}
       `;
       grid.appendChild(item);
     });
   }
 
-  function addInsight(icon, text, extraClass){
+  // ---------- Innsikter ----------
+  function addInsight(icon, text){
     const li = document.createElement('div');
     li.className = 'insight-item';
-    if (extraClass) li.classList.add(extraClass);
     li.innerHTML = `<span class="insight-icon">${icon}</span><p class="insight-text">${escapeHTML(text)}</p>`;
     document.getElementById('insightsList').appendChild(li);
   }
 
   function renderInsights(){
     const list = document.getElementById('insightsList');
+    if (!list) return;
     list.innerHTML = '';
 
-    const budget = state.totalBudget;
-    const spent  = state.spent;
+    const b = state.totalBudget || 0;
+    const s = state.spent || 0;
+    const saved = Math.max(0, b - s);
+    const over = Math.max(0, s - b);
 
-    if (spent === 0){
-      addInsight('🕒', 'Ingen registrerte kjøp enda – husk å legge inn handlekvitteringer når dere handler.');
-      return;
-    }
-
-    if (budget > 0 && spent < budget){
-      addInsight('👏', `Bra kontroll! Dere brukte under budsjett og sparte ${formatAmount(budget - spent)} kr denne uken.`);
-    } else if (budget > 0 && spent > budget){
-      addInsight('⚠️', `Budsjettet er overskredet med ${formatAmount(spent - budget)} kr. Det skjer – under ser dere hvilke kategorier som dro opp forbruket.`, 'over');
+    if (s === 0){
+      addInsight('🕒', 'Ingen registrerte kjøp enda – husk å loggføre handlekvitteringer når dere handler.');
+    } else if (over > 0){
+      addInsight('⚠️', `Budsjettet er overskredet med ${formatAmount(over)} kr. Vurder å redusere snacks/drikke eller dyre småturer neste uke.`);
+    } else if (saved > 0){
+      addInsight('👏', `Bra kontroll! Dere brukte under budsjett og sparte ${formatAmount(saved)} kr denne uken.`);
     } else {
-      addInsight('ℹ️', `Dere har registrert kjøp for ${formatAmount(spent)} kr denne uken.`);
+      addInsight('💡', 'Stabil uke. Fortsett med planlagte handler – grunnvarer på tilbud gir best effekt.');
     }
 
     const entries = Object.entries(state.byCategory).sort((a,b)=> b[1]-a[1]);
     if (entries.length >= 1){
       const [topCat, topVal] = entries[0];
-      const pct = Math.round((topVal/Math.max(1,spent))*100);
-      addInsight('🎯', `Størst andel gikk til «${topCat}» (${pct} % av ukens forbruk).`);
+      addInsight('🎯', `Størst andel gikk til «${topCat}» (${Math.round((topVal/Math.max(1,state.spent))*100)}%).`);
     }
     if (entries.length >= 2){
       const [lowCat, lowVal] = entries[entries.length-1];
-      const pct = Math.round((lowVal/Math.max(1,spent))*100);
-      addInsight('👍', `Lav andel på «${lowCat}» (${pct} %).`, 'warn');
-    }
-
-    // Enkel månedsprognose basert på denne uka (bare en gjetning)
-    const forecast = spent * 4;
-    addInsight('📈', `Fortsetter dere slik, blir månedsforbruket omtrent ${formatAmount(forecast)} kr (bare en enkel gjetning).`);
-  }
-
-  function renderTips(){
-    const list = document.getElementById('tipsList');
-    list.innerHTML = '';
-
-    // Velg noen tips – enkel logikk basert på status
-    let candidates = TIP_CANDIDATES.slice();
-    if (state.status?.type === 'over'){
-      // Prioritér snacks/kontrolltips
-      candidates.sort((a,b)=>{
-        const aScore = /snacks|brus|godt/i.test(a.text) ? -1 : 0;
-        const bScore = /snacks|brus|godt/i.test(b.text) ? -1 : 0;
-        return aScore - bScore;
-      });
-    }
-
-    const selectedTips = candidates.slice(0,3);
-    const nextWeekISO = addWeeksToISO(state.weekISO, 1);
-
-    selectedTips.forEach(tip => {
-      const card = document.createElement('div');
-      card.className = 'tip-card';
-      const btnId = `tipBtn_${tip.id}`;
-      card.innerHTML = `
-        <div class="tip-text">${escapeHTML(tip.text)}</div>
-        <button class="tip-focus-btn" id="${btnId}">
-          <span>🏆</span><span>Velg som fokus for neste uke</span>
-        </button>
-      `;
-      list.appendChild(card);
-
-      const btn = card.querySelector('.tip-focus-btn');
-      btn.addEventListener('click', () => {
-        // Lagre fokus i localStorage – andre sider kan hente dette
-        const payload = {
-          text: tip.text,
-          fromWeek: state.weekISO,
-          forWeek: nextWeekISO,
-          ts: Date.now()
-        };
-        localStorage.setItem('nextWeekFocus', JSON.stringify(payload));
-
-        // Marker knapp visuelt, fjern "selected" fra andre
-        document.querySelectorAll('.tip-focus-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-
-        showToast('Vi husker dette fokuset til neste uke ✨');
-      });
-    });
-  }
-
-  function renderHistory(){
-    const row = document.getElementById('historyRow');
-    row.innerHTML = '';
-
-    // Siste 4 uker inkl. denne (3 tilbake i tid)
-    for (let offset = -3; offset <= 0; offset++){
-      const iso = addWeeksToISO(state.weekISO, offset);
-      const [y,m,d] = iso.split('-').map(Number);
-      const dateMon = new Date(y, m-1, d, 12,0,0,0);
-      const wn = weekNumberISO(dateMon);
-
-      // Leser kun localStorage for historikk
-      const purchasesKey = `purchases_${iso}`;
-      const localPurchases = safeGet(purchasesKey, []);
-      const spent = localPurchases.reduce((s,p)=> s + (Number(p.amount)||0), 0);
-
-      let budgetStr = localStorage.getItem(`weeklyBudget_${iso}`);
-      if (!budgetStr && offset === 0){
-        // Bruk aktivt budsjett hvis vi står i samme uke
-        budgetStr = String(state.totalBudget || '');
-      }
-      const budget = parseInt(budgetStr || '', 10) || state.totalBudget || 0;
-
-      let emoji = '•';
-      let label = 'Ingen data';
-
-      if (spent === 0 && !budgetStr){
-        emoji = '•';
-        label = 'Ingen data';
-      } else if (budget > 0 && spent < budget){
-        emoji = '👍';
-        label = 'Under budsjett';
-      } else if (budget > 0 && spent > budget){
-        emoji = '⚠️';
-        label = 'Over budsjett';
-      } else if (spent === 0){
-        emoji = '🕒';
-        label = 'Ingen kjøp';
-      } else {
-        emoji = 'ℹ️';
-        label = 'Registrert';
-      }
-
-      const item = document.createElement('div');
-      item.className = 'history-item';
-      item.innerHTML = `
-        <div class="history-week">Uke ${wn}</div>
-        <div class="history-emoji">${emoji}</div>
-        <div class="history-label">${label}</div>
-      `;
-      row.appendChild(item);
+      addInsight('👍', `Lav andel på «${lowCat}» (${Math.round((lowVal/Math.max(1,state.spent))*100)}%).`);
     }
   }
 
-  // ---------- Start ny uke / navigasjon ----------
+  // ---------- Knappene nederst ----------
   function setupButtons(){
-    document.getElementById('startWeekButton').addEventListener('click', ()=>{
-      const thisMon = new Date(state.weekISO + 'T12:00:00');
-      const nextMon = new Date(thisMon);
-      nextMon.setDate(thisMon.getDate()+7);
-      const nextISO = nextMon.toISOString().slice(0,10);
+    const startBtn = document.getElementById('startWeekButton');
+    const backBtn  = document.getElementById('backButton');
+    const likeBtn  = document.getElementById('weekLikeBtn');
 
-      // Kopier budsjett videre til neste uke (localStorage-fallback)
-      localStorage.setItem(`weeklyBudget_${nextISO}`, String(state.totalBudget));
-      localStorage.setItem('weeklyBudget', String(state.totalBudget));
+    if (startBtn){
+      startBtn.addEventListener('click', ()=>{
+        const thisMon = new Date(state.weekISO + 'T12:00:00');
+        const nextMon = new Date(thisMon);
+        nextMon.setDate(thisMon.getDate()+7);
+        const nextISO = nextMon.toISOString().slice(0,10);
 
-      // Nullstill lokal cache for neste uke
-      localStorage.setItem(`purchases_${nextISO}`, '[]');
+        localStorage.setItem(`weeklyBudget_${nextISO}`, String(state.totalBudget));
+        localStorage.setItem('weeklyBudget', String(state.totalBudget));
+        localStorage.setItem(`purchases_${nextISO}`, '[]');
+        localStorage.setItem('lastClosedWeekISO', state.weekISO);
+        localStorage.setItem('activeWeekISO', nextISO);
 
-      localStorage.setItem('lastClosedWeekISO', state.weekISO);
-      localStorage.setItem('activeWeekISO', nextISO);
+        window.location.href = 'app.html';
+      });
+    }
 
-      window.location.href = 'app.html';
-    });
+    if (backBtn){
+      backBtn.addEventListener('click', ()=>{
+        window.location.href = 'app.html';
+      });
+    }
 
-    document.getElementById('backButton').addEventListener('click', ()=>{
-      window.location.href = 'handleliste.html';
-    });
-
-    const likeBtn = document.getElementById('weekLikeBtn');
-    likeBtn.addEventListener('click', ()=>{
-      likeBtn.classList.add('liked');
-      launchConfetti();
-      showToast('Bra at dere feirer uka! 🎉');
-      setTimeout(()=> likeBtn.classList.remove('liked'), 1200);
-    });
+    if (likeBtn){
+      likeBtn.addEventListener('click', ()=>{
+        likeBtn.textContent = 'Takk! 👍';
+        likeBtn.disabled = true;
+        likeBtn.style.opacity = '0.85';
+      });
+    }
   }
 
   // ---------- Init ----------
   async function init(){
-    // Auth guard
+    // Auth guard (hvis brukt)
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
     }
 
     await loadWeekData();
     renderHeader();
-    renderStatusCard();
+    renderOverview();
     renderCategories();
     renderInsights();
-    renderTips();
-    renderHistory();
     setupButtons();
   }
 
