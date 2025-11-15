@@ -14,6 +14,8 @@
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+    <!-- Sentral auth/ruting-hjerne -->
+  <script src="/auth-helpers.js"></script>
 
   <style>
     body {
@@ -107,16 +109,11 @@
   </main>
 
 <script>
-  // ===== Supabase init + auth-guard =====
+  // ===== Supabase init (brukes sammen med auth-helpers) =====
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  (async () => {
-    const { data: { session } } = await supa.auth.getSession();
-    if (!session) { location.href = '/innlogging.html'; }
-  })();
-
+  
   const defaultConfig = {
     background_color: "#f8fffe",
     surface_color: "#ffffff",
@@ -371,18 +368,44 @@
     }, 150);
   });
 
-  // ---------- Init ----------
-  updateRecommendation();
-  updateBudgetDisplay();
+  // ---------- Init + auth-guard (koblet til auth-helpers) ----------
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Lytt på SIGNED_OUT globalt (token utløpt osv.)
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    }
 
-  if (window.elementSdk) {
-    window.elementSdk.init({
-      defaultConfig,
-      onConfigChange,
-      mapToCapabilities,
-      mapToEditPanelValues
-    });
-  }
+    // La "hjernen" bestemme om vi får være på onboarding2
+    if (window.authHelpers?.protectPage) {
+      await window.authHelpers.protectPage(supa);
+
+      // Hvis vi ble sendt videre til en annen side, stopp videre logikk
+      if (window.location.pathname !== '/onboarding2.html') return;
+    } else {
+      // Fallback hvis auth-helpers ikke er lastet
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) {
+        location.href = '/innlogging.html';
+        return;
+      }
+    }
+
+    // Hvis vi fortsatt er her:
+    //  - bruker er innlogget
+    //  - ikke setupComplete
+    //  - og vi er på riktig steg i onboarding
+    updateRecommendation();
+    updateBudgetDisplay();
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  });
 </script>
 
 <!-- (beholdt) -->
