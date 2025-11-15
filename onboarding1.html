@@ -14,6 +14,8 @@
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+    <!-- Sentral auth/ruting-hjerne -->
+  <script src="/auth-helpers.js"></script>
 
   <style>
     body{
@@ -229,11 +231,32 @@
       ]);
     }
 
-    // === Auth-guard + init ===================================================
+    // === Auth-guard + init (bruker auth-helpers) =============================
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data:{ session } } = await supa.auth.getSession();
-      if(!session){ location.href='/innlogging.html'; return; }
+      // Koble på global SIGNED_OUT-lytter (token utløpt osv.)
+      if (window.authHelpers?.initializeAuthListener) {
+        window.authHelpers.initializeAuthListener(supa);
+      }
 
+      // La "hjernen" bestemme om vi i det hele tatt får være på onboarding1
+      if (window.authHelpers?.protectPage) {
+        await window.authHelpers.protectPage(supa);
+
+        // Hvis protectPage har sendt oss videre til en annen side, stopp her
+        if (window.location.pathname !== '/onboarding1.html') return;
+      } else {
+        // Fallback hvis auth-helpers av en eller annen grunn ikke er lastet
+        const { data: { session } } = await supa.auth.getSession();
+        if (!session) {
+          location.href = '/innlogging.html';
+          return;
+        }
+      }
+
+      // Hvis vi fortsatt er her:
+      //  - bruker er innlogget
+      //  - ikke ferdig (setupComplete=false)
+      //  - og dette er riktig steg i onboarding
       await ensureMemberRow();
       await restoreFromDBOrLocal();
     });
