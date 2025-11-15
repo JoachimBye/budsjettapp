@@ -15,6 +15,9 @@
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 
+  <!-- Sentral auth/ruting-hjerne -->
+  <script src="/auth-helpers.js"></script>
+
   <style>
     body{
       box-sizing:border-box;margin:0;padding:0;height:100%;
@@ -108,7 +111,7 @@
   </main>
 
   <script>
-    // ===== Supabase init + auth guard =====
+    // ===== Supabase init (brukes sammen med auth-helpers) =====
     const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -134,24 +137,6 @@
         localStorage.setItem('activeWeekISO', week);
       }catch(_){/* ignorer */}
     }
-
-    (async () => {
-      const { data: { session } } = await supa.auth.getSession();
-      if (!session) { location.href = '/innlogging.html'; return; }
-
-      // ✅ Robust: opprett/oppdater members-raden med onboarding_done = true
-      try {
-        await supa.from('members')
-          .upsert(
-            { user_id: session.user.id, onboarding_done: true },
-            { onConflict: 'user_id' }
-          );
-      } catch(_) {/* ignorer */}
-      localStorage.setItem('onboarding_done', '1');
-
-      // Sikre at uke-budsjett eksisterer i DB (hvis satt tidligere)
-      await ensureWeekBudget(session);
-    })();
 
     // ===== Element SDK / UI-tema =====
     const defaultConfig = {
@@ -253,8 +238,14 @@
       if (!localStorage.getItem('first_launch_ts')) {
         localStorage.setItem('first_launch_ts', String(Date.now()));
       }
-      setTimeout(()=>{ b.style.transform=''; localStorage.setItem('setupComplete','true'); location.href='app.html'; },150);
+      setTimeout(()=>{
+        b.style.transform='';
+        // Gullflagget: nå er brukeren 100 % klar for appen
+        localStorage.setItem('setupComplete','true');
+        location.href='app.html';
+      },150);
     });
+
     document.getElementById('backButton').addEventListener('click',()=>{
       const b=document.getElementById('backButton'); b.style.transform='scale(0.95)';
       setTimeout(()=>{ b.style.transform=''; location.href='onboarding3.html'; },150);
@@ -274,13 +265,60 @@
         setTimeout(()=>c.remove(), 6000);
       }
     }
-    setTimeout(createConfetti, 300);
-    const confettiInterval = reduceMotion ? null : setInterval(createConfetti, 3000);
-    window.addEventListener('beforeunload',()=>{ if(confettiInterval) clearInterval(confettiInterval) });
 
-    if(window.elementSdk){
-      window.elementSdk.init({defaultConfig,onConfigChange,mapToCapabilities,mapToEditPanelValues});
-    }
+    // ===== Init + auth-guard koblet til auth-helpers =====
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Global SIGNED_OUT-listener
+      if (window.authHelpers?.initializeAuthListener) {
+        window.authHelpers.initializeAuthListener(supa);
+      }
+
+      // La "hjernen" bestemme om vi får være på /takk.html
+      if (window.authHelpers?.protectPage) {
+        await window.authHelpers.protectPage(supa);
+        if (window.location.pathname !== '/takk.html') return;
+      } else {
+        // Fallback hvis auth-helpers ikke er lastet
+        const { data:{ session } } = await supa.auth.getSession();
+        if (!session) {
+          location.href = '/innlogging.html';
+          return;
+        }
+      }
+
+      // Nå vet vi:
+      //  - bruker er innlogget
+      //  - og dette er riktig sted i flyten
+
+      const { data:{ session } } = await supa.auth.getSession();
+
+      // Marker onboarding som fullført (DB + localStorage)
+      if (session) {
+        try {
+          await supa.from('members')
+            .upsert(
+              { user_id: session.user.id, onboarding_done: true },
+              { onConflict: 'user_id' }
+            );
+        } catch (_) {/* ignorer DB-feil */}
+      }
+      localStorage.setItem('onboarding_done', '1');
+
+      // Sikre at uke-budsjett eksisterer i DB (hvis satt tidligere)
+      if (session) {
+        await ensureWeekBudget(session);
+      }
+
+      // Start konfetti
+      setTimeout(createConfetti, 300);
+      const confettiInterval = reduceMotion ? null : setInterval(createConfetti, 3000);
+      window.addEventListener('beforeunload',()=>{ if(confettiInterval) clearInterval(confettiInterval) });
+
+      // Element SDK
+      if(window.elementSdk){
+        window.elementSdk.init({defaultConfig,onConfigChange,mapToCapabilities,mapToEditPanelValues});
+      }
+    });
   </script>
 
   <!-- Canva/Cloudflare snippet beholdt -->
