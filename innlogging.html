@@ -428,10 +428,18 @@
         if (el.emailGroup) {
           el.emailGroup.style.display = (step === 'email') ? 'block' : 'none';
         }
-        if (el.inviteGroup) {
-          el.inviteGroup.style.display =
-            (step === 'email' && mode === 'register') ? 'block' : 'none';
-        }
+ if (el.inviteGroup) {
+  const showInvite = (step === 'email' && mode === 'register');
+  el.inviteGroup.style.display = showInvite ? 'block' : 'none';
+
+  if (el.inviteInput) {
+    if (showInvite) {
+      el.inviteInput.setAttribute('required', 'required');
+    } else {
+      el.inviteInput.removeAttribute('required');
+    }
+  }
+}
         if (el.otpGroup) {
           el.otpGroup.style.display = (step === 'otp') ? 'block' : 'none';
         }
