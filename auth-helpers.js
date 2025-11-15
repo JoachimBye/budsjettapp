@@ -41,7 +41,7 @@ async function getOnboardingStatus(supa, session) {
 
 /**
  * Ny "hjerne" for all ruting.
- * Kalles på HVER side som trenger auth (index, onboarding1–3, takk, app, legg-til-kjøp).
+ * Kalles på HVER side som trenger auth (index, onboarding1–3, takk, app, add-purchase).
  */
 async function protectPage(supa) {
   const currentPath = window.location.pathname;
@@ -73,15 +73,13 @@ async function protectPage(supa) {
   }
 
   // 2b. Ferdig med alt (setupComplete = true)
-// 2b. Ferdig med alt (setupComplete = true)
-if (status.isSetupComplete) {
-  const appPaths = ['/app.html', '/add-purchase.html']; // 👈 riktig filnavn
-  if (!appPaths.includes(currentPath)) {
-    window.location.href = '/app.html';
-  }
-  return;
-}
-    // Hvis de allerede er på app/legg-til-kjøp → gjør ingenting
+  if (status.isSetupComplete) {
+    const appPaths = ['/app.html', '/add-purchase.html']; // 👈 riktig filnavn
+    if (!appPaths.includes(currentPath)) {
+      // Innlogget + ferdig, men på "rar" side → rett til app
+      window.location.href = '/app.html';
+    }
+    // Hvis de allerede er på app/add-purchase → gjør ingenting
     return;
   }
 
