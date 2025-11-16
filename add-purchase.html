@@ -616,34 +616,40 @@
   }
 
   function goToCoachStep(index) {
-    if (!coachOverlay) return;
-    if (index < 0 || index >= coachSteps.length) {
-      endCoachTour();
-      return;
-    }
-    coachCurrentStep = index;
-    const step = coachSteps[coachCurrentStep];
-    const target = document.querySelector(step.selector);
-
-    if (!target) {
-      // Hopper videre hvis elementet mangler
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-      return;
-    }
-
-    coachTitleEl.textContent = step.title;
-    coachTextEl.textContent  = step.text;
-    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
-
-    coachPrevBtn.disabled = coachCurrentStep === 0;
-    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
-
-    positionCoachForElement(target);
+      if (!coachOverlay) return;
+  if (index < 0 || index >= coachSteps.length) {
+    endCoachTour();
+    return;
   }
+  coachCurrentStep = index;
+  const step = coachSteps[coachCurrentStep];
+  const target = document.querySelector(step.selector);
+
+  if (!target) {
+    // Hopper videre hvis elementet mangler
+    if (coachCurrentStep < coachSteps.length - 1) {
+      goToCoachStep(coachCurrentStep + 1);
+    } else {
+      endCoachTour();
+    }
+    return;
+  }
+
+  coachTitleEl.textContent = step.title;
+  coachTextEl.textContent  = step.text;
+  coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+  coachPrevBtn.disabled = coachCurrentStep === 0;
+  coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+  // 1) Scroll elementet inn midt på skjermen
+  target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+  // 2) Etter litt tid (når scroll er ferdig) → posisjoner highlight og tooltip
+  setTimeout(() => {
+    positionCoachForElement(target);
+  }, 350);
+}
 
   function startCoachTour() {
     if (!coachOverlay) return;
