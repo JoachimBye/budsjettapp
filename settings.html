@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Innstillinger - Husholdningsbudsjett</title>
+
+  <!-- Element / Canva -->
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+
+  <!-- Supabase + auth-helpers -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth-helpers.js"></script>
+
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 20px;
+      min-height: 100%;
+      background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e8 50%, #f0fdf4 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #065f46;
+      margin: 0 0 12px 0;
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      color: #6b7280;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .section {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #065f46;
+      margin: 0 0 0 12px;
+    }
+
+    .section-description {
+      color: #6b7280;
+      font-size: 1rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .budget-input-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .budget-input {
+      flex: 1;
+      padding: 16px 20px;
+      font-size: 1.3rem;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: white;
+      font-weight: 600;
+    }
+
+    .budget-input:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .currency-label {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .budget-note {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .category-list, .store-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .category-item, .store-item {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .category-item input[type="checkbox"], .store-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 16px;
+      accent-color: #10b981;
+    }
+
+    .category-name, .store-name {
+      flex: 1;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .edit-icon {
+      color: #6b7280;
+      font-size: 0.9rem;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    .add-input-group {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .add-input {
+      flex: 1;
+      padding: 14px 16px;
+      font-size: 1rem;
+      border: 2px solid #d1d5db;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .add-input:focus {
+      outline: none;
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    .btn-primary {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 2px solid #d1d5db;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+    }
+
+    .btn-small {
+      padding: 10px 16px;
+      font-size: 0.9rem;
+    }
+
+    .household-info {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+    }
+
+    .household-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #065f46;
+      margin-bottom: 8px;
+    }
+
+    .household-note {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .logout-btn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 12px;
+    }
+
+    .logout-btn:hover {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+
+    .admin-link {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .footer-note {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .save-indicator {
+      display: none;
+      background: #10b981;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-left: 12px;
+    }
+
+    .save-indicator.show {
+      display: inline-block;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 24px;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .budget-input-group {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .add-input-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 id="page-title">Innstillinger</h1>
+      <p id="page-subtitle">Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.</p>
+    </div>
+
+    <!-- Ukentlig budsjett -->
+    <div class="section">
+      <div class="section-header">
+        <span style="font-size: 1.5rem;">💰</span>
+        <h2>Ukentlig budsjett</h2>
+      </div>
+      <p class="section-description">Sett standard ukesbudsjett for mat og husholdning.</p>
+      <div class="budget-input-group">
+        <input type="number" id="weekly-budget" class="budget-input" value="3000" placeholder="3000">
+        <span class="currency-label">kr</span>
+      </div>
+      <p class="budget-note">Gjelder som standard for nye uker.</p>
+      <button class="btn-primary" id="save-budget-btn">
+        Lagre endringer
+        <span id="budget-save-indicator" class="save-indicator">Lagret!</span>
+      </button>
+    </div>
+
+    <!-- Kategorier -->
+    <div class="section">
+      <div class="section-header">
+        <span style="font-size: 1.5rem;">🧺</span>
+        <h2>Kategorier for kjøp</h2>
+      </div>
+      <p class="section-description">Velg hvilke kategorier dere vil bruke når dere legger inn kjøp.</p>
+      <div class="category-list" id="category-list">
+        <div class="category-item">
+          <input type="checkbox" checked>
+          <span class="category-name">🥕 Mat &amp; dagligvarer</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="category-item">
+          <input type="checkbox" checked>
+          <span class="category-name">🧽 Husholdning &amp; rengjøring</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="category-item">
+          <input type="checkbox" checked>
+          <span class="category-name">🍞 Frokost &amp; brød</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="category-item">
+          <input type="checkbox" checked>
+          <span class="category-name">🍿 Snacks &amp; kos</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="category-item">
+          <input type="checkbox" checked>
+          <span class="category-name">🥬 Frukt &amp; grønt</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+        <div class="category-item">
+          <input type="checkbox">
+          <span class="category-name">📦 Annet</span>
+          <span class="edit-icon">✏️</span>
+        </div>
+      </div>
+      <div class="add-input-group">
+        <input type="text" id="new-category" class="add-input" placeholder="Ny kategori...">
+        <button class="btn-secondary btn-small" type="button" id="add-category-btn">
+          + Legg til ny kategori
+        </button>
+      </div>
+    </div>
+
+    <!-- Butikker -->
+    <div class="section">
+      <div class="section-header">
+        <span style="font-size: 1.5rem;">🏪</span>
+        <h2>Butikker</h2>
+      </div>
+      <p class="section-description">Tilpass listen over butikker som vises når du legger inn kjøp.</p>
+      <div class="store-list" id="store-list">
+        <div class="store-item">
+          <input type="checkbox" checked>
+          <span class="store-name">Kiwi</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox" checked>
+          <span class="store-name">Rema 1000</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox" checked>
+          <span class="store-name">Coop Extra</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox" checked>
+          <span class="store-name">Meny</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox" checked>
+          <span class="store-name">Spar</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox">
+          <span class="store-name">Joker</span>
+        </div>
+        <div class="store-item">
+          <input type="checkbox">
+          <span class="store-name">Bunnpris</span>
+        </div>
+      </div>
+      <div class="add-input-group">
+        <input type="text" id="new-store" class="add-input" placeholder="Ny butikk...">
+        <button class="btn-secondary btn-small" type="button" id="add-store-btn">
+          + Legg til butikk
+        </button>
+      </div>
+    </div>
+
+    <!-- Husholdning & konto -->
+    <div class="section">
+      <div class="section-header">
+        <span style="font-size: 1.5rem;">👨‍👩‍👧‍👦</span>
+        <h2>Husholdning &amp; konto</h2>
+      </div>
+      <div class="household-info">
+        <div class="household-name" id="household-name">Fam. Hansen</div>
+        <p class="household-note">Disse innstillingene gjelder for alle som bruker husholdningen.</p>
+        <button class="logout-btn" type="button" id="logout-btn">Logg ut</button><br>
+        <a href="#" class="admin-link">Administrer husholdning (kommer senere)</a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p class="footer-note">Endringer lagres for husstanden din</p>
+      <button class="btn-secondary" id="back-button" type="button">Tilbake til oversikten</button>
+    </div>
+  </div>
+
+<script>
+  // --------- Element / Canva config ----------
+  const defaultConfig = {
+    page_title: "Innstillinger",
+    page_subtitle: "Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.",
+    household_name: "Fam. Hansen",
+    back_button_text: "Tilbake til oversikten"
+  };
+
+  function onConfigChange(config) {
+    document.getElementById('page-title').textContent =
+      config.page_title || defaultConfig.page_title;
+    document.getElementById('page-subtitle').textContent =
+      config.page_subtitle || defaultConfig.page_subtitle;
+    document.getElementById('household-name').textContent =
+      config.household_name || defaultConfig.household_name;
+    document.getElementById('back-button').textContent =
+      config.back_button_text || defaultConfig.back_button_text;
+  }
+
+  function mapToCapabilities(config) {
+    return {
+      recolorables: [],
+      borderables: [],
+      fontEditable: undefined,
+      fontSizeable: undefined
+    };
+  }
+
+  function mapToEditPanelValues(config) {
+    return new Map([
+      ["page_title", config.page_title || defaultConfig.page_title],
+      ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle],
+      ["household_name", config.household_name || defaultConfig.household_name],
+      ["back_button_text", config.back_button_text || defaultConfig.back_button_text]
+    ]);
+  }
+
+  if (window.elementSdk) {
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange,
+      mapToCapabilities,
+      mapToEditPanelValues
+    });
+  }
+
+  // --------- Supabase / auth ----------
+  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let householdId = null;
+
+  function showToast(message, type) {
+    const el = document.createElement('div');
+    el.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      background: ${type === 'success' ? '#10b981' :
+                    type === 'error'   ? '#dc2626' :
+                                         '#3b82f6'};
+    `;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+
+  async function loadSettings() {
+    try {
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) {
+        window.location.href = '/innlogging.html';
+        return;
+      }
+
+      // Finn medlem -> household_id
+      const { data: member, error: memberErr } = await supa
+        .from('members')
+        .select('id, household_id')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (memberErr || !member) {
+        console.error(memberErr);
+        showToast('Fant ikke husstand for brukeren.', 'error');
+        return;
+      }
+
+      householdId = member.household_id;
+
+      // Hent husstandens navn + default_weekly_budget
+      const { data: household, error: hErr } = await supa
+        .from('households')
+        .select('name, default_weekly_budget')
+        .eq('id', householdId)
+        .maybeSingle();
+
+      if (hErr) {
+        console.error(hErr);
+        showToast('Kunne ikke hente husstandsinnstillinger.', 'error');
+        return;
+      }
+
+      const budgetInput = document.getElementById('weekly-budget');
+      const nameEl = document.getElementById('household-name');
+
+      const defaultBudget = household?.default_weekly_budget ?? 3000;
+      budgetInput.value = defaultBudget;
+      localStorage.setItem('weeklyBudget', String(defaultBudget));
+
+      if (household?.name) {
+        nameEl.textContent = household.name;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Ukjent feil ved henting av innstillinger.', 'error');
+    }
+  }
+
+  async function saveBudget() {
+    if (!householdId) {
+      showToast('Husstand ikke klar ennå.', 'error');
+      return;
+    }
+
+    const input = document.getElementById('weekly-budget');
+    let value = parseInt(input.value, 10);
+    if (!isFinite(value) || value <= 0) {
+      value = 3000;
+      input.value = value;
+    }
+
+    const indicator = document.getElementById('budget-save-indicator');
+
+    try {
+      const { error } = await supa
+        .from('households')
+        .update({ default_weekly_budget: value })
+        .eq('id', householdId);
+
+      if (error) {
+        console.error(error);
+        showToast('Kunne ikke lagre budsjett.', 'error');
+        return;
+      }
+
+      localStorage.setItem('weeklyBudget', String(value));
+      indicator.classList.add('show');
+      showToast('Budsjett lagret for husstanden.', 'success');
+
+      setTimeout(() => indicator.classList.remove('show'), 2000);
+    } catch (err) {
+      console.error(err);
+      showToast('Ukjent feil ved lagring.', 'error');
+    }
+  }
+
+  function addCategory() {
+    const input = document.getElementById('new-category');
+    const name = input.value.trim();
+    if (!name) return;
+
+    const list = document.getElementById('category-list');
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    div.innerHTML = `
+      <input type="checkbox" checked>
+      <span class="category-name">📦 ${name}</span>
+      <span class="edit-icon">✏️</span>
+    `;
+    list.appendChild(div);
+    input.value = '';
+    showToast('Kategori lagt til (foreløpig kun visuelt).', 'success');
+  }
+
+  function addStore() {
+    const input = document.getElementById('new-store');
+    const name = input.value.trim();
+    if (!name) return;
+
+    const list = document.getElementById('store-list');
+    const div = document.createElement('div');
+    div.className = 'store-item';
+    div.innerHTML = `
+      <input type="checkbox" checked>
+      <span class="store-name">${name}</span>
+    `;
+    list.appendChild(div);
+    input.value = '';
+    showToast('Butikk lagt til (foreløpig kun visuelt).', 'success');
+  }
+
+  async function doLogout() {
+    try {
+      if (window.authHelpers?.logout) {
+        await window.authHelpers.logout(supa);
+      } else {
+        await supa.auth.signOut();
+      }
+      window.location.href = '/innlogging.html';
+    } catch (err) {
+      console.error(err);
+      showToast('Klarte ikke å logge ut.', 'error');
+    }
+  }
+
+  function goBack() {
+    window.location.href = 'app.html';
+  }
+
+  async function init() {
+    // Auth guard
+    if (window.authHelpers?.protectPage) {
+      await window.authHelpers.protectPage(supa);
+      if (window.location.pathname !== '/innstillinger.html') {
+        return;
+      }
+    }
+
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    }
+
+    await loadSettings();
+
+    // Knapper
+    document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
+    document.getElementById('add-category-btn').addEventListener('click', addCategory);
+    document.getElementById('add-store-btn').addEventListener('click', addStore);
+    document.getElementById('logout-btn').addEventListener('click', doLogout);
+    document.getElementById('back-button').addEventListener('click', goBack);
+
+    // Enter-key i input-feltene
+    document.getElementById('new-category').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addCategory();
+      }
+    });
+
+    document.getElementById('new-store').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addStore();
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
