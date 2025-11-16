@@ -1,13 +1,25 @@
 // auth-helpers.js
 
 /**
- * Henter den sanne onboarding-statusen.
- * Prioriterer "setupComplete" (gullflagget), deretter databasen,
+ * Bygger en localStorage-nøkkel som er knyttet til innlogget bruker.
+ * Hvis vi ikke har session (teoretisk) faller vi tilbake til "global" nøkkel.
+ */
+function keyFor(base, session) {
+  const id = session?.user?.id;
+  return id ? `${base}_${id}` : base;
+}
+
+/**
+ * Henter den sanne onboarding-statusen for DENNE brukeren.
+ * Prioriterer "setupComplete" (gullflagget per bruker), deretter databasen,
  * og til slutt lokal lagring som en fallback.
  */
 async function getOnboardingStatus(supa, session) {
-  // 1. Gullflagget: hvis dette er satt, er brukeren 100 % klar for appen.
-  if (localStorage.getItem('setupComplete') === 'true') {
+  const setupKey = keyFor('setupComplete', session);
+  const onboardingKey = keyFor('onboarding_done', session);
+
+  // 1. Gullflagget per bruker: hvis dette er satt, er brukeren 100 % klar for appen.
+  if (localStorage.getItem(setupKey) === 'true') {
     return { isSetupComplete: true, isOnboardingDone: true };
   }
 
@@ -22,16 +34,16 @@ async function getOnboardingStatus(supa, session) {
 
     if (!error && member && member.onboarding_done) {
       dbOnboardingDone = true;
-      // Synk til localStorage for sikkerhets skyld
-      localStorage.setItem('onboarding_done', '1');
+      // Synk til localStorage per bruker for sikkerhets skyld
+      localStorage.setItem(onboardingKey, '1');
     }
   } catch (e) {
     console.error('Klarte ikke hente medlemsstatus fra DB', e);
     // Fallback til localStorage hvis DB feiler
   }
 
-  // 3. Fallback: localStorage flagg
-  const localOnboardingDone = localStorage.getItem('onboarding_done') === '1';
+  // 3. Fallback: localStorage flagg per bruker
+  const localOnboardingDone = localStorage.getItem(onboardingKey) === '1';
 
   return {
     isSetupComplete: false,
@@ -41,7 +53,7 @@ async function getOnboardingStatus(supa, session) {
 
 /**
  * Ny "hjerne" for all ruting.
- * Kalles på HVER side som trenger auth (index, onboarding1–3, takk, app, add-purchase).
+ * Kalles på HVER side som trenger auth (index, onboarding1–3, takk, app, add-purchase, osv.).
  */
 async function protectPage(supa) {
   const currentPath = window.location.pathname;
@@ -80,8 +92,8 @@ async function protectPage(supa) {
       '/week-report.html',
       '/handleliste.html',
       '/middag.html',
-      '/settings.html',       // 👈 innstillinger / settings-side
-      '/innstillinger.html',  // 👈 hvis du bruker norsk filnavn
+      '/settings.html',       // innstillinger / settings-side
+      '/innstillinger.html',  // hvis du bruker norsk filnavn
     ];
     if (!appPaths.includes(currentPath)) {
       // Innlogget + ferdig, men på "rar" side → rett til app
@@ -117,7 +129,7 @@ async function protectPage(supa) {
  * Robust utlogging:
  * 1. Logger ut fra Supabase.
  * 2. RYDDER KUN trygge, midlertidige nøkler i localStorage.
- * 3. Lar onboarding-/budsjettdata leve videre mellom innlogginger.
+ * 3. Lar onboarding-/budsjettdata for brukere leve videre mellom innlogginger.
  */
 async function handleLogout(supa) {
   try {
@@ -130,14 +142,14 @@ async function handleLogout(supa) {
   } finally {
     // ⚠️ Viktig:
     // Vi sletter IKKE:
-    //  - 'setupComplete'
-    //  - 'onboarding_done'
+    //  - 'setupComplete_<userId>'
+    //  - 'onboarding_done_<userId>'
     //  - 'weeklyBudget' / 'weeklyBudget_*'
     //  - 'purchases_*'
     //  - 'shoppingList_*'
     //  - 'budget_total'
     //
-    // De er fortsatt eneste sannhet for budsjett og forbruk.
+    // De er fortsatt eneste sannhet for budsjett og forbruk lokalt.
 
     const keysToClear = [
       'pending_invite',
