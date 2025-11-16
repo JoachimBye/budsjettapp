@@ -1116,11 +1116,6 @@ function renderCategories() {
 }
 
   // ---------- Mutators ----------
-  function toggleCategory(ci) {
-    categories[ci].open = !categories[ci].open;
-    saveCategories();
-    renderCategories();
-  }
 
   function toggleItemChecked(ci, ii) {
     const it = categories[ci].items[ii];
