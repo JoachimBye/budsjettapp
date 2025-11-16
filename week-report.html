@@ -485,115 +485,107 @@
       .replace(/'/g, '&#039;');
   }
 
-  // ---------- Hent budsjett + kjøp ----------
-  async function loadWeekData() {
-    const weekISO = getActiveWeekISO();
-    state.weekISO = weekISO;
+// ---------- Hent budsjett + kjøp ----------
+async function loadWeekData() {
+  const weekISO = getActiveWeekISO();
+  state.weekISO = weekISO;
 
-    let totalBudget = 0;
-    let purchases = [];
+  let totalBudget = 0;
+  let purchases = [];
 
-    let session = null;
-    try {
-      const { data } = await supa.auth.getSession();
-      session = data?.session || null;
-    } catch (err) {
-      console.warn('Feil ved henting session:', err);
-    }
-
-    // Budsjett fra DB
-    if (session) {
-      try {
-        const { data: budgetRow, error: bErr } = await supa
-          .from('household_budgets')
-          .select('amount')
-          .eq('user_id', session.user.id)
-          .eq('week_start', weekISO)
-          .maybeSingle();
-
-        if (bErr) {
-          console.warn('Feil ved henting budsjett:', bErr);
-        } else if (budgetRow?.amount) {
-          totalBudget = Number(budgetRow.amount) || 0;
-        }
-      } catch (err) {
-        console.warn('Feil ved budsjett-oppslag:', err);
-      }
-    }
-
-    // Fallback til localStorage
-    if (!totalBudget) {
-      const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
-      const byWeek = parseInt(byWeekStr || '', 10);
-      if (!isNaN(byWeek) && byWeek > 0) {
-        totalBudget = byWeek;
-      } else {
-        const globalStr = localStorage.getItem('weeklyBudget');
-        const global = parseInt(globalStr || '', 10);
-        totalBudget = (!isNaN(global) && global > 0) ? global : 3000;
-      }
-    }
-
-    // Kjøp fra DB
-    let dbRows = [];
-    if (session) {
-      try {
-        const { data: rows, error: pErr } = await supa
-          .from('purchases')
-          .select('amount, category')
-          .eq('week_start', weekISO);
-
-        if (pErr) {
-          console.warn('Feil ved henting kjøp:', pErr);
-        } else if (Array.isArray(rows)) {
-          dbRows = rows.map(r => ({
-            amount: Number(r.amount) || 0,
-            category: r.category || null
-          }));
-        }
-      } catch (err) {
-        console.warn('Feil ved kjøps-oppslag:', err);
-      }
-    }
-
-    // Local fallback
-    const localKey = `purchases_${weekISO}`;
-    const localPurchases = safeGet(localKey, []);
-
-        // Local fallback
-    const localKey = `purchases_${weekISO}`;
-    const localPurchases = safeGet(localKey, []);
-
-    // 🔧 Viktig endring:
-    // Hvis vi har data i DB -> stol på DB
-    // Hvis ikke -> bruk localStorage som fallback
-    if (session && dbRows.length > 0) {
-      purchases = dbRows;
-    } else {
-      purchases = localPurchases;
-    }
-
-    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-
-    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-    const saved = Math.max(0, totalBudget - spent);
-    const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
-
-    const byCategory = purchases.reduce((acc, p) => {
-      const cat = (p.category && String(p.category).trim()) || 'Uten kategori';
-      acc[cat] = (acc[cat] || 0) + (Number(p.amount) || 0);
-      return acc;
-    }, {});
-
-    state.totalBudget = totalBudget;
-    state.spent = spent;
-    state.saved = saved;
-    state.pct = pct;
-    state.byCategory = byCategory;
-
-    localStorage.setItem('budget_total', String(totalBudget));
-    localStorage.setItem('activeWeekISO', weekISO);
+  let session = null;
+  try {
+    const { data } = await supa.auth.getSession();
+    session = data?.session || null;
+  } catch (err) {
+    console.warn('Feil ved henting session:', err);
   }
+
+  // Budsjett fra DB
+  if (session) {
+    try {
+      const { data: budgetRow, error: bErr } = await supa
+        .from('household_budgets')
+        .select('amount')
+        .eq('user_id', session.user.id)
+        .eq('week_start', weekISO)
+        .maybeSingle();
+
+      if (bErr) {
+        console.warn('Feil ved henting budsjett:', bErr);
+      } else if (budgetRow?.amount) {
+        totalBudget = Number(budgetRow.amount) || 0;
+      }
+    } catch (err) {
+      console.warn('Feil ved budsjett-oppslag:', err);
+    }
+  }
+
+  // Fallback til localStorage
+  if (!totalBudget) {
+    const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
+    const byWeek = parseInt(byWeekStr || '', 10);
+    if (!isNaN(byWeek) && byWeek > 0) {
+      totalBudget = byWeek;
+    } else {
+      const globalStr = localStorage.getItem('weeklyBudget');
+      const global = parseInt(globalStr || '', 10);
+      totalBudget = (!isNaN(global) && global > 0) ? global : 3000;
+    }
+  }
+
+  // Kjøp fra DB
+  let dbRows = [];
+  if (session) {
+    try {
+      const { data: rows, error: pErr } = await supa
+        .from('purchases')
+        .select('amount, category')
+        .eq('week_start', weekISO);
+
+      if (pErr) {
+        console.warn('Feil ved henting kjøp:', pErr);
+      } else if (Array.isArray(rows)) {
+        dbRows = rows.map(r => ({
+          amount: Number(r.amount) || 0,
+          category: r.category || null
+        }));
+      }
+    } catch (err) {
+      console.warn('Feil ved kjøps-oppslag:', err);
+    }
+  }
+
+  // Local fallback
+  const localKey = `purchases_${weekISO}`;
+  const localPurchases = safeGet(localKey, []);
+
+  // Viktig: unngå dobbelt-telling
+  if (session && dbRows.length > 0) {
+    purchases = dbRows;            // logget inn → stol på DB
+  } else {
+    purchases = localPurchases;    // ellers → bruk localStorage
+  }
+
+  const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  const saved = Math.max(0, totalBudget - spent);
+  const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
+
+  const byCategory = purchases.reduce((acc, p) => {
+    const cat = (p.category && String(p.category).trim()) || 'Uten kategori';
+    acc[cat] = (acc[cat] || 0) + (Number(p.amount) || 0);
+    return acc;
+  }, {});
+
+  state.totalBudget = totalBudget;
+  state.spent = spent;
+  state.saved = saved;
+  state.pct = pct;
+  state.byCategory = byCategory;
+
+  localStorage.setItem('budget_total', String(totalBudget));
+  localStorage.setItem('activeWeekISO', weekISO);
+}
 
   // ---------- Render: header ----------
   function renderHeader() {
