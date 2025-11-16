@@ -74,12 +74,20 @@ async function protectPage(supa) {
 
   // 2b. Ferdig med alt (setupComplete = true)
   if (status.isSetupComplete) {
-    const appPaths = ['/app.html', '/add-purchase.html', '/week-report.html']; // legg til ukesrapport
+    const appPaths = [
+      '/app.html',
+      '/add-purchase.html',
+      '/week-report.html',
+      '/handleliste.html',
+      '/middag.html',
+      '/settings.html',       // 👈 innstillinger / settings-side
+      '/innstillinger.html',  // 👈 hvis du bruker norsk filnavn
+    ];
     if (!appPaths.includes(currentPath)) {
       // Innlogget + ferdig, men på "rar" side → rett til app
       window.location.href = '/app.html';
     }
-    // Hvis de allerede er på app/add-purchase → gjør ingenting
+    // Hvis de allerede er på en gyldig app-side → gjør ingenting
     return;
   }
 
