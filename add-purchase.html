@@ -183,12 +183,7 @@
         </label>
         <select class="form-input form-select" id="categoryInput" required>
           <option value="">Velg kategori…</option>
-          <option value="Mat & dagligvarer">Mat & dagligvarer</option>
-          <option value="Snacks & drikke">Snacks & drikke</option>
-          <option value="Husholdning">Husholdning</option>
-          <option value="Frokost & brød">Frokost & brød</option>
-          <option value="Frukt & grønt">Frukt & grønt</option>
-          <option value="Annet">Annet</option>
+          <!-- Resten fylles inn via JS basert på settings.html -->
         </select>
       </div>
 
@@ -241,6 +236,70 @@
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ---------- Kategorier fra settings.html (localStorage) ----------
+  const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
+
+  function loadCategorySettings() {
+    try {
+      const raw = localStorage.getItem(CATEGORY_SETTINGS_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return null;
+      return parsed;
+    } catch (e) {
+      console.warn('Klarte ikke å lese kategori-innstillinger', e);
+      return null;
+    }
+  }
+
+  function initCategorySelect() {
+    const select = document.getElementById('categoryInput');
+    if (!select) return;
+
+    // Behold placeholder
+    const placeholder = select.querySelector('option[value=""]');
+    select.innerHTML = '';
+    if (placeholder) select.appendChild(placeholder);
+
+    const stored = loadCategorySettings();
+    let categories = [];
+
+    if (stored && stored.length > 0) {
+      // Bruk kun aktiverte kategorier
+      categories = stored.filter(c => c && c.enabled);
+    } else {
+      // Fallback til defaults (samme som opprinnelig)
+      categories = [
+        { name: '🥕 Mat & dagligvarer', enabled: true },
+        { name: '🧽 Husholdning & rengjøring', enabled: true },
+        { name: '🍞 Frokost & brød', enabled: true },
+        { name: '🍿 Snacks & kos', enabled: true },
+        { name: '🥬 Frukt & grønt', enabled: true },
+        { name: '📦 Annet', enabled: true }
+      ];
+    }
+
+    if (categories.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Ingen kategorier aktivert – gå til Innstillinger';
+      select.appendChild(opt);
+      select.disabled = true;
+      select.required = false;
+      return;
+    }
+
+    select.disabled = false;
+    select.required = true;
+
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.name;      // Lagres i DB som samme streng
+      opt.textContent = cat.name; // Viser med emoji + navn
+      select.appendChild(opt);
+    });
+  }
 
   // ---------- State for budsjett-hint ----------
   const state = {
@@ -639,6 +698,9 @@
     // Sett dagens dato
     const dateInput = document.getElementById('dateInput');
     dateInput.value = isoLocalToday();
+
+    // Bygg kategori-listen basert på settings.html
+    initCategorySelect();
 
     // Last budsjett/spent for denne datoen
     await loadWeekDataFor(dateFromISOLocal(dateInput.value));
