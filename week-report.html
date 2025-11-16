@@ -303,6 +303,88 @@
       background: #eff6ff;
     }
 
+    /* Coach overlay (intro-guide) */
+    .coach-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      pointer-events: auto;
+    }
+
+    .coach-highlight {
+      position: fixed;
+      border-radius: 16px;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .coach-tooltip {
+      position: fixed;
+      max-width: 320px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 16px 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      color: #1e293b;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .coach-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .coach-text {
+      margin: 0;
+    }
+
+    .coach-step-label {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .coach-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .coach-btn {
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .coach-btn.coach-skip {
+      background: transparent;
+      color: #64748b;
+    }
+
+    .coach-btn.coach-prev {
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+
+    .coach-btn.coach-next {
+      background: #3b82f6;
+      color: #ffffff;
+    }
+
+    .coach-btn.coach-next:hover {
+      background: #2563eb;
+    }
+
     /* Mobile Responsiveness */
     @media (max-width: 768px) {
       body {
@@ -411,12 +493,192 @@
     </div>
   </div>
 
+  <!-- Coach overlay for intro -->
+  <div class="coach-overlay" id="coachOverlay">
+    <div class="coach-highlight" id="coachHighlight"></div>
+    <div class="coach-tooltip" id="coachTooltip">
+      <div class="coach-title" id="coachTitle"></div>
+      <p class="coach-text" id="coachText"></p>
+      <div class="coach-step-label" id="coachStepLabel"></div>
+      <div class="coach-buttons">
+        <button type="button" class="coach-btn coach-skip" id="coachSkipBtn">Hopp over</button>
+        <button type="button" class="coach-btn coach-prev" id="coachPrevBtn">Tilbake</button>
+        <button type="button" class="coach-btn coach-next" id="coachNextBtn">Neste</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 (function () {
   // ---------- Supabase init ----------
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ---------- Intro / coach overlay ----------
+  const COACH_SEEN_KEY = 'weekReport_coach_seen_v1';
+
+  let coachActive = false;
+  let coachCurrentStep = 0;
+  let prevBodyOverflow = '';
+
+  const coachOverlay     = document.getElementById('coachOverlay');
+  const coachHighlight   = document.getElementById('coachHighlight');
+  const coachTooltip     = document.getElementById('coachTooltip');
+  const coachTitleEl     = document.getElementById('coachTitle');
+  const coachTextEl      = document.getElementById('coachText');
+  const coachStepLabelEl = document.getElementById('coachStepLabel');
+  const coachSkipBtn     = document.getElementById('coachSkipBtn');
+  const coachPrevBtn     = document.getElementById('coachPrevBtn');
+  const coachNextBtn     = document.getElementById('coachNextBtn');
+
+  const coachSteps = [
+    {
+      id: 'overview',
+      selector: '.hero-card',
+      title: 'Ukas oversikt',
+      text:  'Her ser dere et sammendrag av uka: budsjett, hva som er brukt og om dere ligger foran eller bak.',
+    },
+    {
+      id: 'thermo',
+      selector: '.thermometer-section',
+      title: 'Budsjett-termometeret',
+      text:  'Denne linja viser hvor stor del av ukesbudsjettet som er brukt så langt – grønt, gult eller rødt.',
+    },
+    {
+      id: 'categories',
+      selector: '#categoriesGrid',
+      title: 'Hvor pengene gikk',
+      text:  'Her brytes forbruket ned per kategori, så dere ser hva som tar mest av budsjettet.',
+    },
+    {
+      id: 'insights',
+      selector: '#insightsList',
+      title: 'Små råd for neste uke',
+      text:  'Vi oppsummerer noen enkle observasjoner – både det som gikk bra, og det som kan justeres.',
+    },
+    {
+      id: 'back',
+      selector: '#backButton',
+      title: 'Tilbake til hovedsiden',
+      text:  'Når dere er ferdige, går dere tilbake til oversikten for å se handleliste og nye kjøp.',
+    },
+  ];
+
+  function positionCoachForElement(el) {
+    if (!el || !coachHighlight || !coachTooltip) return;
+
+    const rect = el.getBoundingClientRect();
+    const padding = 8;
+
+    const left   = rect.left - padding;
+    const top    = rect.top  - padding;
+    const width  = rect.width  + padding * 2;
+    const height = rect.height + padding * 2;
+
+    coachHighlight.style.left   = `${left}px`;
+    coachHighlight.style.top    = `${top}px`;
+    coachHighlight.style.width  = `${width}px`;
+    coachHighlight.style.height = `${height}px`;
+
+    coachTooltip.style.left = '50%';
+    coachTooltip.style.transform = 'translateX(-50%)';
+
+    requestAnimationFrame(() => {
+      const ttRect = coachTooltip.getBoundingClientRect();
+      const viewportH = window.innerHeight || document.documentElement.clientHeight;
+      const placeAbove = rect.top > viewportH / 2;
+
+      let ttTop;
+      if (placeAbove) {
+        ttTop = Math.max(16, rect.top - ttRect.height - 16);
+      } else {
+        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
+      }
+      coachTooltip.style.top = `${ttTop}px`;
+    });
+  }
+
+  function goToCoachStep(index) {
+    if (!coachOverlay) return;
+    if (index < 0 || index >= coachSteps.length) {
+      endCoachTour();
+      return;
+    }
+    coachCurrentStep = index;
+    const step = coachSteps[coachCurrentStep];
+    const target = document.querySelector(step.selector);
+
+    if (!target) {
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+      return;
+    }
+
+    coachTitleEl.textContent = step.title;
+    coachTextEl.textContent  = step.text;
+    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+    coachPrevBtn.disabled = coachCurrentStep === 0;
+    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+    positionCoachForElement(target);
+  }
+
+  function startCoachTour() {
+    if (!coachOverlay) return;
+    coachActive = true;
+    coachOverlay.style.display = 'block';
+    prevBodyOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
+    goToCoachStep(0);
+  }
+
+  function endCoachTour() {
+    coachActive = false;
+    if (coachOverlay) coachOverlay.style.display = 'none';
+    document.body.style.overflow = prevBodyOverflow || '';
+    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+  }
+
+  function shouldStartCoachTour() {
+    try {
+      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  }
+
+  if (coachSkipBtn) {
+    coachSkipBtn.addEventListener('click', () => {
+      endCoachTour();
+    });
+  }
+  if (coachPrevBtn) {
+    coachPrevBtn.addEventListener('click', () => {
+      if (coachCurrentStep > 0) goToCoachStep(coachCurrentStep - 1);
+    });
+  }
+  if (coachNextBtn) {
+    coachNextBtn.addEventListener('click', () => {
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (!coachActive) return;
+    const step = coachSteps[coachCurrentStep];
+    if (!step) return;
+    const target = document.querySelector(step.selector);
+    if (target) positionCoachForElement(target);
+  });
 
   // ---------- State ----------
   const state = {
@@ -501,10 +763,9 @@
       console.warn('Feil ved henting session:', err);
     }
 
-    // --- BUDSJETT: DB først, så default_weekly_budget, så localStorage ---
+    // --- BUDSJETT ---
     if (session) {
       try {
-        // 1) Uke-spesifikt budsjett for denne brukeren
         const { data: budgetRow, error: bErr } = await supa
           .from('household_budgets')
           .select('amount')
@@ -515,7 +776,6 @@
         if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
           totalBudget = budgetRow.amount;
         } else {
-          // 2) Fall back til husstandens default_weekly_budget
           const { data: member, error: mErr } = await supa
             .from('members')
             .select('household_id')
@@ -539,7 +799,6 @@
       }
     }
 
-    // 3) Fallback til localStorage hvis vi fortsatt ikke har noe
     if (!totalBudget) {
       const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
       const byWeek = parseInt(byWeekStr || '', 10);
@@ -552,7 +811,7 @@
       }
     }
 
-    // --- KJØP: DB først, ellers localStorage ---
+    // --- KJØP ---
     let dbRows = [];
     if (session) {
       try {
@@ -578,9 +837,9 @@
     const localPurchases = safeGet(localKey, []);
 
     if (session && dbRows.length > 0) {
-      purchases = dbRows;          // innlogget → stol på DB
+      purchases = dbRows;
     } else {
-      purchases = localPurchases;  // ellers → bruk local fallback
+      purchases = localPurchases;
     }
 
     const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
@@ -599,7 +858,6 @@
     state.pct = pct;
     state.byCategory = byCategory;
 
-    // Speil budsjett lokalt (samme mønster som de andre sidene)
     localStorage.setItem('budget_total', String(totalBudget));
     localStorage.setItem('activeWeekISO', weekISO);
     localStorage.setItem(`weeklyBudget_${weekISO}`, String(totalBudget));
@@ -654,7 +912,7 @@
     if (spent === 0) {
       // rolig uke
     } else if (pct <= 90) {
-      // grønn default
+      // grønn
     } else if (pct <= 110) {
       thermoFill.classList.add('yellow');
     } else {
@@ -792,7 +1050,6 @@
   async function init() {
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
-      // Hvis protectPage har redirectet til innlogging, stopp videre kjøring
       if (window.location.pathname !== '/week-report.html') return;
     }
 
@@ -802,6 +1059,13 @@
     renderCategories();
     renderInsights();
     setupButtons();
+
+    // Start intro første gang
+    if (shouldStartCoachTour()) {
+      setTimeout(() => {
+        startCoachTour();
+      }, 600);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
