@@ -212,6 +212,7 @@
       color: #2d5f4d;
       font-size: 14px;
       line-height: 1.4;
+      transition: opacity 0.25s ease, top 0.25s ease;
     }
 
     .coach-title {
@@ -451,6 +452,13 @@ const coachSteps = [
     title: 'Hvor mye brukte du?',
     text:  'Skriv inn totalsummen fra kvitteringen. Vi viser samtidig hvordan det påvirker ukesbudsjettet ditt.',
   },
+
+  {
+    id: 'category',
+    selector: '#categoryInput',
+    title: 'Hvilken kategori?',
+    text:  'Velg en kategori for kjøpet. Du kan endre kategoriene selv under Innstillinger.',
+  },
   {
     id: 'date',
     selector: '#dateInput',
@@ -480,6 +488,8 @@ function positionCoachForElement(el) {
   coachHighlight.style.top    = `${top}px`;
   coachHighlight.style.width  = `${width}px`;
   coachHighlight.style.height = `${height}px`;
+
+  coachHighlight.style.opacity = 1;
 
   coachTooltip.style.left = '50%';
   coachTooltip.style.transform = 'translateX(-50%)';
@@ -520,6 +530,9 @@ function goToCoachStep(index) {
     }
     return;
   }
+
+  if (coachTooltip) coachTooltip.style.opacity = 0;
+  if (coachHighlight) coachHighlight.style.opacity = 0;
 
   coachTitleEl.textContent = step.title;
   coachTextEl.textContent  = step.text;
