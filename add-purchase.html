@@ -421,7 +421,6 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ---------- Coach overlay (intro) ----------
 // ---------- Coach overlay (intro) ----------
 const COACH_SEEN_KEY = 'addPurchase_coach_seen_v1';
 
@@ -451,7 +450,7 @@ const coachSteps = [
     selector: '#amountInput',
     title: 'Hvor mye brukte du?',
     text:  'Skriv inn totalsummen fra kvitteringen. Vi viser samtidig hvordan det påvirker ukesbudsjettet ditt.',
-  }, // ◄ HER MANGLER DU ET KOMMA
+  },
   {
     id: 'category',
     selector: '#categoryInput',
@@ -487,7 +486,6 @@ function positionCoachForElement(el) {
   coachHighlight.style.top    = `${top}px`;
   coachHighlight.style.width  = `${width}px`;
   coachHighlight.style.height = `${height}px`;
-
   coachHighlight.style.opacity = 1;
 
   coachTooltip.style.left = '50%';
@@ -531,20 +529,22 @@ function goToCoachStep(index) {
     return;
   }
 
-  if (coachTooltip) coachTooltip.style.opacity = 0;
-  if (coachHighlight) coachHighlight.style.opacity = 0;
+  // Fade ut tooltip/highlight mens vi flytter
+  if (coachTooltip)  coachTooltip.style.opacity  = 0;
+  if (coachHighlight) coachHighlight.style.opacity = 0;
 
   coachTitleEl.textContent = step.title;
   coachTextEl.textContent  = step.text;
   coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
 
   coachPrevBtn.disabled = coachCurrentStep === 0;
-  coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+  coachNextBtn.textContent =
+    coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
 
-  // 1) Scroll elementet inn midt på skjermen
+  // Scroll elementet inn midt på skjermen
   target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
 
-  // 2) Etter litt tid → posisjoner highlight + tooltip
+  // Etter litt tid → posisjoner highlight + tooltip
   setTimeout(() => {
     positionCoachForElement(target);
   }, 350);
@@ -593,6 +593,7 @@ function initCoach() {
       endCoachTour();
     });
   }
+
   if (coachPrevBtn) {
     coachPrevBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -601,6 +602,7 @@ function initCoach() {
       }
     });
   }
+
   if (coachNextBtn) {
     coachNextBtn.addEventListener('click', (e) => {
       e.stopPropagation();
