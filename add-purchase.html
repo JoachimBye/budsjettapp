@@ -292,7 +292,7 @@
         return;
       }
 
-      // Budsjett fra household_budgets (per bruker)
+      // 1) Forsøk uke-spesifikt budsjett for denne brukeren
       const { data: budgetRow, error: bErr } = await supa
         .from('household_budgets')
         .select('amount')
@@ -300,13 +300,33 @@
         .eq('week_start', weekISO)
         .maybeSingle();
 
-      if (bErr) console.warn('Feil ved henting budsjett:', bErr);
-      budget = budgetRow?.amount || 0;
+      if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
+        budget = budgetRow.amount;
+      } else {
+        // 2) Ingen rad for denne uka → bruk husstandens default_weekly_budget
+        const { data: member, error: mErr } = await supa
+          .from('members')
+          .select('household_id')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (!mErr && member?.household_id) {
+          const { data: household, error: hErr } = await supa
+            .from('households')
+            .select('default_weekly_budget')
+            .eq('id', member.household_id)
+            .maybeSingle();
+
+          if (!hErr && household && typeof household.default_weekly_budget === 'number') {
+            budget = household.default_weekly_budget;
+          }
+        }
+      }
     } catch (err) {
-      console.warn('Feil ved henting budsjett-session:', err);
+      console.warn('Feil ved henting budsjett (DB):', err);
     }
 
-    // Fallback hvis ikke satt i DB
+    // 3) Fallback hvis vi fortsatt ikke har budsjett
     if (!budget) {
       const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
       budget = (!isNaN(global) && global > 0) ? global : 3000;
@@ -331,9 +351,11 @@
     state.currentBudget = budget;
     state.currentSpent = spent;
 
-    // Speil budsjett lokalt for ev. eldre kode
+    // Speil budsjett lokalt for ev. eldre kode / andre sider
     localStorage.setItem('budget_total', String(budget));
     localStorage.setItem('activeWeekISO', weekISO);
+    localStorage.setItem(`weeklyBudget_${weekISO}`, String(budget));
+    localStorage.setItem('weeklyBudget', String(budget));
   }
 
   // ---------- Budsjett-varsel (live) ----------
