@@ -116,6 +116,12 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
     const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Hjelpefunksjon: bygg per-bruker-nøkkel (samme logikk som i auth-helpers)
+    function lsKey(base, session) {
+      const id = session?.user?.id;
+      return id ? `${base}_${id}` : base;
+    }
+
     // Hjelp: finn uke-start (mandag 12:00 lokal tid) som YYYY-MM-DD
     function getCurrentWeekMondayISO(dateObj = new Date()) {
       const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
@@ -232,16 +238,30 @@
       ]);
     }
 
-    // Navigasjon
-    document.getElementById('startButton').addEventListener('click',()=>{
-      const b=document.getElementById('startButton'); b.style.transform='scale(0.95)';
+    // Navigasjon – nå med per-bruker setupComplete / onboarding_done
+    document.getElementById('startButton').addEventListener('click', async () => {
+      const b=document.getElementById('startButton');
+      b.style.transform='scale(0.95)';
+
       if (!localStorage.getItem('first_launch_ts')) {
         localStorage.setItem('first_launch_ts', String(Date.now()));
       }
+
+      // Hent session og sett per-bruker flagg
+      try {
+        const { data: { session } } = await supa.auth.getSession();
+        if (session) {
+          const setupKey = lsKey('setupComplete', session);
+          const onboardingKey = lsKey('onboarding_done', session);
+          localStorage.setItem(setupKey, 'true');  // Gullflagget
+          localStorage.setItem(onboardingKey, '1');
+        }
+      } catch (e) {
+        console.warn('Klarte ikke å sette per-bruker-flagg ved start uke 1', e);
+      }
+
       setTimeout(()=>{
         b.style.transform='';
-        // Gullflagget: nå er brukeren 100 % klar for appen
-        localStorage.setItem('setupComplete','true');
         location.href='app.html';
       },150);
     });
@@ -292,7 +312,7 @@
 
       const { data:{ session } } = await supa.auth.getSession();
 
-      // Marker onboarding som fullført (DB + localStorage)
+      // Marker onboarding som fullført (DB + localStorage PER BRUKER)
       if (session) {
         try {
           await supa.from('members')
@@ -301,8 +321,10 @@
               { onConflict: 'user_id' }
             );
         } catch (_) {/* ignorer DB-feil */}
+
+        const onboardingKey = lsKey('onboarding_done', session);
+        localStorage.setItem(onboardingKey, '1');
       }
-      localStorage.setItem('onboarding_done', '1');
 
       // Sikre at uke-budsjett eksisterer i DB (hvis satt tidligere)
       if (session) {
