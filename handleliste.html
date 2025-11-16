@@ -1000,138 +1000,120 @@
     return card;
   }
 
-  function renderCategories() {
-    const container = $("#categoriesContainer");
-    const purchasedContainer = $("#purchasedContainer");
-    const emptyText = $("#shoppingEmptyText");
-    if (!container) return;
+function renderCategories() {
+  const container = $("#categoriesContainer");
+  const purchasedContainer = $("#purchasedContainer");
+  const emptyText = $("#shoppingEmptyText");
+  if (!container) return;
 
-    container.innerHTML = "";
-    if (purchasedContainer) purchasedContainer.innerHTML = "";
+  container.innerHTML = "";
+  if (purchasedContainer) purchasedContainer.innerHTML = "";
 
-    let totalItems = 0;
-    let purchasedItemsFlat = [];
+  let totalItems = 0;
+  let purchasedItemsFlat = [];
 
-    categories.forEach((cat, ci) => {
-      const card = document.createElement("div");
-      card.className = `category-card ${category.open ? 'open' : ''}`;
-      card.dataset.categoryIndex = ci;
+  categories.forEach((cat, ci) => {
+    const card = document.createElement("div");
+    // alltid åpen – vi bruker headeren som "legg til"-knapp, ikke til å åpne/lukke
+    card.className = "category-card open";
+    card.dataset.categoryIndex = ci;
 
-      const header = document.createElement('div');
-header.className = 'category-header';
-header.setAttribute('role', 'button');
-header.setAttribute('tabindex', '0');
-// Vi bryr oss ikke lenger så mye om "expanded" – kortet brukes nå til å legge til varer
-header.setAttribute('aria-expanded', 'true');
-header.innerHTML = `
-  <div class="category-title">
-    ${category.name}
-    <span class="category-count">(${category.items.length})</span>
-  </div>
-  <span class="category-chevron">＋</span>
-`;
-
-// Hele headeren fungerer nå som "legg til i denne kategorien"
-header.addEventListener('click', () => {
-  openAddModalForCategory(categoryIndex);
-});
-header.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    openAddModalForCategory(categoryIndex);
-  }
-});
-
-      const count = document.createElement("span");
-      count.className = "category-count";
-      const countVal = cat.items.reduce((sum, it) => sum + (it.quantity || 1), 0);
-      count.textContent = `(${countVal})`;
-
-      const chevron = document.createElement("span");
-      chevron.className = "category-chevron";
-      chevron.textContent = "▼";
-
-      title.appendChild(count);
-      header.appendChild(title);
-      header.appendChild(chevron);
-
-      header.addEventListener("click", () => toggleCategory(ci));
-
-      const content = document.createElement("div");
-      content.className = "category-content";
-
-      const inner = document.createElement("div");
-      inner.className = "category-inner";
-
-      // Quick-add rad
-      const quickRow = document.createElement("div");
-      quickRow.className = "category-quick-add";
-      const quickInput = document.createElement("input");
-      quickInput.className = "category-quick-input";
-      quickInput.placeholder = `Legg til vare i ${cat.name}`;
-      const quickBtn = document.createElement("button");
-      quickBtn.type = "button";
-      quickBtn.className = "category-quick-btn";
-      quickBtn.textContent = "Legg til";
-      quickBtn.addEventListener("click", () => {
-        const val = quickInput.value.trim();
-        if (!val) return;
-        addItemToCategoryByName(val, cat.name, 1);
-        quickInput.value = "";
-        quickInput.focus();
-      });
-      quickInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          quickBtn.click();
-        }
-      });
-      quickRow.appendChild(quickInput);
-      quickRow.appendChild(quickBtn);
-      inner.appendChild(quickRow);
-
-      // Varer
-      cat.items.forEach((item, ii) => {
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        totalItems += qty;
-
-        if (isStoreMode && item.checked) {
-          purchasedItemsFlat.push({ item, ci, ii, categoryName: cat.name });
-        } else {
-          inner.appendChild(createItemCard(item, ci, ii));
-        }
-      });
-
-      content.appendChild(inner);
-      card.appendChild(header);
-      card.appendChild(content);
-
-      container.appendChild(card);
+    // HEADER: hele feltet er nå "legg til vare i denne kategorien"
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.setAttribute("role", "button");
+    header.setAttribute("tabindex", "0");
+    header.setAttribute("aria-expanded", "true");
+    header.innerHTML = `
+      <div class="category-title">
+        ${cat.name}
+        <span class="category-count">(${cat.items.length})</span>
+      </div>
+      <span class="category-chevron">＋</span>
+    `;
+    header.addEventListener("click", () => {
+      openItemModal(cat.name);
+    });
+    header.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openItemModal(cat.name);
+      }
     });
 
-    // Kjøpt-liste i butikk-modus
-    if (isStoreMode && purchasedItemsFlat.length > 0 && purchasedContainer) {
-      const title = document.createElement("div");
-      title.className = "purchased-section-title";
-      title.textContent = `Kjøpt denne turen (${purchasedItemsFlat.length} ulike varer)`;
-      purchasedContainer.appendChild(title);
+    const content = document.createElement("div");
+    content.className = "category-content";
+    // vi tvinger den "åpen"
+    content.style.maxHeight = "2000px";
+    content.style.opacity = "1";
 
-      purchasedItemsFlat.forEach(p => {
-        purchasedContainer.appendChild(createItemCard(p.item, p.ci, p.ii));
-      });
-    }
+    const inner = document.createElement("div");
+    inner.className = "category-inner";
 
-    // Tom-tekst
-    if (emptyText) {
-      if (totalItems === 0) {
-        emptyText.style.display = "block";
-      } else {
-        emptyText.style.display = "none";
+    // QUICK ADD-rad inne i kategorien (skriv + knapp)
+    const quickRow = document.createElement("div");
+    quickRow.className = "category-quick-add";
+    const quickInput = document.createElement("input");
+    quickInput.className = "category-quick-input";
+    quickInput.placeholder = `Legg til vare i ${cat.name}`;
+    const quickBtn = document.createElement("button");
+    quickBtn.type = "button";
+    quickBtn.className = "category-quick-btn";
+    quickBtn.textContent = "Legg til";
+    quickBtn.addEventListener("click", () => {
+      const val = quickInput.value.trim();
+      if (!val) return;
+      addItemToCategoryByName(val, cat.name, 1);
+      quickInput.value = "";
+      quickInput.focus();
+    });
+    quickInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        quickBtn.click();
       }
-    }
+    });
+    quickRow.appendChild(quickInput);
+    quickRow.appendChild(quickBtn);
+    inner.appendChild(quickRow);
 
-    updateFooter(totalItems);
+    // Varer i denne kategorien
+    cat.items.forEach((item, ii) => {
+      const qty = Math.max(1, Number(item.quantity) || 1);
+      totalItems += qty;
+
+      if (isStoreMode && item.checked) {
+        purchasedItemsFlat.push({ item, ci, ii, categoryName: cat.name });
+      } else {
+        inner.appendChild(createItemCard(item, ci, ii));
+      }
+    });
+
+    content.appendChild(inner);
+    card.appendChild(header);
+    card.appendChild(content);
+    container.appendChild(card);
+  });
+
+  // Kjøpt-liste i butikk-modus
+  if (isStoreMode && purchasedItemsFlat.length > 0 && purchasedContainer) {
+    const title = document.createElement("div");
+    title.className = "purchased-section-title";
+    title.textContent = `Kjøpt denne turen (${purchasedItemsFlat.length} ulike varer)`;
+    purchasedContainer.appendChild(title);
+
+    purchasedItemsFlat.forEach(p => {
+      purchasedContainer.appendChild(createItemCard(p.item, p.ci, p.ii));
+    });
   }
+
+  // Tom-tekst
+  if (emptyText) {
+    emptyText.style.display = totalItems === 0 ? "block" : "none";
+  }
+
+  updateFooter(totalItems);
+}
 
   // ---------- Mutators ----------
   function toggleCategory(ci) {
@@ -1186,22 +1168,25 @@ header.addEventListener('keydown', (e) => {
   }
 
   // ---------- FAB / vare-modal ----------
-  function openItemModal() {
-    const overlay = $("#itemModalOverlay");
-    const nameInput = $("#itemNameInput");
-    modalQty = 1;
-    $("#modalQty").textContent = "1";
-    $("#itemCategorySelect").value = "Matvarer";
-    if (nameInput) {
-      nameInput.value = "";
-      setTimeout(() => nameInput.focus(), 20);
-    }
-    if (overlay) overlay.classList.add("open");
+function openItemModal(categoryName) {
+  const overlay = $("#itemModalOverlay");
+  const nameInput = $("#itemNameInput");
+
+  modalQty = 1;
+  $("#modalQty").textContent = "1";
+
+  // forhåndsvelg kategori hvis vi fikk en, ellers Matvarer
+  const catSelect = $("#itemCategorySelect");
+  if (catSelect) {
+    catSelect.value = categoryName || "Matvarer";
   }
-  function closeItemModal() {
-    const overlay = $("#itemModalOverlay");
-    if (overlay) overlay.classList.remove("open");
+
+  if (nameInput) {
+    nameInput.value = "";
+    setTimeout(() => nameInput.focus(), 20);
   }
+  if (overlay) overlay.classList.add("open");
+}
 
   // ---------- Inbox fra middagsplan ----------
   function getInboxItems() {
@@ -1403,7 +1388,7 @@ if (modeToggleBtn) {
 
   // ---------- Event-listeners for modaler og footer ----------
   // FAB
-  $("#fabBtn")?.addEventListener("click", openItemModal);
+  $("#fabBtn")?.addEventListener("click", () => openItemModal());
 
   // Vare-modal
   $("#itemCancelBtn")?.addEventListener("click", closeItemModal);
