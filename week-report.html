@@ -281,26 +281,9 @@
       gap: 16px;
       margin-top: 16px;
       flex-wrap: wrap;
+      justify-content: center;
     }
-    #startWeekButton {
-      flex: 2;
-      min-width: 200px;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 20px 32px;
-      border-radius: 50px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-    #startWeekButton:hover {
-      background: #2563eb;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-    }
+    
     #backButton {
       flex: 1;
       min-width: 150px;
@@ -349,7 +332,7 @@
       .bottom-buttons {
         flex-direction: column;
       }
-      #startWeekButton, #backButton {
+      #backButton {
         flex: none;
         min-width: auto;
       }
@@ -424,7 +407,6 @@
 
     <!-- Bottom Buttons -->
     <div class="bottom-buttons">
-      <button id="startWeekButton">Start ny uke</button>
       <button id="backButton">Tilbake til oversikten</button>
     </div>
   </div>
@@ -767,25 +749,10 @@
   }
 
   // ---------- Knapper ----------
-  function setupButtons() {
-    document.getElementById('startWeekButton').addEventListener('click', () => {
-      const thisMon = new Date(state.weekISO + 'T12:00:00');
-      const nextMon = new Date(thisMon);
-      nextMon.setDate(thisMon.getDate() + 7);
-      const nextISO = nextMon.toISOString().slice(0, 10);
-
-      localStorage.setItem(`weeklyBudget_${nextISO}`, String(state.totalBudget));
-      localStorage.setItem('weeklyBudget', String(state.totalBudget));
-      localStorage.setItem(`purchases_${nextISO}`, '[]');
-      localStorage.setItem('lastClosedWeekISO', state.weekISO);
-      localStorage.setItem('activeWeekISO', nextISO);
-
-      window.location.href = 'app.html';
-    });
-
-    document.getElementById('backButton').addEventListener('click', () => {
-      window.location.href = 'app.html';
-    });
+function setupButtons() {
+  document.getElementById('backButton').addEventListener('click', () => {
+    window.location.href = 'app.html';
+  });
 
     // Feel-good like-knapp (kun UI, ingen lagring nødvendig)
     const likeBtn = document.getElementById('weekLikeBtn');
