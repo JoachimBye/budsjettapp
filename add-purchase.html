@@ -18,90 +18,88 @@
 
   <style>
     html {
-  height: 100%;
-}
+      height: 100%;
+    }
 
-body {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 24px 0;          /* litt luft over/under */
-  min-height: 100vh;        /* kan bli høyere enn skjermen */
-  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
-  display: block;           /* ikke flex-layout på body */
-}
-  
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 24px 0;          /* litt luft over/under */
+      min-height: 100vh;        /* kan bli høyere enn skjermen */
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
+      display: block;           /* ikke flex-layout på body */
+    }
 
     html { height:100%; }
     .container {
-  width: 90%;
-  max-width: 600px;
-  padding: 40px;
-  background: white;
-  border-radius: 25px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  animation: slideInUp .6s ease-out;
-  margin: 0 auto;          /* horisontalt midt */
-}
-    
+      width: 90%;
+      max-width: 600px;
+      padding: 40px;
+      background: white;
+      border-radius: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      animation: slideInUp .6s ease-out;
+      margin: 0 auto;          /* horisontalt midt */
+    }
 
     .header { text-align:center; margin-bottom:40px; animation:fadeInDown .8s ease-out; }
     .header {
-  text-align:left;
-  margin-bottom:32px;
-}
+      text-align:left;
+      margin-bottom:32px;
+    }
 
-/* Liten badge øverst */
-.header-badge {
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:6px 12px;
-  border-radius:999px;
-  background:rgba(76,175,80,0.07);
-  color:#2d5f4d;
-  font-size:13px;
-  font-weight:600;
-  margin-bottom:14px;
-}
+    /* Liten badge øverst */
+    .header-badge {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 12px;
+      border-radius:999px;
+      background:rgba(76,175,80,0.07);
+      color:#2d5f4d;
+      font-size:13px;
+      font-weight:600;
+      margin-bottom:14px;
+    }
 
-.badge-icon {
-  font-size:16px;
-}
+    .badge-icon {
+      font-size:16px;
+    }
 
-.badge-text {
-  letter-spacing:0.03em;
-  text-transform:uppercase;
-}
+    .badge-text {
+      letter-spacing:0.03em;
+      text-transform:uppercase;
+    }
 
-/* Tittel + uke-pill på samme linje */
-.header-title-row {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:6px;
-}
+    /* Tittel + uke-pill på samme linje */
+    .header-title-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:6px;
+    }
 
+    /* Liten “pill” til høyre – kan brukes til uke, “Etter butikk-tur” osv */
+    .header-pill {
+      padding:6px 14px;
+      border-radius:999px;
+      background:#f0f9f4;
+      border:1px solid rgba(76,175,80,0.25);
+      font-size:13px;
+      font-weight:600;
+      color:#2d5f4d;
+      white-space:nowrap;
+    }
 
-/* Liten “pill” til høyre – kan brukes til uke, “Etter butikk-tur” osv */
-.header-pill {
-  padding:6px 14px;
-  border-radius:999px;
-  background:#f0f9f4;
-  border:1px solid rgba(76,175,80,0.25);
-  font-size:13px;
-  font-weight:600;
-  color:#2d5f4d;
-  white-space:nowrap;
-}
+    @media (max-width:768px){
+      .header-title-row {
+        flex-direction:column;
+        align-items:flex-start;
+      }
+    }
 
-@media (max-width:768px){
-  .header-title-row {
-    flex-direction:column;
-    align-items:flex-start;
-  }
-}
     .title { font-size:32px; font-weight:700; color:#2d5f4d; margin-bottom:15px; line-height:1.3; }
     .description { font-size:18px; color:#5a7a6d; line-height:1.5; }
     .form-section { margin-bottom:40px; animation:fadeInUp .8s ease-out .2s both; }
@@ -186,6 +184,88 @@ body {
     .budget-hint.warn { display:block; background:rgba(249,168,37,.12); color:#f9a825; }
     .budget-hint.over { display:block; background:rgba(211,47,47,.12);  color:#d32f2f; }
 
+    /* Coach overlay (intro-guide) */
+    .coach-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      pointer-events: auto;
+    }
+
+    .coach-highlight {
+      position: fixed;
+      border-radius: 16px;
+      border: 2px solid #4caf50;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .coach-tooltip {
+      position: fixed;
+      max-width: 320px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 16px 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      color: #2d5f4d;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .coach-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    .coach-text {
+      margin: 0;
+    }
+
+    .coach-step-label {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #5a7a6d;
+    }
+
+    .coach-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .coach-btn {
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .coach-btn.coach-skip {
+      background: transparent;
+      color: #5a7a6d;
+    }
+
+    .coach-btn.coach-prev {
+      background: #f0f0f0;
+      color: #2d5f4d;
+    }
+
+    .coach-btn.coach-next {
+      background: #4caf50;
+      color: #ffffff;
+    }
+
+    .coach-btn.coach-next:hover {
+      background: #45a049;
+    }
+
     @keyframes slideInUp { from{opacity:0; transform:translateY(50px);} to{opacity:1; transform:translateY(0);} }
     @keyframes fadeInDown { from{opacity:0; transform:translateY(-30px);} to{opacity:1; transform:translateY(0);} }
     @keyframes fadeInUp { from{opacity:0; transform:translateY(30px);} to{opacity:1; transform:translateY(0);} }
@@ -205,25 +285,24 @@ body {
   <main class="container">
 
     <div class="header">
-  <div class="header-badge">
-    <span class="badge-icon">🧾</span>
-    <span class="badge-text">Registrer et nytt kjøp</span>
-  </div>
+      <div class="header-badge">
+        <span class="badge-icon">🧾</span>
+        <span class="badge-text">Registrer et nytt kjøp</span>
+      </div>
 
-  <div class="header-title-row">
-    <h1 class="title" id="mainTitle">
-      Legg til nytt kjøp
-    </h1>
-    <div class="header-pill" id="weekPill" aria-hidden="true">
-      Uke&nbsp;42
+      <div class="header-title-row">
+        <h1 class="title" id="mainTitle">
+          Legg til nytt kjøp
+        </h1>
+        <div class="header-pill" id="weekPill" aria-hidden="true">
+          Uke&nbsp;42
+        </div>
+      </div>
+
+      <p class="description" id="descriptionText">
+        Skriv inn butikk, beløp og dato – så holder vi styr på budsjettet for deg.
+      </p>
     </div>
-  </div>
-
-  <p class="description" id="descriptionText">
-    Skriv inn butikk, beløp og dato – så holder vi styr på budsjettet for deg.
-  </p>
-</div>
-    
 
     <form class="form-section" id="purchaseForm">
       <!-- Butikk -->
@@ -295,6 +374,21 @@ body {
     </div>
   </main>
 
+  <!-- Coach overlay: liten intro-guide -->
+  <div class="coach-overlay" id="coachOverlay">
+    <div class="coach-highlight" id="coachHighlight"></div>
+    <div class="coach-tooltip" id="coachTooltip">
+      <div class="coach-title" id="coachTitle"></div>
+      <p class="coach-text" id="coachText"></p>
+      <div class="coach-step-label" id="coachStepLabel"></div>
+      <div class="coach-buttons">
+        <button type="button" class="coach-btn coach-skip" id="coachSkipBtn">Hopp over</button>
+        <button type="button" class="coach-btn coach-prev" id="coachPrevBtn">Tilbake</button>
+        <button type="button" class="coach-btn coach-next" id="coachNextBtn">Neste</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="overlay"></div>
   <div class="success-message" id="successMessage">
     <div class="success-icon">✅</div>
@@ -325,6 +419,50 @@ body {
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ---------- Coach overlay (intro) ----------
+  const COACH_SEEN_KEY = 'addPurchase_coach_seen_v1';
+
+  let coachActive = false;
+  let coachCurrentStep = 0;
+  let prevBodyOverflow = '';
+
+  const coachOverlay     = document.getElementById('coachOverlay');
+  const coachHighlight   = document.getElementById('coachHighlight');
+  const coachTooltip     = document.getElementById('coachTooltip');
+  const coachTitleEl     = document.getElementById('coachTitle');
+  const coachTextEl      = document.getElementById('coachText');
+  const coachStepLabelEl = document.getElementById('coachStepLabel');
+  const coachSkipBtn     = document.getElementById('coachSkipBtn');
+  const coachPrevBtn     = document.getElementById('coachPrevBtn');
+  const coachNextBtn     = document.getElementById('coachNextBtn');
+
+  const coachSteps = [
+    {
+      id: 'store',
+      selector: '#storeInput',
+      title: 'Hvor handlet du?',
+      text:  'Velg butikken du handlet i. Om det ikke er på lista kan du velge "Annet" og skrive navnet selv.',
+    },
+    {
+      id: 'amount',
+      selector: '#amountInput',
+      title: 'Hvor mye brukte du?',
+      text:  'Skriv inn totalsummen fra kvitteringen. Vi viser samtidig hvordan det påvirker ukesbudsjettet ditt.',
+    },
+    {
+      id: 'date',
+      selector: '#dateInput',
+      title: 'Når var kjøpet?',
+      text:  'Sjekk at datoen stemmer. Uke-badet oppe til høyre oppdateres automatisk etter dato.',
+    },
+    {
+      id: 'save',
+      selector: '#saveButton',
+      title: 'Lagre kjøpet',
+      text:  'Når alt ser riktig ut trykker du her. Kjøpet lagres og budsjettet oppdateres i oversikten.',
+    },
+  ];
 
   // ---------- Kategorier fra settings.html (localStorage) ----------
   const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
@@ -425,22 +563,139 @@ body {
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
   // ISO-ukenummer fra en dato-streng "yyyy-mm-dd"
-function getISOWeekFromISODate(isoDate) {
-  if (!isoDate) return null;
-  const [y, m, d] = isoDate.split('-').map(Number);
-  const date = new Date(y, m - 1, d);
+  function getISOWeekFromISODate(isoDate) {
+    if (!isoDate) return null;
+    const [y, m, d] = isoDate.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
 
-  // ISO-uke: torsdagstrikset
-  const target = new Date(date.valueOf());
-  const dayNr = (date.getDay() + 6) % 7; // 0 = mandag
-  target.setDate(target.getDate() - dayNr + 3);
+    // ISO-uke: torsdagstrikset
+    const target = new Date(date.valueOf());
+    const dayNr = (date.getDay() + 6) % 7; // 0 = mandag
+    target.setDate(target.getDate() - dayNr + 3);
 
-  const firstThursday = new Date(target.getFullYear(), 0, 4);
-  const diff = target - firstThursday;
-  const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
+    const firstThursday = new Date(target.getFullYear(), 0, 4);
+    const diff = target - firstThursday;
+    const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
 
-  return week;
-}
+    return week;
+  }
+
+  // ---------- Coach helper-funksjoner ----------
+  function positionCoachForElement(el) {
+    if (!el || !coachHighlight || !coachTooltip) return;
+
+    const rect = el.getBoundingClientRect();
+    const padding = 8;
+
+    const left   = rect.left - padding;
+    const top    = rect.top  - padding;
+    const width  = rect.width  + padding * 2;
+    const height = rect.height + padding * 2;
+
+    coachHighlight.style.left   = `${left}px`;
+    coachHighlight.style.top    = `${top}px`;
+    coachHighlight.style.width  = `${width}px`;
+    coachHighlight.style.height = `${height}px`;
+
+    coachTooltip.style.left = '50%';
+    coachTooltip.style.transform = 'translateX(-50%)';
+
+    requestAnimationFrame(() => {
+      const ttRect = coachTooltip.getBoundingClientRect();
+      const viewportH = window.innerHeight || document.documentElement.clientHeight;
+      const placeAbove = rect.top > viewportH / 2;
+
+      let ttTop;
+      if (placeAbove) {
+        ttTop = Math.max(16, rect.top - ttRect.height - 16);
+      } else {
+        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
+      }
+      coachTooltip.style.top = `${ttTop}px`;
+    });
+  }
+
+  function goToCoachStep(index) {
+    if (!coachOverlay) return;
+    if (index < 0 || index >= coachSteps.length) {
+      endCoachTour();
+      return;
+    }
+    coachCurrentStep = index;
+    const step = coachSteps[coachCurrentStep];
+    const target = document.querySelector(step.selector);
+
+    if (!target) {
+      // Hopper videre hvis elementet mangler
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+      return;
+    }
+
+    coachTitleEl.textContent = step.title;
+    coachTextEl.textContent  = step.text;
+    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+    coachPrevBtn.disabled = coachCurrentStep === 0;
+    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+    positionCoachForElement(target);
+  }
+
+  function startCoachTour() {
+    if (!coachOverlay) return;
+    coachActive = true;
+    coachOverlay.style.display = 'block';
+    prevBodyOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
+    goToCoachStep(0);
+  }
+
+  function endCoachTour() {
+    coachActive = false;
+    if (coachOverlay) coachOverlay.style.display = 'none';
+    document.body.style.overflow = prevBodyOverflow || '';
+    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+  }
+
+  function shouldStartCoachTour() {
+    try {
+      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  }
+
+  if (coachSkipBtn) {
+    coachSkipBtn.addEventListener('click', () => {
+      endCoachTour();
+    });
+  }
+  if (coachPrevBtn) {
+    coachPrevBtn.addEventListener('click', () => {
+      if (coachCurrentStep > 0) goToCoachStep(coachCurrentStep - 1);
+    });
+  }
+  if (coachNextBtn) {
+    coachNextBtn.addEventListener('click', () => {
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (!coachActive) return;
+    const step = coachSteps[coachCurrentStep];
+    if (!step) return;
+    const target = document.querySelector(step.selector);
+    if (target) positionCoachForElement(target);
+  });
 
   // ---------- Hent budsjett + brukt fra Supabase for gitt dato ----------
   async function loadWeekDataFor(date){
@@ -517,7 +772,7 @@ function getISOWeekFromISODate(isoDate) {
     state.currentBudget = budget;
     state.currentSpent = spent;
 
-        // Oppdater uke-pill i headeren
+    // Oppdater uke-pill i headeren
     const weekPill = document.getElementById('weekPill');
     if (weekPill && weekISO) {
       const weekNum = getISOWeekFromISODate(weekISO);
@@ -752,21 +1007,21 @@ function getISOWeekFromISODate(isoDate) {
     document.getElementById('backButtonText').textContent = config.back_button_text || defaultConfig.back_button_text;
     document.getElementById('successText').textContent = config.success_message || defaultConfig.success_message;
 
-// Bare description + success bruker Canva-farger
-['descriptionText','successText'].forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-  el.style.color = (id === 'descriptionText') ? secondaryTextColor : textColor;
-});
+    // Bare description + success bruker Canva-farger
+    ['descriptionText','successText'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      el.style.color = (id === 'descriptionText') ? secondaryTextColor : textColor;
+    });
 
-// Tittelen har låst, mørk grønn farge
-const mainTitleEl = document.getElementById('mainTitle');
-if (mainTitleEl) {
-  mainTitleEl.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-  mainTitleEl.style.fontSize = `${baseSize * 1.78}px`;
-  mainTitleEl.style.color = '#2d5f4d'; // alltid lesbar
-}
+    // Tittelen har låst, mørk grønn farge
+    const mainTitleEl = document.getElementById('mainTitle');
+    if (mainTitleEl) {
+      mainTitleEl.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+      mainTitleEl.style.fontSize = `${baseSize * 1.78}px`;
+      mainTitleEl.style.color = '#2d5f4d'; // alltid lesbar
+    }
 
     document.querySelectorAll('.form-input').forEach(input=>{
       input.style.borderColor = adjustColor(primaryActionColor, 60);
@@ -848,6 +1103,13 @@ if (mainTitleEl) {
     // Init UI
     updateBudgetHint();
     updateOtherStoreVisibility();
+
+    // Start liten intro første gang
+    if (shouldStartCoachTour()) {
+      setTimeout(() => {
+        startCoachTour();
+      }, 600);
+    }
   }
 
   window.addEventListener('DOMContentLoaded', init);
