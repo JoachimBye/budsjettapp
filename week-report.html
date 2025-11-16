@@ -560,7 +560,20 @@
     const localKey = `purchases_${weekISO}`;
     const localPurchases = safeGet(localKey, []);
 
-    purchases = [...dbRows, ...localPurchases];
+        // Local fallback
+    const localKey = `purchases_${weekISO}`;
+    const localPurchases = safeGet(localKey, []);
+
+    // 🔧 Viktig endring:
+    // Hvis vi har data i DB -> stol på DB
+    // Hvis ikke -> bruk localStorage som fallback
+    if (session && dbRows.length > 0) {
+      purchases = dbRows;
+    } else {
+      purchases = localPurchases;
+    }
+
+    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
 
     const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
     const saved = Math.max(0, totalBudget - spent);
