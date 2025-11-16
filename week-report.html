@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ukesrapport – Familiebudsjett</title>
+  <script src="/js/services/budget-utils.js"></script>
   <style>
     body {
       box-sizing: border-box;
@@ -865,7 +866,12 @@
 
  
 
-    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    let spent = 0;
+    if (window.budgetUtils?.safeSumPurchases) {
+      spent = window.budgetUtils.safeSumPurchases(purchases);
+    } else {
+      spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    }
     const saved = Math.max(0, totalBudget - spent);
     const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
 

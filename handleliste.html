@@ -11,6 +11,7 @@
 
   <!-- (valgfritt) Tailwind, men vi bruker mest egen CSS -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="/js/services/category-service.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -673,9 +674,91 @@
     } catch {}
   }
 
+  function createItemId() {
+    return `item_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function saveShoppingListForWeek(weekISO, items) {
+    try {
+      localStorage.setItem(`shoppingList_${weekISO}`, JSON.stringify(items));
+    } catch (err) {
+      console.warn('Klarte ikke å lagre handleliste', err);
+    }
+  }
+
+  function migrateLegacyCategories(oldCategories) {
+    const migrated = [];
+    oldCategories.forEach(cat => {
+      if (!cat || typeof cat !== "object") return;
+      const targetCategory = resolveCategoryName(cat.name);
+      (cat.items || []).forEach(item => {
+        const cleanName = String(item?.name || "").trim();
+        if (!cleanName) return;
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        migrated.push({
+          id: item.id || createItemId(),
+          name: cleanName,
+          category: resolveCategoryName(item.category || targetCategory),
+          quantity: qty,
+          checked: !!item.checked
+        });
+      });
+    });
+    return migrated;
+  }
+
+  function loadShoppingListForWeek(weekISO) {
+    let parsed = null;
+    try {
+      const raw = localStorage.getItem(`shoppingList_${weekISO}`);
+      if (!raw) return [];
+      parsed = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    const looksLegacy = parsed.some(entry => entry && typeof entry === "object" && Array.isArray(entry.items));
+    if (looksLegacy) {
+      const migrated = migrateLegacyCategories(parsed);
+      saveShoppingListForWeek(weekISO, migrated);
+      return migrated;
+    }
+
+    let mutated = false;
+    const sanitized = parsed
+      .map(item => {
+        if (!item || typeof item !== "object") return null;
+        const cleanName = String(item.name || "").trim();
+        if (!cleanName) return null;
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        const resolvedCategory = resolveCategoryName(item.category);
+        const id = item.id || createItemId();
+        if (!item.id || resolvedCategory !== item.category || qty !== item.quantity || cleanName !== item.name) {
+          mutated = true;
+        }
+        return {
+          id,
+          name: cleanName,
+          category: resolvedCategory,
+          quantity: qty,
+          checked: !!item.checked
+        };
+      })
+      .filter(Boolean);
+
+    if (mutated) {
+      saveShoppingListForWeek(weekISO, sanitized);
+    }
+
+    return sanitized;
+  }
+
   // ---------- Nøkler ----------
   const WEEK_ISO = mondayISO();
-  const WEEK_LIST_KEY   = `shoppingList_${WEEK_ISO}`;
   const WEEK_MENU_KEY   = `weeklyMenu_${WEEK_ISO}`;
   const FREQ_KEY        = `frequentItems`;
   const INBOX_KEY       = `shoppingList_inbox_${WEEK_ISO}`;
@@ -695,13 +778,6 @@
     mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: ""
   };
 
-  const defaultCategories = [
-    { name: "Matvarer",       open: true,  items: [] },
-    { name: "Snacks/drikke",  open: false, items: [] },
-    { name: "Husholdning",    open: false, items: [] },
-    { name: "Annet",          open: false, items: [] }
-  ];
-
   const defaultFrequentItems = [
     { name: "Melk",        category: "Matvarer",      timesUsed: 3 },
     { name: "Brød",        category: "Matvarer",      timesUsed: 3 },
@@ -711,24 +787,138 @@
     { name: "Tørkepapir",  category: "Husholdning",   timesUsed: 1 }
   ];
 
+  const categoryService = window.categoryService || null;
+  const FALLBACK_CATEGORY_SETTINGS = categoryService?.DEFAULT_CATEGORIES || [
+    { name: "🥕 Mat & dagligvarer", enabled: true },
+    { name: "🧽 Husholdning & rengjøring", enabled: true },
+    { name: "🍞 Frokost & brød", enabled: true },
+    { name: "🍿 Snacks & kos", enabled: true },
+    { name: "🥬 Frukt & grønt", enabled: true },
+    { name: "📦 Annet", enabled: false }
+  ];
+  const LEGACY_CATEGORY_MAP = {
+    "matvarer": "🥕 Mat & dagligvarer",
+    "snacks/drikke": "🍿 Snacks & kos",
+    "snacks og kos": "🍿 Snacks & kos",
+    "snacks & kos": "🍿 Snacks & kos",
+    "husholdning": "🧽 Husholdning & rengjøring",
+    "husholdning & rengjøring": "🧽 Husholdning & rengjøring",
+    "annet": "📦 Annet"
+  };
+
   let weeklyMenu    = getLS(WEEK_MENU_KEY, defaultMenu);
-  let categories    = getLS(WEEK_LIST_KEY, defaultCategories);
   let frequentItems = getLS(FREQ_KEY, defaultFrequentItems);
   let isStoreMode   = false;
-
-  // Sikrer oss mot gamle tomme localStorage-verdier
-  if (!Array.isArray(categories) || categories.length === 0) {
-    categories = JSON.parse(JSON.stringify(defaultCategories));
-    saveCategories();
-  }
+  let allCategories = [];
+  let visibleCategories = [];
+  refreshCategorySettings();
+  let shoppingItems = loadShoppingListForWeek(WEEK_ISO);
 
   let modalQty      = 1;
   let currentMenuDayKey = null;
 
   // ---------- Persist helpers ----------
   function saveMenu()      { setLS(WEEK_MENU_KEY, weeklyMenu); }
-  function saveCategories(){ setLS(WEEK_LIST_KEY, categories); }
+  function saveShoppingItems(){ saveShoppingListForWeek(WEEK_ISO, shoppingItems); }
   function saveFrequent()  { setLS(FREQ_KEY, frequentItems); }
+
+  function cloneCategoryList(list) {
+    return Array.isArray(list) ? list.map(cat => ({ ...cat })) : [];
+  }
+
+  function refreshCategorySettings() {
+    let settings = [];
+    if (categoryService?.loadCategorySettings) {
+      try {
+        settings = categoryService.loadCategorySettings();
+      } catch (err) {
+        console.warn("Kunne ikke laste kategorier fra settings", err);
+      }
+    }
+
+    if (!Array.isArray(settings) || settings.length === 0) {
+      settings = cloneCategoryList(FALLBACK_CATEGORY_SETTINGS);
+      if (categoryService?.saveCategorySettings) {
+        categoryService.saveCategorySettings(settings);
+      }
+    }
+
+    allCategories = settings;
+    visibleCategories = settings.filter(cat => cat.enabled !== false);
+    if (visibleCategories.length === 0) {
+      visibleCategories = cloneCategoryList(settings);
+    }
+  }
+
+  function getCategoriesForRendering() {
+    if (visibleCategories.length > 0) return visibleCategories;
+    if (allCategories.length > 0) return allCategories;
+    return cloneCategoryList(FALLBACK_CATEGORY_SETTINGS);
+  }
+
+  function getAllCategoryNames() {
+    return allCategories.map(cat => cat.name);
+  }
+
+  function getDefaultCategoryName() {
+    const list = getCategoriesForRendering();
+    if (list.length > 0) return list[0].name;
+    return FALLBACK_CATEGORY_SETTINGS[0]?.name || "Annet";
+  }
+
+  function resolveCategoryName(rawName) {
+    const trimmed = String(rawName || "").trim();
+    const allNames = getAllCategoryNames();
+
+    if (trimmed && allNames.includes(trimmed)) {
+      return trimmed;
+    }
+
+    const mapped = LEGACY_CATEGORY_MAP[trimmed.toLowerCase()];
+    if (mapped) {
+      if (allNames.includes(mapped)) {
+        return mapped;
+      }
+      if (allNames.length === 0) {
+        return mapped;
+      }
+    }
+
+    if (allNames.length > 0) {
+      return allNames[0];
+    }
+
+    if (trimmed) return trimmed;
+    return FALLBACK_CATEGORY_SETTINGS[0]?.name || "Annet";
+  }
+
+  function populateItemCategorySelect() {
+    const select = $("#itemCategorySelect");
+    if (!select) return;
+    const categories = getCategoriesForRendering();
+    const currentValue = select.value;
+    select.innerHTML = "";
+
+    if (categories.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Ingen kategorier tilgjengelig";
+      select.appendChild(opt);
+      select.disabled = true;
+      return;
+    }
+
+    categories.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat.name;
+      opt.textContent = cat.name;
+      select.appendChild(opt);
+    });
+
+    select.disabled = false;
+    const target = resolveCategoryName(currentValue || categories[0].name);
+    select.value = target;
+  }
 
   // ---------- Weekly menu ----------
   function renderWeeklyMenu() {
@@ -789,14 +979,16 @@
   function trackFrequentItem(name, category) {
     const cleanName = String(name || "").trim();
     if (!cleanName) return;
+    const resolvedCategory = resolveCategoryName(category || getDefaultCategoryName());
 
     const existing = frequentItems.find(f => f.name.toLowerCase() === cleanName.toLowerCase());
     if (existing) {
       existing.timesUsed = (existing.timesUsed || 0) + 1;
+      existing.category = resolvedCategory;
     } else {
       frequentItems.push({
         name: cleanName,
-        category: category || "Matvarer",
+        category: resolvedCategory,
         timesUsed: 1
       });
     }
@@ -830,36 +1022,29 @@
   }
 
   // ---------- Handleliste / kategorier ----------
-  function findCategoryIndex(name) {
-    let idx = categories.findIndex(c => c.name === name);
-    if (idx === -1) {
-      categories.push({ name, open: true, items: [] });
-      idx = categories.length - 1;
-    }
-    return idx;
-  }
-
   function addItemToCategoryByName(name, categoryName, quantity = 1) {
-    const catIdx = findCategoryIndex(categoryName || "Matvarer");
-    const cat = categories[catIdx];
+    const cleanName = String(name || "").trim();
+    if (!cleanName) return;
+    const resolvedCategory = resolveCategoryName(categoryName || getDefaultCategoryName());
 
-    cat.items.push({
-      name: String(name || "").trim(),
+    shoppingItems.push({
+      id: createItemId(),
+      name: cleanName,
+      category: resolvedCategory,
       quantity: Math.max(1, Number(quantity) || 1),
       checked: false
     });
 
-    cat.open = true;
-    trackFrequentItem(name, categoryName);
-    saveCategories();
+    trackFrequentItem(cleanName, resolvedCategory);
+    saveShoppingItems();
     renderCategories();
   }
 
-  function createItemCard(item, ci, ii) {
+  function createItemCard(item, options = {}) {
+    const { showCategorySuffix = false } = options;
     const card = document.createElement("div");
     card.className = "item-card" + (item.checked ? " checked" : "");
-    card.dataset.categoryIndex = ci;
-    card.dataset.itemIndex = ii;
+    const itemId = item.id;
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -867,7 +1052,7 @@
     checkbox.checked = !!item.checked;
     checkbox.addEventListener("change", (e) => {
       e.stopPropagation();
-      toggleItemChecked(ci, ii);
+      toggleItemChecked(itemId);
     });
 
     const details = document.createElement("div");
@@ -875,7 +1060,11 @@
 
     const nameEl = document.createElement("div");
     nameEl.className = "item-name";
-    nameEl.textContent = item.name;
+    if (showCategorySuffix && item.category) {
+      nameEl.textContent = `${item.name} (${item.category})`;
+    } else {
+      nameEl.textContent = item.name;
+    }
 
     const stepper = document.createElement("div");
     stepper.className = "stepper";
@@ -885,7 +1074,7 @@
     decBtn.textContent = "−";
     decBtn.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      updateQuantity(ci, ii, -1);
+      updateQuantity(itemId, -1);
     });
     const valEl = document.createElement("span");
     valEl.className = "stepper-value";
@@ -896,7 +1085,7 @@
     incBtn.textContent = "+";
     incBtn.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      updateQuantity(ci, ii, 1);
+      updateQuantity(itemId, 1);
     });
     stepper.appendChild(decBtn);
     stepper.appendChild(valEl);
@@ -908,7 +1097,7 @@
     delBtn.innerHTML = "🗑";
     delBtn.addEventListener("click", (ev) => {
       ev.stopPropagation();
-      deleteItem(ci, ii);
+      deleteItem(itemId);
     });
 
     const right = document.createElement("div");
@@ -925,13 +1114,16 @@
     card.appendChild(details);
 
     card.addEventListener("click", () => {
-      toggleItemChecked(ci, ii);
+      toggleItemChecked(itemId);
     });
 
     return card;
   }
 
 function renderCategories() {
+  refreshCategorySettings();
+  populateItemCategorySelect();
+
   const container = $("#categoriesContainer");
   const purchasedContainer = $("#purchasedContainer");
   const emptyText = $("#shoppingEmptyText");
@@ -940,20 +1132,40 @@ function renderCategories() {
   container.innerHTML = "";
   if (purchasedContainer) purchasedContainer.innerHTML = "";
 
-  let totalItems = 0;
-  let purchasedItemsFlat = [];
+  const categoriesToShow = getCategoriesForRendering();
+  const knownCategoryNames = new Set(categoriesToShow.map(cat => cat.name));
+  const grouped = new Map();
+  categoriesToShow.forEach(cat => grouped.set(cat.name, []));
+  const orphanItems = [];
+  const purchasedItems = [];
 
-  categories.forEach((cat, ci) => {
+  let totalItems = 0;
+  shoppingItems.forEach(item => {
+    const qty = Math.max(1, Number(item.quantity) || 1);
+    totalItems += qty;
+
+    if (isStoreMode && item.checked) {
+      purchasedItems.push(item);
+      return;
+    }
+
+    if (knownCategoryNames.has(item.category)) {
+      grouped.get(item.category).push(item);
+    } else {
+      orphanItems.push(item);
+    }
+  });
+
+  categoriesToShow.forEach(cat => {
+    const items = grouped.get(cat.name) || [];
     const card = document.createElement("div");
-    // alltid åpen – vi bruker headeren som "legg til"-knapp, ikke til å åpne/lukke
     card.className = "category-card open";
-    card.dataset.categoryIndex = ci;
+    card.dataset.categoryName = cat.name;
     card.addEventListener("click", (e) => {
       if (e.target.closest(".item-card")) return;
       openItemModal(cat.name);
     });
 
-    // HEADER: hele feltet er nå "legg til vare i denne kategorien"
     const header = document.createElement("div");
     header.className = "category-header";
     header.setAttribute("role", "button");
@@ -962,7 +1174,7 @@ function renderCategories() {
     header.innerHTML = `
       <div class="category-title">
         ${cat.name}
-        <span class="category-count">(${cat.items.length})</span>
+        <span class="category-count">(${items.length})</span>
       </div>
     `;
     header.addEventListener("keydown", (e) => {
@@ -974,26 +1186,12 @@ function renderCategories() {
 
     const content = document.createElement("div");
     content.className = "category-content";
-    // vi tvinger den "åpen"
     content.style.maxHeight = "2000px";
     content.style.opacity = "1";
 
     const inner = document.createElement("div");
     inner.className = "category-inner";
-
-    // Ikke noe inline-input – selve kortet fungerer som "legg til"
-
-    // Varer i denne kategorien
-    cat.items.forEach((item, ii) => {
-      const qty = Math.max(1, Number(item.quantity) || 1);
-      totalItems += qty;
-
-      if (isStoreMode && item.checked) {
-        purchasedItemsFlat.push({ item, ci, ii, categoryName: cat.name });
-      } else {
-        inner.appendChild(createItemCard(item, ci, ii));
-      }
-    });
+    items.forEach(item => inner.appendChild(createItemCard(item)));
 
     content.appendChild(inner);
     card.appendChild(header);
@@ -1001,19 +1199,42 @@ function renderCategories() {
     container.appendChild(card);
   });
 
-  // Kjøpt-liste i butikk-modus
-  if (isStoreMode && purchasedItemsFlat.length > 0 && purchasedContainer) {
+  if (orphanItems.length > 0) {
+    const card = document.createElement("div");
+    card.className = "category-card open";
+    const header = document.createElement("div");
+    header.className = "category-header";
+    header.innerHTML = `
+      <div class="category-title">
+        Andre varer
+        <span class="category-count">(${orphanItems.length})</span>
+      </div>
+    `;
+    const content = document.createElement("div");
+    content.className = "category-content";
+    content.style.maxHeight = "2000px";
+    content.style.opacity = "1";
+    const inner = document.createElement("div");
+    inner.className = "category-inner";
+    orphanItems.forEach(item => inner.appendChild(createItemCard(item, { showCategorySuffix: true })));
+    content.appendChild(inner);
+    card.appendChild(header);
+    card.appendChild(content);
+    container.appendChild(card);
+  }
+
+  if (isStoreMode && purchasedItems.length > 0 && purchasedContainer) {
     const title = document.createElement("div");
     title.className = "purchased-section-title";
-    title.textContent = `Kjøpt denne turen (${purchasedItemsFlat.length} ulike varer)`;
+    title.textContent = `Kjøpt denne turen (${purchasedItems.length} varer)`;
     purchasedContainer.appendChild(title);
 
-    purchasedItemsFlat.forEach(p => {
-      purchasedContainer.appendChild(createItemCard(p.item, p.ci, p.ii));
+    purchasedItems.forEach(item => {
+      const showSuffix = !knownCategoryNames.has(item.category);
+      purchasedContainer.appendChild(createItemCard(item, { showCategorySuffix: showSuffix }));
     });
   }
 
-  // Tom-tekst
   if (emptyText) {
     emptyText.style.display = totalItems === 0 ? "block" : "none";
   }
@@ -1023,40 +1244,42 @@ function renderCategories() {
 
   // ---------- Mutators ----------
 
-  function toggleItemChecked(ci, ii) {
-    const it = categories[ci].items[ii];
-    it.checked = !it.checked;
-    saveCategories();
+  function toggleItemChecked(itemId) {
+    const idx = shoppingItems.findIndex(item => item.id === itemId);
+    if (idx === -1) return;
+    shoppingItems[idx].checked = !shoppingItems[idx].checked;
+    saveShoppingItems();
     renderCategories();
   }
 
-  function updateQuantity(ci, ii, delta) {
-    const it = categories[ci].items[ii];
-    const newQty = Math.max(1, (Number(it.quantity) || 1) + delta);
-    it.quantity = newQty;
-    saveCategories();
+  function updateQuantity(itemId, delta) {
+    const idx = shoppingItems.findIndex(item => item.id === itemId);
+    if (idx === -1) return;
+    const current = Math.max(1, Number(shoppingItems[idx].quantity) || 1);
+    shoppingItems[idx].quantity = Math.max(1, current + delta);
+    saveShoppingItems();
     renderCategories();
   }
 
-  function deleteItem(ci, ii) {
-    categories[ci].items.splice(ii, 1);
-    saveCategories();
+  function deleteItem(itemId) {
+    const next = shoppingItems.filter(item => item.id !== itemId);
+    if (next.length === shoppingItems.length) return;
+    shoppingItems = next;
+    saveShoppingItems();
     renderCategories();
   }
 
   function markAllChecked() {
-    categories.forEach(cat => {
-      cat.items.forEach(i => { i.checked = true; });
+    shoppingItems.forEach(item => {
+      item.checked = true;
     });
-    saveCategories();
+    saveShoppingItems();
     renderCategories();
   }
 
   function clearChecked() {
-    categories.forEach(cat => {
-      cat.items = cat.items.filter(i => !i.checked);
-    });
-    saveCategories();
+    shoppingItems = shoppingItems.filter(item => !item.checked);
+    saveShoppingItems();
     renderCategories();
   }
 
@@ -1073,13 +1296,15 @@ function renderCategories() {
     const overlay = $("#itemModalOverlay");
     const nameInput = $("#itemNameInput");
 
+    populateItemCategorySelect();
     modalQty = 1;
     $("#modalQty").textContent = "1";
 
     // forhåndsvelg kategori hvis vi fikk en, ellers Matvarer
     const catSelect = $("#itemCategorySelect");
     if (catSelect) {
-      catSelect.value = categoryName || "Matvarer";
+      const resolved = resolveCategoryName(categoryName || getDefaultCategoryName());
+      catSelect.value = resolved;
     }
 
     if (nameInput) {
@@ -1108,11 +1333,11 @@ function renderCategories() {
     const inbox = getInboxItems();
     if (!Array.isArray(inbox) || inbox.length === 0) return 0;
 
-    let matIdx = findCategoryIndex("Matvarer");
-    const cat = categories[matIdx];
-
+    const targetCategory = getDefaultCategoryName();
     const existing = new Set(
-      cat.items.map(i => String(i.name || "").trim().toLowerCase())
+      shoppingItems
+        .filter(item => item.category === targetCategory)
+        .map(i => String(i.name || "").trim().toLowerCase())
     );
 
     let added = 0;
@@ -1121,15 +1346,22 @@ function renderCategories() {
       if (!clean) return;
       const key = clean.toLowerCase();
       if (existing.has(key)) return;
-      cat.items.push({ name: clean, quantity: 1, checked: false });
+      shoppingItems.push({
+        id: createItemId(),
+        name: clean,
+        category: targetCategory,
+        quantity: 1,
+        checked: false
+      });
       existing.add(key);
-      trackFrequentItem(clean, "Matvarer");
+      trackFrequentItem(clean, targetCategory);
       added++;
     });
 
     setLS(INBOX_KEY, []);
-    if (added > 0) cat.open = true;
-    saveCategories();
+    if (added > 0) {
+      saveShoppingItems();
+    }
     return added;
   }
 

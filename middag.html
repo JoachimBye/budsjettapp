@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Middagsanbefaling</title>
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/js/services/budget-utils.js"></script>
   <style>
     /* ------ Base ------ */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -461,31 +462,6 @@
     /* =========================
        Budsjett / purchases
        ========================= */
-    function safeSumPurchases(arr) {
-      try {
-        return arr.reduce((sum, item) => {
-          if (item == null) return sum;
-          if (typeof item === 'number') return sum + (isFinite(item) ? item : 0);
-          if (typeof item === 'string') {
-            const n = parseFloat(item.replace(/[^\d.,-]/g,'').replace(',','.'));
-            return sum + (isFinite(n) ? n : 0);
-          }
-          if (typeof item === 'object') {
-            const keys = ['amount','sum','price','value','kostnad'];
-            for (const k of keys) {
-              const v = item[k];
-              if (typeof v === 'number' && isFinite(v)) return sum + v;
-              if (typeof v === 'string') {
-                const n = parseFloat(v.replace(/[^\d.,-]/g,'').replace(',','.'));
-                if (isFinite(n)) return sum + n;
-              }
-            }
-          }
-          return sum;
-        }, 0);
-      } catch { return 0; }
-    }
-
     function loadBudgetData() {
       const weekISO = state.activeWeekISO;
       const weeklyBudgetKey = `weeklyBudget_${weekISO}`;
@@ -502,7 +478,13 @@
         const raw = localStorage.getItem(purchasesKey);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) used = safeSumPurchases(parsed);
+          if (Array.isArray(parsed)) {
+            if (window.budgetUtils?.safeSumPurchases) {
+              used = window.budgetUtils.safeSumPurchases(parsed);
+            } else {
+              used = parsed.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
+            }
+          }
         }
       } catch {}
 

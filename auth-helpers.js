@@ -9,6 +9,19 @@ function keyFor(base, session) {
   return id ? `${base}_${id}` : base;
 }
 
+const GLOBAL_KEYS_TO_CLEAR = [
+  'pending_invite',
+  'trackingScope',
+  'weeklyBudget',
+  'householdCount',
+  'activeWeekISO',
+  'budget_total',
+];
+
+const GLOBAL_KEY_PREFIXES = [
+  'weeklyBudget_',
+];
+
 /**
  * Henter den sanne onboarding-statusen for DENNE brukeren.
  * Prioriterer "setupComplete" (gullflagget per bruker), deretter databasen,
@@ -140,26 +153,15 @@ async function handleLogout(supa) {
   } catch (e) {
     console.error('Feil under utlogging:', e);
   } finally {
-    // ⚠️ Viktig:
-    // Vi sletter IKKE:
-    //  - 'setupComplete_<userId>'
-    //  - 'onboarding_done_<userId>'
-    //  - 'weeklyBudget' / 'weeklyBudget_*'
-    //  - 'purchases_*'
-    //  - 'shoppingList_*'
-    //  - 'budget_total'
-    //
-    // De er fortsatt eneste sannhet for budsjett og forbruk lokalt.
-
-    const keysToClear = [
-      'pending_invite',
-      'trackingScope',
-      // Legg til andre rene "engangs"-verdier her hvis du får flere senere
-    ];
-
-    Object.keys(localStorage).forEach((k) => {
-      if (keysToClear.includes(k)) {
-        localStorage.removeItem(k);
+    // Fjern globale nøkler som ikke er knyttet til en spesifikk bruker.
+    // Per bruker beholdes alle nøkler som ender med "_<userId>".
+    Object.keys(localStorage).forEach((key) => {
+      if (GLOBAL_KEYS_TO_CLEAR.includes(key)) {
+        localStorage.removeItem(key);
+        return;
+      }
+      if (GLOBAL_KEY_PREFIXES.some(prefix => key.startsWith(prefix))) {
+        localStorage.removeItem(key);
       }
     });
 

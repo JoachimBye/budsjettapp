@@ -15,6 +15,9 @@
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/category-service.js"></script>
+  <script src="/js/services/store-service.js"></script>
+  <script src="/js/services/budget-utils.js"></script>
 
   <style>
     html {
@@ -623,20 +626,46 @@ function initCoach() {
   });
 }
 
-  // ---------- Kategorier fra settings.html (localStorage) ----------
-  const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
+  // ---------- Kategorier / butikker fra settings ----------
+  const categoryService = window.categoryService || null;
+  const storeService = window.storeService || null;
+  const FALLBACK_CATEGORY_LIST = categoryService?.DEFAULT_CATEGORIES || [
+    { name: '🥕 Mat & dagligvarer', enabled: true },
+    { name: '🧽 Husholdning & rengjøring', enabled: true },
+    { name: '🍞 Frokost & brød', enabled: true },
+    { name: '🍿 Snacks & kos', enabled: true },
+    { name: '🥬 Frukt & grønt', enabled: true },
+    { name: '📦 Annet', enabled: false }
+  ];
+  const FALLBACK_STORE_LIST = storeService?.DEFAULT_STORES || [
+    { name: 'Kiwi', enabled: true },
+    { name: 'Rema 1000', enabled: true },
+    { name: 'Coop Extra', enabled: true },
+    { name: 'Meny', enabled: true },
+    { name: 'Spar', enabled: true },
+    { name: 'Joker', enabled: false },
+    { name: 'Bunnpris', enabled: false }
+  ];
+  const OTHER_STORE_VALUE = 'Annet';
 
-  function loadCategorySettings() {
-    try {
-      const raw = localStorage.getItem(CATEGORY_SETTINGS_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return null;
-      return parsed;
-    } catch (e) {
-      console.warn('Klarte ikke å lese kategori-innstillinger', e);
-      return null;
+  function getActiveCategories() {
+    if (categoryService?.getActiveCategories) {
+      const fromSettings = categoryService.getActiveCategories();
+      if (Array.isArray(fromSettings) && fromSettings.length > 0) {
+        return fromSettings;
+      }
     }
+    return FALLBACK_CATEGORY_LIST.filter(cat => cat.enabled !== false);
+  }
+
+  function getActiveStores() {
+    if (storeService?.getActiveStores) {
+      const fromSettings = storeService.getActiveStores();
+      if (Array.isArray(fromSettings) && fromSettings.length > 0) {
+        return fromSettings;
+      }
+    }
+    return FALLBACK_STORE_LIST.filter(store => store.enabled !== false);
   }
 
   function initCategorySelect() {
@@ -648,23 +677,7 @@ function initCoach() {
     select.innerHTML = '';
     if (placeholder) select.appendChild(placeholder);
 
-    const stored = loadCategorySettings();
-    let categories = [];
-
-    if (stored && stored.length > 0) {
-      // Bruk kun aktiverte kategorier
-      categories = stored.filter(c => c && c.enabled);
-    } else {
-      // Fallback til defaults (samme som opprinnelig)
-      categories = [
-        { name: '🥕 Mat & dagligvarer', enabled: true },
-        { name: '🧽 Husholdning & rengjøring', enabled: true },
-        { name: '🍞 Frokost & brød', enabled: true },
-        { name: '🍿 Snacks & kos', enabled: true },
-        { name: '🥬 Frukt & grønt', enabled: true },
-        { name: '📦 Annet', enabled: true }
-      ];
-    }
+    const categories = getActiveCategories();
 
     if (categories.length === 0) {
       const opt = document.createElement('option');
@@ -685,6 +698,48 @@ function initCoach() {
       opt.textContent = cat.name; // Viser med emoji + navn
       select.appendChild(opt);
     });
+  }
+
+  function initStoreSelect() {
+    const select = document.getElementById('storeInput');
+    if (!select) return;
+
+    let placeholder = select.querySelector('option[value=""]');
+    if (!placeholder) {
+      placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Velg butikk...';
+    }
+
+    select.innerHTML = '';
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    const stores = getActiveStores();
+
+    if (stores.length === 0) {
+      const info = document.createElement('option');
+      info.value = '';
+      info.textContent = 'Ingen butikker aktivert – velg Annet';
+      info.disabled = true;
+      select.appendChild(info);
+    } else {
+      stores.forEach(store => {
+        const opt = document.createElement('option');
+        opt.value = store.name;
+        opt.textContent = store.name;
+        select.appendChild(opt);
+      });
+    }
+
+    const otherOpt = document.createElement('option');
+    otherOpt.value = OTHER_STORE_VALUE;
+    otherOpt.textContent = OTHER_STORE_VALUE;
+    select.appendChild(otherOpt);
+
+    select.disabled = false;
+    select.required = true;
+    updateOtherStoreVisibility();
   }
 
   // ---------- State for budsjett-hint ----------
@@ -806,7 +861,12 @@ function initCoach() {
       if (pErr) {
         console.warn('Feil ved henting kjøp:', pErr);
       } else {
-        spent = (rows || []).reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        const list = Array.isArray(rows) ? rows : [];
+        if (window.budgetUtils?.safeSumPurchases) {
+          spent = window.budgetUtils.safeSumPurchases(list);
+        } else {
+          spent = list.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        }
       }
     } catch (err) {
       console.warn('Feil ved henting kjøp-session:', err);
@@ -886,10 +946,13 @@ function initCoach() {
 
   // ---------- Annet-butikknavn ----------
   function updateOtherStoreVisibility(){
-    const sel = document.getElementById('storeInput').value;
+    const select = document.getElementById('storeInput');
+    if (!select) return;
+    const sel = select.value;
     const group = document.getElementById('otherStoreGroup');
     const input = document.getElementById('otherStoreInput');
-    if (sel === 'Annet') {
+    if (!group || !input) return;
+    if (sel === OTHER_STORE_VALUE) {
       group.style.display = 'block';
       input.setAttribute('required','required');
       input.focus();
@@ -931,7 +994,7 @@ function initCoach() {
 
     const storeSel   = document.getElementById('storeInput').value;
     const otherStore = document.getElementById('otherStoreInput').value.trim();
-    const store      = (storeSel === 'Annet') ? otherStore : storeSel;
+    const store      = (storeSel === OTHER_STORE_VALUE) ? otherStore : storeSel;
 
     const amountRaw = document.getElementById('amountInput').value;
     const dateISO   = document.getElementById('dateInput').value;
@@ -1122,8 +1185,9 @@ function initCoach() {
     const dateInput = document.getElementById('dateInput');
     dateInput.value = isoLocalToday();
 
-    // Bygg kategori-listen basert på settings.html
+    // Bygg kategori- og butikklister basert på settings.html
     initCategorySelect();
+    initStoreSelect();
 
     // Last budsjett/spent for denne datoen
     await loadWeekDataFor(dateFromISOLocal(dateInput.value));

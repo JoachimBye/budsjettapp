@@ -12,6 +12,8 @@
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/category-service.js"></script>
+  <script src="/js/services/store-service.js"></script>
 
   <style>
     body {
@@ -499,53 +501,70 @@
 
   let householdId = null;
 
-  // --------- Kategori-innstillinger (localStorage) ----------
-  const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
+  // --------- Kategori / butikk-innstillinger ----------
+  const categoryService = window.categoryService || null;
+  const storeService = window.storeService || null;
+  const FALLBACK_CATEGORIES = categoryService?.DEFAULT_CATEGORIES || [
+    { name: '🥕 Mat & dagligvarer', enabled: true },
+    { name: '🧽 Husholdning & rengjøring', enabled: true },
+    { name: '🍞 Frokost & brød', enabled: true },
+    { name: '🍿 Snacks & kos', enabled: true },
+    { name: '🥬 Frukt & grønt', enabled: true },
+    { name: '📦 Annet', enabled: false }
+  ];
+  const FALLBACK_STORES = storeService?.DEFAULT_STORES || [
+    { name: 'Kiwi', enabled: true },
+    { name: 'Rema 1000', enabled: true },
+    { name: 'Coop Extra', enabled: true },
+    { name: 'Meny', enabled: true },
+    { name: 'Spar', enabled: true },
+    { name: 'Joker', enabled: false },
+    { name: 'Bunnpris', enabled: false }
+  ];
+
+  function cloneList(list) {
+    return Array.isArray(list) ? list.map(item => ({ ...item })) : [];
+  }
+
   let categorySettings = [];
+  let storeSettings = [];
 
-  function loadCategorySettings() {
-    try {
-      const raw = localStorage.getItem(CATEGORY_SETTINGS_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return null;
-      return parsed;
-    } catch {
-      return null;
+  function loadCategories() {
+    if (categoryService?.loadCategorySettings) {
+      return categoryService.loadCategorySettings();
+    }
+    return cloneList(FALLBACK_CATEGORIES);
+  }
+
+  function saveCategories(next) {
+    if (categoryService?.saveCategorySettings) {
+      categorySettings = categoryService.saveCategorySettings(next);
+    } else {
+      categorySettings = cloneList(next);
     }
   }
 
-  function saveCategorySettings(settings) {
-    try {
-      localStorage.setItem(CATEGORY_SETTINGS_KEY, JSON.stringify(settings));
-    } catch (e) {
-      console.error('Kunne ikke lagre kategori-innstillinger', e);
+  function loadStores() {
+    if (storeService?.loadStoreSettings) {
+      return storeService.loadStoreSettings();
+    }
+    return cloneList(FALLBACK_STORES);
+  }
+
+  function saveStores(next) {
+    if (storeService?.saveStoreSettings) {
+      storeSettings = storeService.saveStoreSettings(next);
+    } else {
+      storeSettings = cloneList(next);
     }
   }
 
-  function getCategoriesFromDOM() {
-    const list = document.getElementById('category-list');
-    if (!list) return [];
-    const items = list.querySelectorAll('.category-item');
-    const result = [];
-    items.forEach((item) => {
-      const checkbox = item.querySelector('input[type="checkbox"]');
-      const nameEl = item.querySelector('.category-name');
-      if (!checkbox || !nameEl) return;
-      result.push({
-        name: nameEl.textContent.trim(),
-        enabled: checkbox.checked
-      });
-    });
-    return result;
-  }
-
-  function renderCategories(settings) {
+  function renderCategories() {
     const list = document.getElementById('category-list');
     if (!list) return;
     list.innerHTML = '';
 
-    settings.forEach((cat, index) => {
+    categorySettings.forEach((cat, index) => {
       const div = document.createElement('div');
       div.className = 'category-item';
       div.dataset.index = String(index);
@@ -563,7 +582,7 @@
         checkbox.checked = !!cat.enabled;
         checkbox.addEventListener('change', () => {
           categorySettings[index].enabled = checkbox.checked;
-          saveCategorySettings(categorySettings);
+          saveCategories(categorySettings);
         });
       }
 
@@ -577,7 +596,7 @@
           const newName = prompt('Nytt navn på kategori:', current);
           if (!newName) return;
           categorySettings[index].name = newName.trim();
-          saveCategorySettings(categorySettings);
+          saveCategories(categorySettings);
           nameEl.textContent = categorySettings[index].name;
         });
       }
@@ -587,17 +606,46 @@
   }
 
   function initCategories() {
-    // Les default-kategorier fra HTML (fallback)
-    const defaults = getCategoriesFromDOM();
-    const stored = loadCategorySettings();
+    categorySettings = loadCategories();
+    renderCategories();
+  }
 
-    categorySettings =
-      stored && Array.isArray(stored) && stored.length > 0
-        ? stored
-        : defaults;
+  function renderStores() {
+    const list = document.getElementById('store-list');
+    if (!list) return;
+    list.innerHTML = '';
 
-    saveCategorySettings(categorySettings);
-    renderCategories(categorySettings);
+    storeSettings.forEach((store, index) => {
+      const div = document.createElement('div');
+      div.className = 'store-item';
+      div.dataset.index = String(index);
+      div.innerHTML = `
+        <input type="checkbox">
+        <span class="store-name"></span>
+      `;
+
+      const checkbox = div.querySelector('input[type="checkbox"]');
+      const nameEl = div.querySelector('.store-name');
+
+      if (checkbox) {
+        checkbox.checked = store.enabled !== false;
+        checkbox.addEventListener('change', () => {
+          storeSettings[index].enabled = checkbox.checked;
+          saveStores(storeSettings);
+        });
+      }
+
+      if (nameEl) {
+        nameEl.textContent = store.name;
+      }
+
+      list.appendChild(div);
+    });
+  }
+
+  function initStores() {
+    storeSettings = loadStores();
+    renderStores();
   }
 
   function showToast(message, type) {
@@ -722,8 +770,8 @@
       enabled: true,
     });
 
-    saveCategorySettings(categorySettings);
-    renderCategories(categorySettings);
+    saveCategories(categorySettings);
+    renderCategories();
 
     input.value = '';
     showToast('Kategori lagt til.', 'success');
@@ -734,16 +782,24 @@
     const name = input.value.trim();
     if (!name) return;
 
-    const list = document.getElementById('store-list');
-    const div = document.createElement('div');
-    div.className = 'store-item';
-    div.innerHTML = `
-      <input type="checkbox" checked>
-      <span class="store-name">${name}</span>
-    `;
-    list.appendChild(div);
+    const alreadyExists = storeSettings.some(
+      (store) => store.name.toLowerCase() === name.toLowerCase()
+    );
+    if (alreadyExists) {
+      showToast('Butikken finnes allerede.', 'error');
+      return;
+    }
+
+    storeSettings.push({
+      name,
+      enabled: true,
+    });
+
+    saveStores(storeSettings);
+    renderStores();
+
     input.value = '';
-    showToast('Butikk lagt til (foreløpig kun visuelt).', 'success');
+    showToast('Butikk lagret.', 'success');
   }
 
   async function doLogout() {
@@ -780,6 +836,7 @@
 
     await loadSettings();
     initCategories();
+    initStores();
 
     // Knapper
     document.getElementById('save-budget-btn').addEventListener('click', saveBudget);

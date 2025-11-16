@@ -17,6 +17,7 @@
 
   <!-- Ny: sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/budget-utils.js"></script>
 
   <style>
     body{
@@ -492,9 +493,11 @@
     const key = `purchases_${isoMonday}`;
     try {
       const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      return Array.isArray(arr)
-        ? arr.reduce((acc, p) => acc + (Number(p.amount)||0), 0)
-        : 0;
+      if (!Array.isArray(arr)) return 0;
+      if (window.budgetUtils?.safeSumPurchases) {
+        return window.budgetUtils.safeSumPurchases(arr);
+      }
+      return arr.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
     } catch {
       return 0;
     }
@@ -570,7 +573,11 @@
       if (!error && rows) {
         // cache hele listen slik at week-report kan lese den fra localStorage
         localStorage.setItem(`purchases_${iso}`, JSON.stringify(rows));
-        spent = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        if (window.budgetUtils?.safeSumPurchases) {
+          spent = window.budgetUtils.safeSumPurchases(rows);
+        } else {
+          spent = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+        }
       } else if (error) {
         console.warn('Feil ved henting kjøp (DB):', error);
         spent = sumPurchasesLocal(iso);
