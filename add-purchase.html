@@ -506,6 +506,7 @@ function positionCoachForElement(el) {
       ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
     }
     coachTooltip.style.top = `${ttTop}px`;
+    coachTooltip.style.opacity = 1;
   });
 }
 
