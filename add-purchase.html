@@ -67,13 +67,6 @@
   margin-bottom:6px;
 }
 
-.title {
-  font-size:32px;
-  font-weight:700;
-  color:#2d5f4d;
-  margin:0;
-  line-height:1.25;
-}
 
 /* Liten “pill” til høyre – kan brukes til uke, “Etter butikk-tur” osv */
 .header-pill {
@@ -87,13 +80,6 @@
   white-space:nowrap;
 }
 
-.description {
-  font-size:16px;
-  color:#5a7a6d;
-  margin-top:6px;
-  max-width:420px;
-}
-    
 @media (max-width:768px){
   .header-title-row {
     flex-direction:column;
@@ -422,6 +408,24 @@
 
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
+  // ISO-ukenummer fra en dato-streng "yyyy-mm-dd"
+function getISOWeekFromISODate(isoDate) {
+  if (!isoDate) return null;
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+
+  // ISO-uke: torsdagstrikset
+  const target = new Date(date.valueOf());
+  const dayNr = (date.getDay() + 6) % 7; // 0 = mandag
+  target.setDate(target.getDate() - dayNr + 3);
+
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const diff = target - firstThursday;
+  const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
+
+  return week;
+}
+
   // ---------- Hent budsjett + brukt fra Supabase for gitt dato ----------
   async function loadWeekDataFor(date){
     const weekISO = resolveWeekISOFor(date);
@@ -496,6 +500,15 @@
 
     state.currentBudget = budget;
     state.currentSpent = spent;
+
+        // Oppdater uke-pill i headeren
+    const weekPill = document.getElementById('weekPill');
+    if (weekPill && weekISO) {
+      const weekNum = getISOWeekFromISODate(weekISO);
+      if (weekNum) {
+        weekPill.textContent = `Uke ${weekNum}`;
+      }
+    }
 
     // Speil budsjett lokalt for ev. eldre kode / andre sider
     localStorage.setItem('budget_total', String(budget));
@@ -723,12 +736,21 @@
     document.getElementById('backButtonText').textContent = config.back_button_text || defaultConfig.back_button_text;
     document.getElementById('successText').textContent = config.success_message || defaultConfig.success_message;
 
-    ['mainTitle','descriptionText','successText'].forEach(id=>{
-      const el = document.getElementById(id);
-      el.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
-      el.style.color = id==='descriptionText' ? secondaryTextColor : textColor;
-      if (id==='mainTitle') el.style.fontSize = `${baseSize * 1.78}px`;
-    });
+// Bare description + success bruker Canva-farger
+['descriptionText','successText'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+  el.style.color = (id === 'descriptionText') ? secondaryTextColor : textColor;
+});
+
+// Tittelen har låst, mørk grønn farge
+const mainTitleEl = document.getElementById('mainTitle');
+if (mainTitleEl) {
+  mainTitleEl.style.fontFamily = `${customFont}, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif`;
+  mainTitleEl.style.fontSize = `${baseSize * 1.78}px`;
+  mainTitleEl.style.color = '#2d5f4d'; // alltid lesbar
+}
 
     document.querySelectorAll('.form-input').forEach(input=>{
       input.style.borderColor = adjustColor(primaryActionColor, 60);
