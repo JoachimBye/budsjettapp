@@ -225,14 +225,6 @@
       color: #5a7a6d;
       font-weight: 400;
     }
-    .category-chevron {
-      font-size: 20px;
-      color: #4caf50;
-      transition: transform 0.25s;
-    }
-    .category-card.open .category-chevron {
-      transform: rotate(180deg);
-    }
     .category-content {
       max-height: 0;
       overflow: hidden;
@@ -249,40 +241,6 @@
       flex-direction: column;
       gap: 10px;
     }
-
-    .category-quick-add {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-top: 8px;
-    }
-    .category-quick-input {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(76,175,80,0.2);
-      font-size: 14px;
-      font-family: inherit;
-    }
-    .category-quick-input:focus {
-      outline: none;
-      border-color: #4caf50;
-      box-shadow: 0 0 0 2px rgba(76,175,80,0.15);
-    }
-    .category-quick-btn {
-      border-radius: 12px;
-      border: none;
-      padding: 8px 10px;
-      background: #4caf50;
-      color: #ffffff;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.2s, transform 0.08s;
-    }
-    .category-quick-btn:hover { background: #45a049; }
-    .category-quick-btn:active { transform: scale(0.96); }
 
     /* Item-kort */
     .item-card {
@@ -990,6 +948,10 @@ function renderCategories() {
     // alltid åpen – vi bruker headeren som "legg til"-knapp, ikke til å åpne/lukke
     card.className = "category-card open";
     card.dataset.categoryIndex = ci;
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".item-card")) return;
+      openItemModal(cat.name);
+    });
 
     // HEADER: hele feltet er nå "legg til vare i denne kategorien"
     const header = document.createElement("div");
@@ -1002,11 +964,7 @@ function renderCategories() {
         ${cat.name}
         <span class="category-count">(${cat.items.length})</span>
       </div>
-      <span class="category-chevron">＋</span>
     `;
-    header.addEventListener("click", () => {
-      openItemModal(cat.name);
-    });
     header.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
@@ -1023,32 +981,7 @@ function renderCategories() {
     const inner = document.createElement("div");
     inner.className = "category-inner";
 
-    // QUICK ADD-rad inne i kategorien (skriv + knapp)
-    const quickRow = document.createElement("div");
-    quickRow.className = "category-quick-add";
-    const quickInput = document.createElement("input");
-    quickInput.className = "category-quick-input";
-    quickInput.placeholder = `Legg til vare i ${cat.name}`;
-    const quickBtn = document.createElement("button");
-    quickBtn.type = "button";
-    quickBtn.className = "category-quick-btn";
-    quickBtn.textContent = "Legg til";
-    quickBtn.addEventListener("click", () => {
-      const val = quickInput.value.trim();
-      if (!val) return;
-      addItemToCategoryByName(val, cat.name, 1);
-      quickInput.value = "";
-      quickInput.focus();
-    });
-    quickInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        quickBtn.click();
-      }
-    });
-    quickRow.appendChild(quickInput);
-    quickRow.appendChild(quickBtn);
-    inner.appendChild(quickRow);
+    // Ikke noe inline-input – selve kortet fungerer som "legg til"
 
     // Varer i denne kategorien
     cat.items.forEach((item, ii) => {
@@ -1315,7 +1248,7 @@ if (modeToggleBtn) {
     $$(".category-card, .modal").forEach(el => {
       el.style.background = surface;
     });
-    $$(".fab, .weekly-add-btn, .category-quick-btn, .stepper-btn, .footer-btn.mark-all, .btn-primary").forEach(el => {
+    $$(".fab, .weekly-add-btn, .stepper-btn, .footer-btn.mark-all, .btn-primary").forEach(el => {
       el.style.background = primary;
       el.style.color = "#ffffff";
     });
