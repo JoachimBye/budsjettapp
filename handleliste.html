@@ -408,6 +408,21 @@
       display: none;
     }
 
+    /* I butikk-modus: vis kun handlelista */
+.store-mode #weeklySection,
+.store-mode #frequentSection {
+  display: none;
+}
+
+.store-mode .page-subtitle {
+  display: none;
+}
+
+/* Litt mindre luft i butikk-modus om du vil */
+.store-mode .container {
+  padding-top: 12px;
+}
+
     /* Modal felles */
     .modal-overlay {
       position: fixed;
@@ -1235,21 +1250,30 @@
   }
 
   // ---------- Butikk-modus ----------
-  const modeToggleBtn = $("#modeToggleBtn");
-  if (modeToggleBtn) {
-    modeToggleBtn.addEventListener("click", () => {
-      isStoreMode = !isStoreMode;
-      document.body.classList.toggle("store-mode", isStoreMode);
-      if (isStoreMode) {
-        modeToggleBtn.textContent = "Avslutt butikk-modus";
-        modeToggleBtn.classList.add("active");
-      } else {
-        modeToggleBtn.textContent = "Start butikk-modus 🛒";
-        modeToggleBtn.classList.remove("active");
+const modeToggleBtn = $("#modeToggleBtn");
+if (modeToggleBtn) {
+  modeToggleBtn.addEventListener("click", () => {
+    isStoreMode = !isStoreMode;
+    document.body.classList.toggle("store-mode", isStoreMode);
+
+    if (isStoreMode) {
+      modeToggleBtn.textContent = "Avslutt butikk-modus";
+      modeToggleBtn.classList.add("active");
+
+      // Scroll ned til handlelista når butikk-modus startes
+      const shoppingSection = $("#shoppingSection");
+      if (shoppingSection) {
+        shoppingSection.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      renderCategories();
-    });
-  }
+    } else {
+      modeToggleBtn.textContent = "Start butikk-modus 🛒";
+      modeToggleBtn.classList.remove("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    renderCategories();
+  });
+}
 
   // ---------- Tilbake-knapp ----------
   const backBtn = $("#backBtn");
