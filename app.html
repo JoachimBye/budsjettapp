@@ -63,6 +63,29 @@
       font-weight:500;
     }
 
+    .settings-btn{
+  position:fixed;
+  top:16px;
+  left:16px;
+  z-index:50;
+  background:#ffffff;
+  color:#2d5f4d;
+  border:2px solid #e0e7e3;
+  padding:10px 18px;
+  font-size:16px;
+  font-weight:700;
+  border-radius:9999px;
+  cursor:pointer;
+  transition:all .2s ease;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.settings-btn:hover{
+  background:#f5f8f6;
+  border-color:#c8d4cb;
+  color:#1f2933;
+}
+
     /* Logout knapp øverst til høyre */
     .logout-btn{
       position:fixed;top:16px;right:16px;z-index:50;
@@ -134,6 +157,9 @@
 <body>
   <!-- Logg ut -->
   <button class="logout-btn" id="logoutBtn" title="Logg ut" aria-label="Logg ut">Logg ut</button>
+  <button class="settings-btn" id="settingsBtn" title="Innstillinger" aria-label="Innstillinger">
+  Innstillinger
+</button>
 
   <main class="container">
     <!-- Uke-header -->
