@@ -30,6 +30,76 @@
       animation:slideInUp .6s ease-out;
     }
     .header { text-align:center; margin-bottom:40px; animation:fadeInDown .8s ease-out; }
+    .header {
+  text-align:left;
+  margin-bottom:32px;
+}
+
+/* Liten badge øverst */
+.header-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(76,175,80,0.07);
+  color:#2d5f4d;
+  font-size:13px;
+  font-weight:600;
+  margin-bottom:14px;
+}
+
+.badge-icon {
+  font-size:16px;
+}
+
+.badge-text {
+  letter-spacing:0.03em;
+  text-transform:uppercase;
+}
+
+/* Tittel + uke-pill på samme linje */
+.header-title-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:6px;
+}
+
+.title {
+  font-size:32px;
+  font-weight:700;
+  color:#2d5f4d;
+  margin:0;
+  line-height:1.25;
+}
+
+/* Liten “pill” til høyre – kan brukes til uke, “Etter butikk-tur” osv */
+.header-pill {
+  padding:6px 14px;
+  border-radius:999px;
+  background:#f0f9f4;
+  border:1px solid rgba(76,175,80,0.25);
+  font-size:13px;
+  font-weight:600;
+  color:#2d5f4d;
+  white-space:nowrap;
+}
+
+.description {
+  font-size:16px;
+  color:#5a7a6d;
+  margin-top:6px;
+  max-width:420px;
+}
+    
+@media (max-width:768px){
+  .header-title-row {
+    flex-direction:column;
+    align-items:flex-start;
+  }
+}
     .title { font-size:32px; font-weight:700; color:#2d5f4d; margin-bottom:15px; line-height:1.3; }
     .description { font-size:18px; color:#5a7a6d; line-height:1.5; }
     .form-section { margin-bottom:40px; animation:fadeInUp .8s ease-out .2s both; }
@@ -131,10 +201,27 @@
 </head>
 <body>
   <main class="container">
+
     <div class="header">
-      <h1 class="title" id="mainTitle">Legg til nytt kjøp</h1>
-      <p class="description" id="descriptionText">Registrer hvor mye du brukte, og hvor du handlet.</p>
+  <div class="header-badge">
+    <span class="badge-icon">🧾</span>
+    <span class="badge-text">Registrer et nytt kjøp</span>
+  </div>
+
+  <div class="header-title-row">
+    <h1 class="title" id="mainTitle">
+      Legg til nytt kjøp
+    </h1>
+    <div class="header-pill" id="weekPill" aria-hidden="true">
+      Uke&nbsp;42
     </div>
+  </div>
+
+  <p class="description" id="descriptionText">
+    Skriv inn butikk, beløp og dato – så holder vi styr på budsjettet for deg.
+  </p>
+</div>
+    
 
     <form class="form-section" id="purchaseForm">
       <!-- Butikk -->
