@@ -379,25 +379,10 @@
     }
 
     /* FAB */
-    .fab {
-      position: fixed;
-      bottom: 100px;
-      right: 24px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #4caf50;
-      color: white;
-      border: none;
-      font-size: 30px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(76,175,80,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      z-index: 30;
-    }
+    /* Skjul +-knappen – vi bruker kategorikortene i stedet */
+.fab {
+  display: none;
+}
     .fab:hover {
       background: #45a049;
       transform: scale(1.05);
@@ -837,6 +822,38 @@
     currentMenuDayKey = null;
   }
 
+
+  function openAddModalForCategory(categoryIndex) {
+  const category = categories[categoryIndex];
+  if (!category) return;
+
+  // Åpne modal
+  const overlay = document.getElementById('modalOverlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+
+  // Nullstill felter
+  const nameInput = document.getElementById('itemName');
+  const categorySelect = document.getElementById('itemCategory');
+  const priceInput = document.getElementById('itemPrice');
+  const quantityEl = document.getElementById('modalQuantity');
+
+  if (nameInput) {
+    nameInput.value = '';
+    nameInput.focus();
+  }
+
+  // Forhåndsvelg riktig kategori i nedtrekkslista
+  if (categorySelect) {
+    categorySelect.value = category.name;
+  }
+
+  // Nullstill antall og pris
+  modalQuantity = 1;
+  if (quantityEl) quantityEl.textContent = '1';
+  if (priceInput) priceInput.value = '';
+}
+
   // ---------- Frequent items ----------
   function trackFrequentItem(name, category) {
     const cleanName = String(name || "").trim();
@@ -997,14 +1014,33 @@
 
     categories.forEach((cat, ci) => {
       const card = document.createElement("div");
-      card.className = "category-card" + (cat.open ? " open" : "");
+      card.className = `category-card ${category.open ? 'open' : ''}`;
       card.dataset.categoryIndex = ci;
 
-      const header = document.createElement("div");
-      header.className = "category-header";
-      const title = document.createElement("div");
-      title.className = "category-title";
-      title.textContent = cat.name;
+      const header = document.createElement('div');
+header.className = 'category-header';
+header.setAttribute('role', 'button');
+header.setAttribute('tabindex', '0');
+// Vi bryr oss ikke lenger så mye om "expanded" – kortet brukes nå til å legge til varer
+header.setAttribute('aria-expanded', 'true');
+header.innerHTML = `
+  <div class="category-title">
+    ${category.name}
+    <span class="category-count">(${category.items.length})</span>
+  </div>
+  <span class="category-chevron">＋</span>
+`;
+
+// Hele headeren fungerer nå som "legg til i denne kategorien"
+header.addEventListener('click', () => {
+  openAddModalForCategory(categoryIndex);
+});
+header.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    openAddModalForCategory(categoryIndex);
+  }
+});
 
       const count = document.createElement("span");
       count.className = "category-count";
