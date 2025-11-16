@@ -601,48 +601,55 @@
 
   function goToCoachStep(index) {
     if (!coachOverlay) return;
-    if (index < 0 || index >= coachSteps.length) {
-      endCoachTour();
-      return;
-    }
-    coachCurrentStep = index;
-    const step = coachSteps[coachCurrentStep];
-    const target = document.querySelector(step.selector);
-
-    if (!target) {
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-      return;
-    }
-
-    coachTitleEl.textContent = step.title;
-    coachTextEl.textContent  = step.text;
-    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
-
-    coachPrevBtn.disabled = coachCurrentStep === 0;
-    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
-
-    positionCoachForElement(target);
+  if (index < 0 || index >= coachSteps.length) {
+    endCoachTour();
+    return;
   }
+  coachCurrentStep = index;
+  const step = coachSteps[coachCurrentStep];
+  const target = document.querySelector(step.selector);
+
+  if (!target) {
+    if (coachCurrentStep < coachSteps.length - 1) {
+      goToCoachStep(coachCurrentStep + 1);
+    } else {
+      endCoachTour();
+    }
+    return;
+  }
+
+  coachTitleEl.textContent = step.title;
+  coachTextEl.textContent  = step.text;
+  coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+  coachPrevBtn.disabled = coachCurrentStep === 0;
+  coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+  // 1) Scroll elementet inn i view (midt på skjermen)
+  target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+  // 2) Etter litt tid (når scroll er ferdig) → posisjoner highlight og tooltip
+  setTimeout(() => {
+    positionCoachForElement(target);
+  }, 350);
+}
+
 
   function startCoachTour() {
     if (!coachOverlay) return;
-    coachActive = true;
-    coachOverlay.style.display = 'block';
-    prevBodyOverflow = document.body.style.overflow || '';
-    document.body.style.overflow = 'hidden';
-    goToCoachStep(0);
-  }
+  coachActive = true;
+  coachOverlay.style.display = 'block';
+  // Ikke lås scrolling lenger
+  goToCoachStep(0);
+}
+
 
   function endCoachTour() {
-    coachActive = false;
-    if (coachOverlay) coachOverlay.style.display = 'none';
-    document.body.style.overflow = prevBodyOverflow || '';
-    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
-  }
+      coachActive = false;
+  if (coachOverlay) coachOverlay.style.display = 'none';
+  try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+}
+
 
   function shouldStartCoachTour() {
     try {
@@ -679,6 +686,14 @@
     const target = document.querySelector(step.selector);
     if (target) positionCoachForElement(target);
   });
+
+  window.addEventListener('scroll', () => {
+  if (!coachActive) return;
+  const step = coachSteps[coachCurrentStep];
+  if (!step) return;
+  const target = document.querySelector(step.selector);
+  if (target) positionCoachForElement(target);
+});
 
   // ---------- State ----------
   const state = {
