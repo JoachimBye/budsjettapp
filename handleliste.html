@@ -758,6 +758,12 @@
   let frequentItems = getLS(FREQ_KEY, defaultFrequentItems);
   let isStoreMode   = false;
 
+  // Sikrer oss mot gamle tomme localStorage-verdier
+  if (!Array.isArray(categories) || categories.length === 0) {
+    categories = JSON.parse(JSON.stringify(defaultCategories));
+    saveCategories();
+  }
+
   let modalQty      = 1;
   let currentMenuDayKey = null;
 
@@ -821,39 +827,6 @@
     if (overlay) overlay.classList.remove("open");
     currentMenuDayKey = null;
   }
-
-
-  function openAddModalForCategory(categoryIndex) {
-  const category = categories[categoryIndex];
-  if (!category) return;
-
-  // Åpne modal
-  const overlay = document.getElementById('modalOverlay');
-  if (!overlay) return;
-  overlay.classList.add('open');
-
-  // Nullstill felter
-  const nameInput = document.getElementById('itemName');
-  const categorySelect = document.getElementById('itemCategory');
-  const priceInput = document.getElementById('itemPrice');
-  const quantityEl = document.getElementById('modalQuantity');
-
-  if (nameInput) {
-    nameInput.value = '';
-    nameInput.focus();
-  }
-
-  // Forhåndsvelg riktig kategori i nedtrekkslista
-  if (categorySelect) {
-    categorySelect.value = category.name;
-  }
-
-  // Nullstill antall og pris
-  modalQuantity = 1;
-  if (quantityEl) quantityEl.textContent = '1';
-  if (priceInput) priceInput.value = '';
-}
-
   // ---------- Frequent items ----------
   function trackFrequentItem(name, category) {
     const cleanName = String(name || "").trim();
@@ -1163,25 +1136,30 @@ function renderCategories() {
   }
 
   // ---------- FAB / vare-modal ----------
-function openItemModal(categoryName) {
-  const overlay = $("#itemModalOverlay");
-  const nameInput = $("#itemNameInput");
+  function openItemModal(categoryName) {
+    const overlay = $("#itemModalOverlay");
+    const nameInput = $("#itemNameInput");
 
-  modalQty = 1;
-  $("#modalQty").textContent = "1";
+    modalQty = 1;
+    $("#modalQty").textContent = "1";
 
-  // forhåndsvelg kategori hvis vi fikk en, ellers Matvarer
-  const catSelect = $("#itemCategorySelect");
-  if (catSelect) {
-    catSelect.value = categoryName || "Matvarer";
+    // forhåndsvelg kategori hvis vi fikk en, ellers Matvarer
+    const catSelect = $("#itemCategorySelect");
+    if (catSelect) {
+      catSelect.value = categoryName || "Matvarer";
+    }
+
+    if (nameInput) {
+      nameInput.value = "";
+      setTimeout(() => nameInput.focus(), 20);
+    }
+    if (overlay) overlay.classList.add("open");
   }
 
-  if (nameInput) {
-    nameInput.value = "";
-    setTimeout(() => nameInput.focus(), 20);
+  function closeItemModal() {
+    const overlay = $("#itemModalOverlay");
+    if (overlay) overlay.classList.remove("open");
   }
-  if (overlay) overlay.classList.add("open");
-}
 
   // ---------- Inbox fra middagsplan ----------
   function getInboxItems() {
