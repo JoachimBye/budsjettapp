@@ -450,11 +450,11 @@
   }
 
   function weekLabelFromISO(isoMonday) {
-  const [y, m, d] = isoMonday.split('-').map(Number);
-  const mon = new Date(y, m - 1, d, 12, 0, 0, 0);
-  const wn = weekNumberISO(mon);
-  return `Uke ${wn}`;
-}
+    const [y, m, d] = isoMonday.split('-').map(Number);
+    const mon = new Date(y, m - 1, d, 12, 0, 0, 0);
+    const wn = weekNumberISO(mon);
+    return `Uke ${wn}`;
+  }
 
   function safeGet(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
@@ -485,113 +485,131 @@
       .replace(/'/g, '&#039;');
   }
 
-// ---------- Hent budsjett + kjøp ----------
-async function loadWeekData() {
-  const weekISO = getActiveWeekISO();
-  state.weekISO = weekISO;
+  // ---------- Hent budsjett + kjøp ----------
+  async function loadWeekData() {
+    const weekISO = getActiveWeekISO();
+    state.weekISO = weekISO;
 
-  let totalBudget = 0;
-  let purchases = [];
+    let totalBudget = 0;
+    let purchases = [];
 
-  let session = null;
-  try {
-    const { data } = await supa.auth.getSession();
-    session = data?.session || null;
-  } catch (err) {
-    console.warn('Feil ved henting session:', err);
-  }
-
-  // Budsjett fra DB
-  if (session) {
+    let session = null;
     try {
-      const { data: budgetRow, error: bErr } = await supa
-        .from('household_budgets')
-        .select('amount')
-        .eq('user_id', session.user.id)
-        .eq('week_start', weekISO)
-        .maybeSingle();
-
-      if (bErr) {
-        console.warn('Feil ved henting budsjett:', bErr);
-      } else if (budgetRow?.amount) {
-        totalBudget = Number(budgetRow.amount) || 0;
-      }
+      const { data } = await supa.auth.getSession();
+      session = data?.session || null;
     } catch (err) {
-      console.warn('Feil ved budsjett-oppslag:', err);
+      console.warn('Feil ved henting session:', err);
     }
-  }
 
-  // Fallback til localStorage
-  if (!totalBudget) {
-    const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
-    const byWeek = parseInt(byWeekStr || '', 10);
-    if (!isNaN(byWeek) && byWeek > 0) {
-      totalBudget = byWeek;
+    // --- BUDSJETT: DB først, så default_weekly_budget, så localStorage ---
+    if (session) {
+      try {
+        // 1) Uke-spesifikt budsjett for denne brukeren
+        const { data: budgetRow, error: bErr } = await supa
+          .from('household_budgets')
+          .select('amount')
+          .eq('user_id', session.user.id)
+          .eq('week_start', weekISO)
+          .maybeSingle();
+
+        if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
+          totalBudget = budgetRow.amount;
+        } else {
+          // 2) Fall back til husstandens default_weekly_budget
+          const { data: member, error: mErr } = await supa
+            .from('members')
+            .select('household_id')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!mErr && member?.household_id) {
+            const { data: household, error: hErr } = await supa
+              .from('households')
+              .select('default_weekly_budget')
+              .eq('id', member.household_id)
+              .maybeSingle();
+
+            if (!hErr && household && typeof household.default_weekly_budget === 'number') {
+              totalBudget = household.default_weekly_budget;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Feil ved budsjett-oppslag (DB):', err);
+      }
+    }
+
+    // 3) Fallback til localStorage hvis vi fortsatt ikke har noe
+    if (!totalBudget) {
+      const byWeekStr = localStorage.getItem(`weeklyBudget_${weekISO}`);
+      const byWeek = parseInt(byWeekStr || '', 10);
+      if (!isNaN(byWeek) && byWeek > 0) {
+        totalBudget = byWeek;
+      } else {
+        const globalStr = localStorage.getItem('weeklyBudget');
+        const global = parseInt(globalStr || '', 10);
+        totalBudget = (!isNaN(global) && global > 0) ? global : 3000;
+      }
+    }
+
+    // --- KJØP: DB først, ellers localStorage ---
+    let dbRows = [];
+    if (session) {
+      try {
+        const { data: rows, error: pErr } = await supa
+          .from('purchases')
+          .select('amount, category')
+          .eq('week_start', weekISO);
+
+        if (pErr) {
+          console.warn('Feil ved henting kjøp:', pErr);
+        } else if (Array.isArray(rows)) {
+          dbRows = rows.map(r => ({
+            amount: Number(r.amount) || 0,
+            category: r.category || null
+          }));
+        }
+      } catch (err) {
+        console.warn('Feil ved kjøps-oppslag:', err);
+      }
+    }
+
+    const localKey = `purchases_${weekISO}`;
+    const localPurchases = safeGet(localKey, []);
+
+    if (session && dbRows.length > 0) {
+      purchases = dbRows;          // innlogget → stol på DB
     } else {
-      const globalStr = localStorage.getItem('weeklyBudget');
-      const global = parseInt(globalStr || '', 10);
-      totalBudget = (!isNaN(global) && global > 0) ? global : 3000;
+      purchases = localPurchases;  // ellers → bruk local fallback
     }
+
+    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
+    const saved = Math.max(0, totalBudget - spent);
+    const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
+
+    const byCategory = purchases.reduce((acc, p) => {
+      const cat = (p.category && String(p.category).trim()) || 'Uten kategori';
+      acc[cat] = (acc[cat] || 0) + (Number(p.amount) || 0);
+      return acc;
+    }, {});
+
+    state.totalBudget = totalBudget;
+    state.spent = spent;
+    state.saved = saved;
+    state.pct = pct;
+    state.byCategory = byCategory;
+
+    // Speil budsjett lokalt (samme mønster som de andre sidene)
+    localStorage.setItem('budget_total', String(totalBudget));
+    localStorage.setItem('activeWeekISO', weekISO);
+    localStorage.setItem(`weeklyBudget_${weekISO}`, String(totalBudget));
+    localStorage.setItem('weeklyBudget', String(totalBudget));
   }
-
-  // Kjøp fra DB
-  let dbRows = [];
-  if (session) {
-    try {
-      const { data: rows, error: pErr } = await supa
-        .from('purchases')
-        .select('amount, category')
-        .eq('week_start', weekISO);
-
-      if (pErr) {
-        console.warn('Feil ved henting kjøp:', pErr);
-      } else if (Array.isArray(rows)) {
-        dbRows = rows.map(r => ({
-          amount: Number(r.amount) || 0,
-          category: r.category || null
-        }));
-      }
-    } catch (err) {
-      console.warn('Feil ved kjøps-oppslag:', err);
-    }
-  }
-
-  // Local fallback
-  const localKey = `purchases_${weekISO}`;
-  const localPurchases = safeGet(localKey, []);
-
-  // Viktig: unngå dobbelt-telling
-  if (session && dbRows.length > 0) {
-    purchases = dbRows;            // logget inn → stol på DB
-  } else {
-    purchases = localPurchases;    // ellers → bruk localStorage
-  }
-
-  const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
-  const saved = Math.max(0, totalBudget - spent);
-  const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
-
-  const byCategory = purchases.reduce((acc, p) => {
-    const cat = (p.category && String(p.category).trim()) || 'Uten kategori';
-    acc[cat] = (acc[cat] || 0) + (Number(p.amount) || 0);
-    return acc;
-  }, {});
-
-  state.totalBudget = totalBudget;
-  state.spent = spent;
-  state.saved = saved;
-  state.pct = pct;
-  state.byCategory = byCategory;
-
-  localStorage.setItem('budget_total', String(totalBudget));
-  localStorage.setItem('activeWeekISO', weekISO);
-}
 
   // ---------- Render: header ----------
   function renderHeader() {
     const label = weekLabelFromISO(state.weekISO);
     document.getElementById('weekLabel').textContent = label;
-    // Du kan tweake denne teksten senere om du vil
     document.getElementById('descriptionText').textContent =
       'På denne siden ser dere kort hvordan uka gikk, og hva dere kan tenke på til neste uke.';
   }
@@ -605,7 +623,6 @@ async function loadWeekData() {
     const pct = Math.max(0, Math.round(pctRaw));
     const overAmount = Math.max(0, spent - budget);
 
-    // Tall
     document.getElementById('nrBudget').textContent = `${formatAmount(budget)} kr`;
     document.getElementById('nrSpent').textContent = `${formatAmount(spent)} kr`;
 
@@ -627,7 +644,6 @@ async function loadWeekData() {
       diffValueEl.classList.add('negative');
     }
 
-    // Termometer
     const thermoFill = document.getElementById('thermoFill');
     thermoFill.classList.remove('yellow', 'red');
     const width = Math.max(0, Math.min(100, pct));
@@ -636,16 +652,15 @@ async function loadWeekData() {
       `Brukt ${Math.min(pct, 200)} % av budsjettet`;
 
     if (spent === 0) {
-      // helt rolig
+      // rolig uke
     } else if (pct <= 90) {
-      // grønn (default)
+      // grønn default
     } else if (pct <= 110) {
       thermoFill.classList.add('yellow');
     } else {
       thermoFill.classList.add('red');
     }
 
-    // Status-tekst + emoji
     const statusEmoji = document.getElementById('statusEmoji');
     const statusTitle = document.getElementById('statusTitle');
     const statusSubtitle = document.getElementById('statusSubtitle');
@@ -754,12 +769,11 @@ async function loadWeekData() {
   }
 
   // ---------- Knapper ----------
-function setupButtons() {
-  document.getElementById('backButton').addEventListener('click', () => {
-    window.location.href = 'app.html';
-  });
+  function setupButtons() {
+    document.getElementById('backButton').addEventListener('click', () => {
+      window.location.href = 'app.html';
+    });
 
-    // Feel-good like-knapp (kun UI, ingen lagring nødvendig)
     const likeBtn = document.getElementById('weekLikeBtn');
     likeBtn.addEventListener('click', () => {
       likeBtn.disabled = true;
@@ -776,9 +790,10 @@ function setupButtons() {
 
   // ---------- Init ----------
   async function init() {
-    // Auth guard hvis du bruker det andre steder
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
+      // Hvis protectPage har redirectet til innlogging, stopp videre kjøring
+      if (window.location.pathname !== '/week-report.html') return;
     }
 
     await loadWeekData();
