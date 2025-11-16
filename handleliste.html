@@ -409,7 +409,7 @@
         </div>
         <div class="form-group">
           <label for="itemPrice" class="form-label">Estimert pris (kr)</label>
-          <input type="number" id="itemPrice" class="form-input" min="0" step="1" value="0" placeholder="0">
+          <input type="number" id="itemPrice" class="form-input" min="0" step="1" placeholder="0">
         </div>
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button>
@@ -557,6 +557,17 @@ const defaultCategories = [
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
 
+
+  const modalPriceInput = document.getElementById('itemPrice');
+if (modalPriceInput) {
+  modalPriceInput.addEventListener('focus', (e) => {
+    // Hvis det står 0 eller er tomt → gjør feltet klart for skriving
+    if (!e.target.value || e.target.value === '0') {
+      e.target.value = '';
+    }
+  });
+}
+
   // ---------- Init statiske tekster + budsjett ----------
   $('#pageTitle').textContent = defaultConfig.page_title;
   $('#pageSubtitle').textContent = defaultConfig.page_subtitle;
@@ -638,6 +649,13 @@ const defaultCategories = [
     price.setAttribute('aria-label', `Pris for ${item.name}`);
     price.addEventListener('click', (ev) => ev.stopPropagation());
     price.addEventListener('input', (e) => updatePrice(categoryIndex, itemIndex, e.target.value));
+
+    price.addEventListener('focus', (e) => {
+  // Hvis prisen er 0 → marker hele tallet, så det erstattes direkte
+  if (e.target.value === '0') {
+    e.target.select();
+  }
+});
 
     const total = document.createElement('div');
     total.className = 'item-total';
