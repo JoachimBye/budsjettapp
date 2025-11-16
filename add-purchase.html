@@ -176,6 +176,22 @@
         <div id="budgetHint" class="budget-hint" aria-live="polite"></div>
       </div>
 
+      <!-- Kategori -->
+      <div class="form-group">
+        <label class="form-label" for="categoryInput">
+          <span class="form-icon">🏷️</span> Kategori
+        </label>
+        <select class="form-input form-select" id="categoryInput" required>
+          <option value="">Velg kategori…</option>
+          <option value="Mat & dagligvarer">Mat & dagligvarer</option>
+          <option value="Snacks & drikke">Snacks & drikke</option>
+          <option value="Husholdning">Husholdning</option>
+          <option value="Frokost & brød">Frokost & brød</option>
+          <option value="Frukt & grønt">Frukt & grønt</option>
+          <option value="Annet">Annet</option>
+        </select>
+      </div>
+
       <!-- Dato -->
       <div class="form-group">
         <label class="form-label" for="dateInput">
@@ -424,10 +440,11 @@
 
     const amountRaw = document.getElementById('amountInput').value;
     const dateISO   = document.getElementById('dateInput').value;
+    const category  = document.getElementById('categoryInput').value;
 
     const amountFloat = Number(String(amountRaw).replace(',', '.'));
 
-    if (!store || !isFinite(amountFloat) || amountFloat <= 0 || !dateISO) return;
+    if (!store || !isFinite(amountFloat) || amountFloat <= 0 || !dateISO || !category) return;
 
     // Vi lagrer hele kroner i DB (integer)
     const amountInt = Math.round(amountFloat);
@@ -471,7 +488,7 @@
           amount:       amountInt,
           store:        store,
           description:  '',
-          category:     null
+          category:     category
         });
 
       if (insertError) {
@@ -492,7 +509,8 @@
         list.push({
           amount: amountInt,
           store,
-          date: dateISO
+          date: dateISO,
+          category
         });
         localStorage.setItem(localKey, JSON.stringify(list));
       } catch (e) {
