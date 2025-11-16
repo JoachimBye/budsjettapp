@@ -1,408 +1,433 @@
 <!doctype html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ukesrapport – Husholdningsbudsjett</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ukesrapport – Familiebudsjett</title>
   <style>
-    body{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-      height:100%;
-      font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      background:linear-gradient(135deg,#f8fffe 0%,#f0f9f4 100%);
-      overflow-y:auto;
+    body {
+      box-sizing: border-box;
     }
-    html{height:100%;}
-    .container{
-      max-width:800px;
-      margin:0 auto;
-      padding:30px;
-      min-height:100%;
-      display:flex;
-      flex-direction:column;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: inherit;
     }
-    .header{
-      text-align:center;
-      margin-bottom:32px;
-      animation:fadeInDown .6s ease-out;
+    html, body {
+      height: 100%;
     }
-    .title{
-      font-size:32px;
-      font-weight:700;
-      color:#2d5f4d;
-      margin-bottom:10px;
-      line-height:1.3;
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #334155;
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100%;
     }
-    .description{
-      font-size:18px;
-      color:#5a7a6d;
-      line-height:1.5;
-      max-width:600px;
-      margin:0 auto;
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
 
-    .content-section{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      gap:30px;
-      margin-bottom:40px;
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    #mainTitle {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    #weekLabel {
+      color: #3b82f6;
+    }
+    #descriptionText {
+      font-size: 1.2rem;
+      color: #64748b;
+      font-weight: 400;
     }
 
-    .card{
-      background:#fff;
-      border-radius:20px;
-      padding:24px 24px 22px 24px;
-      box-shadow:0 6px 20px rgba(0,0,0,.08);
+    /* Hero Status Card */
+    .hero-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+    .status-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+    #statusEmoji {
+      font-size: 4rem;
+      line-height: 1;
+    }
+    .status-text {
+      flex: 1;
+    }
+    #statusTitle {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+    #statusSubtitle {
+      font-size: 1.2rem;
+      color: #64748b;
+      line-height: 1.5;
     }
 
-    /* --- Uke-kort (enklere struktur) --- */
-    .week-card{
-      animation:fadeInUp .8s ease-out .1s both;
+    /* Thermometer */
+    .thermometer-section {
+      margin-bottom: 32px;
+    }
+    .thermometer {
+      width: 100%;
+      height: 24px;
+      background: #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    #thermoFill {
+      height: 100%;
+      border-radius: 12px;
+      transition: all 0.6s ease;
+      background: #10b981; /* grønn default */
+      width: 0%;
+    }
+    #thermoFill.yellow {
+      background: #f59e0b;
+    }
+    #thermoFill.red {
+      background: #ef4444;
+    }
+    #thermoPercentText {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #64748b;
+      font-weight: 500;
     }
 
-    /* Topp: status */
-    .status-top{
-      margin-bottom:20px;
+    /* Numbers Row */
+    .numbers-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
     }
-    .status-line{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      margin-bottom:4px;
+    .number-block {
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
     }
-    .status-emoji{
-      font-size:26px;
+    .number-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      font-weight: 500;
     }
-    .status-title{
-      font-size:20px;
-      font-weight:700;
-      color:#2d5f4d;
+    .number-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
     }
-    .status-subtitle{
-      margin:0;
-      font-size:16px;
-      color:#5a7a6d;
+    #nrDiffValue.positive {
+      color: #10b981;
     }
-
-    /* Midten: termometer */
-    .thermo{
-      margin:18px 0 18px 0;
-    }
-    .thermo-caption{
-      font-size:14px;
-      color:#5a7a6d;
-      margin-bottom:8px;
-    }
-    .thermo-track{
-      width:100%;
-      height:18px;
-      background:#e8f5f0;
-      border-radius:999px;
-      overflow:hidden;
-      position:relative;
-    }
-    .thermo-fill{
-      height:100%;
-      width:0%;
-      border-radius:999px;
-      transition:width .7s ease-out, background-color .3s ease-out;
-    }
-    .thermo-fill.green{
-      background:#4caf50;
-    }
-    .thermo-fill.yellow{
-      background:#f9a825;
-    }
-    .thermo-fill.red{
-      background:#d32f2f;
-    }
-    .thermo-percent{
-      margin-top:8px;
-      font-size:15px;
-      color:#2d5f4d;
-      font-weight:500;
+    #nrDiffValue.negative {
+      color: #ef4444;
     }
 
-    /* Bunn: én rad med tall */
-    .numbers-row{
-      display:flex;
-      gap:16px;
-      margin-top:10px;
-      flex-wrap:wrap;
-      border-top:1px solid #f0f4f2;
-      padding-top:12px;
+    /* Like Button */
+    .like-section {
+      text-align: right;
     }
-    .numbers-item{
-      flex:1;
-      min-width:120px;
+    #weekLikeBtn {
+      background: none;
+      border: 2px solid #e2e8f0;
+      color: #64748b;
+      padding: 12px 20px;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
     }
-    .numbers-label{
-      font-size:13px;
-      color:#5a7a6d;
-      margin-bottom:2px;
-    }
-    .numbers-value{
-      font-size:18px;
-      font-weight:700;
-      color:#2d5f4d;
-    }
-    .numbers-value.positive{
-      color:#2e7d32;
-    }
-    .numbers-value.negative{
-      color:#d32f2f;
+    #weekLikeBtn:hover {
+      border-color: #3b82f6;
+      color: #3b82f6;
+      background: #eff6ff;
     }
 
-    /* Liten tommel-opp nederst */
-    .status-footer{
-      margin-top:10px;
-      display:flex;
-      justify-content:flex-end;
+    /* Categories Section */
+    .categories-section {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
     }
-    .week-like-link{
-      border:none;
-      background:none;
-      padding:0;
-      font-size:14px;
-      color:#5a7a6d;
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 24px;
     }
-    .week-like-link:hover{
-      color:#2d5f4d;
-      text-decoration:underline;
+    #categoriesGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
     }
-
-    /* Kategorier & innsikter (fra tidligere) */
-    .categories-section{
-      animation:fadeInUp .8s ease-out .2s both;
+    .category-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s ease;
     }
-    .insights-section{
-      animation:fadeInUp .8s ease-out .3s both;
+    .category-item:hover {
+      background: #f1f5f9;
+      transform: translateY(-2px);
     }
-    .section-title{
-      font-size:22px;
-      font-weight:700;
-      color:#2d5f4d;
-      margin-bottom:18px;
-      text-align:center;
+    .category-icon {
+      font-size: 2rem;
+      width: 50px;
+      text-align: center;
     }
-    .categories-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:18px;
+    .category-content {
+      flex: 1;
     }
-    .category-item{
-      text-align:center;
-      padding:16px 12px 18px 12px;
-      background:#fafffe;
-      border-radius:15px;
-      border:2px solid #e8f5f0;
+    .category-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 8px;
     }
-    .category-icon{
-      font-size:34px;
-      margin-bottom:6px;
-      display:block;
+    .category-bar {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 4px;
     }
-    .category-name{
-      font-size:15px;
-      font-weight:600;
-      color:#2d5f4d;
-      margin-bottom:6px;
+    .category-progress {
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+      width: 0%;
     }
-    .category-bar{
-      width:100%;
-      height:8px;
-      background:#e8f5f0;
-      border-radius:4px;
-      overflow:hidden;
-      margin-bottom:6px;
-    }
-    .category-progress{
-      height:100%;
-      background:#4caf50;
-      border-radius:4px;
-      transition:width 1s ease-out .2s;
-    }
-    .category-percentage{
-      font-size:16px;
-      font-weight:700;
-      color:#4caf50;
+    .category-percentage {
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 500;
     }
 
-    .insights-list{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+    /* Insights Section */
+    .insights-section {
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
     }
-    .insight-item{
-      display:flex;
-      align-items:flex-start;
-      gap:10px;
-      padding:14px 12px;
-      background:#f8fffe;
-      border-radius:15px;
-      border-left:4px solid #4caf50;
+    #insightsList {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
-    .insight-icon{
-      font-size:20px;
-      flex-shrink:0;
-      margin-top:1px;
+    .insight-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 16px;
+      border-left: 4px solid #3b82f6;
     }
-    .insight-text{
-      font-size:15px;
-      color:#2d5f4d;
-      line-height:1.5;
-      margin:0;
+    .insight-icon {
+      font-size: 1.5rem;
+      margin-top: 2px;
     }
-
-    /* Knappene nederst */
-    .button-section{
-      text-align:center;
-      animation:fadeInUp .8s ease-out .4s both;
-    }
-    .start-week-button{
-      background:linear-gradient(135deg,#4caf50 0%,#45a049 100%);
-      color:#fff;
-      border:none;
-      padding:18px 48px;
-      font-size:18px;
-      font-weight:700;
-      border-radius:50px;
-      cursor:pointer;
-      box-shadow:0 8px 20px rgba(76,175,80,.3);
-      transition:all .3s ease;
-      margin-bottom:14px;
-    }
-    .start-week-button:hover{
-      transform:translateY(-3px);
-      box-shadow:0 12px 28px rgba(76,175,80,.4);
-      background:linear-gradient(135deg,#45a049 0%,#3d8b40 100%);
-    }
-    .start-week-button:active{transform:translateY(-1px);}
-    .back-button{
-      background:transparent;
-      color:#8a9a8d;
-      border:2px solid #e0e7e3;
-      padding:12px 34px;
-      font-size:15px;
-      font-weight:500;
-      border-radius:30px;
-      cursor:pointer;
-      transition:all .3s ease;
-    }
-    .back-button:hover{
-      background:#f5f8f6;
-      border-color:#c8d4cb;
-      color:#5a7a6d;
+    .insight-text {
+      font-size: 1.1rem;
+      color: #475569;
+      line-height: 1.5;
     }
 
-    @keyframes fadeInDown{
-      from{opacity:0;transform:translateY(-30px);}
-      to{opacity:1;transform:translateY(0);}
+    /* Bottom Buttons */
+    .bottom-buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
     }
-    @keyframes fadeInUp{
-      from{opacity:0;transform:translateY(30px);}
-      to{opacity:1;transform:translateY(0);}
+    #startWeekButton {
+      flex: 2;
+      min-width: 200px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 20px 32px;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    #startWeekButton:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    #backButton {
+      flex: 1;
+      min-width: 150px;
+      background: none;
+      color: #64748b;
+      border: 2px solid #e2e8f0;
+      padding: 20px 32px;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    #backButton:hover {
+      border-color: #3b82f6;
+      color: #3b82f6;
+      background: #eff6ff;
     }
 
-    @media (max-width:768px){
-      .container{padding:20px;}
-      .title{font-size:28px;}
-      .description{font-size:16px;}
-      .categories-grid{grid-template-columns:1fr;}
-      .start-week-button{font-size:17px;padding:16px 40px;}
-      .numbers-row{flex-direction:column;}
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+      #mainTitle {
+        font-size: 2rem;
+      }
+      .hero-card, .categories-section, .insights-section {
+        padding: 24px;
+      }
+      .status-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 16px;
+      }
+      .numbers-row {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .number-block {
+        min-width: auto;
+      }
+      #categoriesGrid {
+        grid-template-columns: 1fr;
+      }
+      .bottom-buttons {
+        flex-direction: column;
+      }
+      #startWeekButton, #backButton {
+        flex: none;
+        min-width: auto;
+      }
     }
   </style>
+
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth-helpers.js"></script>
 </head>
 <body>
-  <main class="container">
-    <div class="header">
-      <h1 class="title" id="mainTitle">Ukesrapport – <span id="weekLabel">Uke</span></h1>
-      <p class="description" id="descriptionText">
-        Oppsummering av ukens forbruk og hvordan dere ligger an.
-      </p>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 id="mainTitle">Ukesrapport – <span id="weekLabel">Uke</span></h1>
+      <p id="descriptionText">Se hvordan uka gikk økonomisk</p>
+    </header>
+
+    <!-- Hero Status Card -->
+    <section class="hero-card">
+      <div class="status-header">
+        <div id="statusEmoji">😊</div>
+        <div class="status-text">
+          <h2 id="statusTitle">Kjempebra uke!</h2>
+          <p id="statusSubtitle">Dere holdt dere godt innenfor budsjettet denne uka.</p>
+        </div>
+      </div>
+
+      <div class="thermometer-section">
+        <div class="thermometer">
+          <div id="thermoFill"></div>
+        </div>
+        <p id="thermoPercentText">Brukt 0 % av budsjettet</p>
+      </div>
+
+      <div class="numbers-row">
+        <div class="number-block">
+          <div class="number-label">Budsjett</div>
+          <div class="number-value" id="nrBudget">0 kr</div>
+        </div>
+        <div class="number-block">
+          <div class="number-label">Brukt</div>
+          <div class="number-value" id="nrSpent">0 kr</div>
+        </div>
+        <div class="number-block">
+          <div class="number-label" id="nrDiffLabel">Igjen</div>
+          <div class="number-value positive" id="nrDiffValue">0 kr</div>
+        </div>
+      </div>
+
+      <div class="like-section">
+        <button id="weekLikeBtn">👍 Gi uka en tommel opp</button>
+      </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories-section">
+      <h2 class="section-title">Hvor gikk pengene?</h2>
+      <div id="categoriesGrid"></div>
+    </section>
+
+    <!-- Insights Section -->
+    <section class="insights-section">
+      <h2 class="section-title">Dette la vi merke til</h2>
+      <div id="insightsList"></div>
+    </section>
+
+    <!-- Bottom Buttons -->
+    <div class="bottom-buttons">
+      <button id="startWeekButton">Start ny uke</button>
+      <button id="backButton">Tilbake til oversikten</button>
     </div>
-
-    <div class="content-section">
-      <!-- Enkelt uke-kort -->
-      <section class="card week-card">
-        <!-- 1. Topp: status -->
-        <div class="status-top">
-          <div class="status-line">
-            <span class="status-emoji" id="statusEmoji">🕒</span>
-            <span class="status-title" id="statusTitle">Rolig uke så langt</span>
-          </div>
-          <p class="status-subtitle" id="statusSubtitle">
-            Ingen registrerte kjøp enda denne uka.
-          </p>
-        </div>
-
-        <!-- 2. Midten: termometer -->
-        <div class="thermo">
-          <div class="thermo-caption">
-            Slik ligger dere an mot ukens budsjett
-          </div>
-          <div class="thermo-track">
-            <div class="thermo-fill" id="thermoFill"></div>
-          </div>
-          <div class="thermo-percent" id="thermoPercentText">
-            Brukt 0 % av budsjettet
-          </div>
-        </div>
-
-        <!-- 3. Bunn: én rad med tall -->
-        <div class="numbers-row">
-          <div class="numbers-item">
-            <div class="numbers-label">Budsjett</div>
-            <div class="numbers-value" id="nrBudget">0 kr</div>
-          </div>
-          <div class="numbers-item">
-            <div class="numbers-label">Brukt</div>
-            <div class="numbers-value" id="nrSpent">0 kr</div>
-          </div>
-          <div class="numbers-item">
-            <div class="numbers-label" id="nrDiffLabel">Igjen</div>
-            <div class="numbers-value positive" id="nrDiffValue">0 kr</div>
-          </div>
-        </div>
-
-        <!-- 4. Liten feel-good nederst -->
-        <div class="status-footer">
-          <button class="week-like-link" id="weekLikeBtn">
-            👍 Gi denne uka en tommel opp
-          </button>
-        </div>
-      </section>
-
-      <!-- Kategorier -->
-      <section class="card categories-section">
-        <h2 class="section-title">Hvor gikk pengene?</h2>
-        <div class="categories-grid" id="categoriesGrid"></div>
-      </section>
-
-      <!-- Innsikter -->
-      <section class="card insights-section">
-        <h2 class="section-title">Dette la vi merke til</h2>
-        <div class="insights-list" id="insightsList"></div>
-      </section>
-    </div>
-
-    <div class="button-section">
-      <button class="start-week-button" id="startWeekButton">Start ny uke</button><br/>
-      <button class="back-button" id="backButton">Tilbake til oversikten</button>
-    </div>
-  </main>
+  </div>
 
 <script>
 (function () {
@@ -422,44 +447,47 @@
   };
 
   // ---------- Utils ----------
-  function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
+  function formatAmount(n) {
+    return (Number(n) || 0).toLocaleString('no-NO');
+  }
 
-  function mondayOf(dateObj = new Date()){
+  function mondayOf(dateObj = new Date()) {
     const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const day = (d.getDay()+6)%7; // 0=mandag
-    d.setDate(d.getDate()-day);
-    d.setHours(12,0,0,0); // 12:00 for DST-sikkerhet
+    const day = (d.getDay() + 6) % 7; // 0 = mandag
+    d.setDate(d.getDate() - day);
+    d.setHours(12, 0, 0, 0);
     return d;
   }
-  function sundayOf(dateObj = new Date()){
-    const m = mondayOf(dateObj);
-    const s = new Date(m); s.setDate(m.getDate()+6); return s;
-  }
-  function weekNumberISO(dateObj = new Date()){
+
+  function weekNumberISO(dateObj = new Date()) {
     const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
     return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
   }
-  function weekLabelFromISO(isoMonday){
-    const [y,m,d] = isoMonday.split('-').map(Number);
-    const mon = new Date(y, m-1, d, 12,0,0,0);
-    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
-    const nf = new Intl.DateTimeFormat('no-NO',{ day:'numeric', month:'long' });
+
+  function weekLabelFromISO(isoMonday) {
+    const [y, m, d] = isoMonday.split('-').map(Number);
+    const mon = new Date(y, m - 1, d, 12, 0, 0, 0);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    const nf = new Intl.DateTimeFormat('no-NO', { day: 'numeric', month: 'long' });
     const wn = weekNumberISO(mon);
     return `Uke ${wn} – ${nf.format(mon)}–${nf.format(sun)}`;
   }
-  function safeGet(key, fallback){
+
+  function safeGet(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
     catch { return fallback; }
   }
-  function getActiveWeekISO(){
-    return localStorage.getItem('activeWeekISO') || mondayOf().toISOString().slice(0,10);
+
+  function getActiveWeekISO() {
+    return localStorage.getItem('activeWeekISO') || mondayOf().toISOString().slice(0, 10);
   }
 
-  function guessIcon(name){
-    const n = (name||'').toLowerCase();
+  function guessIcon(name) {
+    const n = (name || '').toLowerCase();
     if (n.includes('mat')) return '🥕';
     if (n.includes('snacks') || n.includes('drikke') || n.includes('brus') || n.includes('godt')) return '🍫';
     if (n.includes('hushold')) return '🧼';
@@ -468,13 +496,14 @@
     if (n.includes('frukt') || n.includes('grønt')) return '🍎';
     return '🧺';
   }
-  function escapeHTML(str){
+
+  function escapeHTML(str) {
     return String(str)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#039;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   // ---------- Hent budsjett + kjøp ----------
@@ -548,244 +577,237 @@
       }
     }
 
-    // Local fallback-kjøp
+    // Local fallback
     const localKey = `purchases_${weekISO}`;
     const localPurchases = safeGet(localKey, []);
 
     purchases = [...dbRows, ...localPurchases];
 
-    const spent = purchases.reduce((s,p)=> s + (Number(p.amount)||0), 0);
+    const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
     const saved = Math.max(0, totalBudget - spent);
-    const pct   = totalBudget>0 ? Math.round(spent/totalBudget*100) : 0;
+    const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
 
-    const byCategory = purchases.reduce((acc,p)=>{
+    const byCategory = purchases.reduce((acc, p) => {
       const cat = (p.category && String(p.category).trim()) || 'Uten kategori';
-      acc[cat] = (acc[cat]||0) + (Number(p.amount)||0);
+      acc[cat] = (acc[cat] || 0) + (Number(p.amount) || 0);
       return acc;
     }, {});
 
     state.totalBudget = totalBudget;
-    state.spent       = spent;
-    state.saved       = saved;
-    state.pct         = pct;
-    state.byCategory  = byCategory;
+    state.spent = spent;
+    state.saved = saved;
+    state.pct = pct;
+    state.byCategory = byCategory;
 
-    // Speil litt til localStorage
     localStorage.setItem('budget_total', String(totalBudget));
     localStorage.setItem('activeWeekISO', weekISO);
   }
 
-  // ---------- Render header ----------
-  function renderHeader(){
-    const weekLabel = document.getElementById('weekLabel');
-    if (weekLabel && state.weekISO){
-      weekLabel.textContent = weekLabelFromISO(state.weekISO);
-    }
+  // ---------- Render: header ----------
+  function renderHeader() {
+    const label = weekLabelFromISO(state.weekISO);
+    document.getElementById('weekLabel').textContent = label;
+    // Du kan tweake denne teksten senere om du vil
+    document.getElementById('descriptionText').textContent =
+      'På denne siden ser dere kort hvordan uka gikk, og hva dere kan tenke på til neste uke.';
   }
 
-  // ---------- Render uke-kort ----------
-  function renderOverview(){
-    const b = state.totalBudget || 0;
-    const s = state.spent || 0;
-    const saved = Math.max(0, b - s);
-    const over = Math.max(0, s - b);
-    const pctUsedRaw = b > 0 ? Math.round((s / b) * 100) : 0;
-    const pctUsed = Math.max(0, pctUsedRaw);
+  // ---------- Render: hero/overview ----------
+  function renderOverview() {
+    const budget = state.totalBudget;
+    const spent = state.spent;
+    const saved = state.saved;
+    const pctRaw = budget > 0 ? (spent / budget) * 100 : 0;
+    const pct = Math.max(0, Math.round(pctRaw));
+    const overAmount = Math.max(0, spent - budget);
 
-    const statusEmojiEl = document.getElementById('statusEmoji');
-    const statusTitleEl = document.getElementById('statusTitle');
-    const statusSubtitleEl = document.getElementById('statusSubtitle');
-    const thermoFill = document.getElementById('thermoFill');
-    const thermoPercentText = document.getElementById('thermoPercentText');
-    const nrBudget = document.getElementById('nrBudget');
-    const nrSpent = document.getElementById('nrSpent');
-    const nrDiffLabel = document.getElementById('nrDiffLabel');
-    const nrDiffValue = document.getElementById('nrDiffValue');
+    // Tall
+    document.getElementById('nrBudget').textContent = `${formatAmount(budget)} kr`;
+    document.getElementById('nrSpent').textContent = `${formatAmount(spent)} kr`;
 
-    if (!thermoFill) return;
+    const diffLabelEl = document.getElementById('nrDiffLabel');
+    const diffValueEl = document.getElementById('nrDiffValue');
+    diffValueEl.classList.remove('positive', 'negative');
 
-    // Tall i bunnen
-    if (nrBudget) nrBudget.textContent = `${formatAmount(b)} kr`;
-    if (nrSpent) nrSpent.textContent = `${formatAmount(s)} kr`;
-
-    if (over > 0) {
-      if (nrDiffLabel) nrDiffLabel.textContent = 'Over';
-      if (nrDiffValue) {
-        nrDiffValue.textContent = `${formatAmount(over)} kr`;
-        nrDiffValue.classList.remove('positive');
-        nrDiffValue.classList.add('negative');
-      }
+    if (spent === 0) {
+      diffLabelEl.textContent = 'Igjen';
+      diffValueEl.textContent = `${formatAmount(budget)} kr`;
+      diffValueEl.classList.add('positive');
+    } else if (spent <= budget) {
+      diffLabelEl.textContent = 'Igjen';
+      diffValueEl.textContent = `${formatAmount(saved)} kr`;
+      diffValueEl.classList.add('positive');
     } else {
-      if (nrDiffLabel) nrDiffLabel.textContent = 'Igjen';
-      if (nrDiffValue) {
-        nrDiffValue.textContent = `${formatAmount(saved)} kr`;
-        nrDiffValue.classList.remove('negative');
-        nrDiffValue.classList.add('positive');
-      }
+      diffLabelEl.textContent = 'Over';
+      diffValueEl.textContent = `${formatAmount(overAmount)} kr`;
+      diffValueEl.classList.add('negative');
     }
 
-    // Termometer-bredde
-    let widthPct = 0;
-    if (b > 0 && s > 0) {
-      widthPct = Math.min(100, Math.max(5, pctUsed)); // minst litt synlig hvis brukt >0
-    }
-    thermoFill.style.width = widthPct + '%';
+    // Termometer
+    const thermoFill = document.getElementById('thermoFill');
+    thermoFill.classList.remove('yellow', 'red');
+    const width = Math.max(0, Math.min(100, pct));
+    thermoFill.style.width = `${width}%`;
+    document.getElementById('thermoPercentText').textContent =
+      `Brukt ${Math.min(pct, 200)} % av budsjettet`;
 
-    // Termometer-farge
-    thermoFill.classList.remove('green','yellow','red');
-    if (s === 0) {
-      // ingen farge, bare lys bakgrunn
-    } else if (pctUsed <= 90) {
-      thermoFill.classList.add('green');
-    } else if (pctUsed <= 110) {
+    if (spent === 0) {
+      // helt rolig
+    } else if (pct <= 90) {
+      // grønn (default)
+    } else if (pct <= 110) {
       thermoFill.classList.add('yellow');
     } else {
       thermoFill.classList.add('red');
     }
 
-    if (thermoPercentText) {
-      const pctText = Math.max(0, Math.round(pctUsed));
-      thermoPercentText.textContent = `Brukt ${pctText}% av budsjettet`;
-    }
+    // Status-tekst + emoji
+    const statusEmoji = document.getElementById('statusEmoji');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusSubtitle = document.getElementById('statusSubtitle');
 
-    // Status-tekst (topp)
-    if (s === 0) {
-      if (statusEmojiEl) statusEmojiEl.textContent = '🕒';
-      if (statusTitleEl) statusTitleEl.textContent = 'Rolig uke så langt';
-      if (statusSubtitleEl) statusSubtitleEl.textContent =
-        'Ingen registrerte kjøp enda denne uka.';
-    } else if (over <= 0 && pctUsed <= 90) {
-      if (statusEmojiEl) statusEmojiEl.textContent = '👏';
-      if (statusTitleEl) statusTitleEl.textContent = 'Kjempebra uke!';
-      if (statusSubtitleEl) statusSubtitleEl.textContent =
-        `Dere har brukt ${formatAmount(s)} kr og har ${formatAmount(saved)} kr igjen.`;
-    } else if (over <= 0) {
-      if (statusEmojiEl) statusEmojiEl.textContent = '👍';
-      if (statusTitleEl) statusTitleEl.textContent = 'God kontroll';
-      if (statusSubtitleEl) statusSubtitleEl.textContent =
-        'Dere ligger omtrent på budsjett denne uka.';
+    if (spent === 0) {
+      statusEmoji.textContent = '🕒';
+      statusTitle.textContent = 'Rolig uke så langt';
+      statusSubtitle.textContent =
+        'Ingen registrerte kjøp enda. Når dere handler og legger inn beløp, vil dere se hvordan dere ligger an.';
+    } else if (spent <= budget && pct <= 90) {
+      statusEmoji.textContent = '👏';
+      statusTitle.textContent = 'Kjempebra uke!';
+      statusSubtitle.textContent =
+        `Dere ligger under budsjettet og har ${formatAmount(saved)} kr igjen denne uka.`;
+    } else if (spent <= budget && pct > 90) {
+      statusEmoji.textContent = '👍';
+      statusTitle.textContent = 'Nesten helt på budsjett';
+      statusSubtitle.textContent =
+        `Dere bruker nesten hele budsjettet. Det er ${formatAmount(saved)} kr igjen å spille på.`;
     } else {
-      if (statusEmojiEl) statusEmojiEl.textContent = '⚠️';
-      if (statusTitleEl) statusTitleEl.textContent = 'Litt dyrere uke';
-      if (statusSubtitleEl) statusSubtitleEl.textContent =
-        `Dere brukte ca. ${formatAmount(over)} kr mer enn planlagt.`;
+      statusEmoji.textContent = '💡';
+      statusTitle.textContent = 'Litt dyrere uke';
+      statusSubtitle.textContent =
+        `Budsjettet sprakk med ${formatAmount(overAmount)} kr. Ingen krise – vi ser på hvor pengene gikk.`;
     }
   }
 
-  // ---------- Render kategorier ----------
-  function renderCategories(){
+  // ---------- Render: kategorier ----------
+  function renderCategories() {
     const grid = document.getElementById('categoriesGrid');
-    if (!grid) return;
     grid.innerHTML = '';
 
-    const entries = Object.entries(state.byCategory).sort((a,b)=> b[1]-a[1]);
+    const entries = Object.entries(state.byCategory).sort((a, b) => b[1] - a[1]);
     const total = Math.max(1, state.spent);
 
-    if (entries.length === 0){
+    if (entries.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'insight-item';
-      empty.innerHTML = `<span class="insight-icon">ℹ️</span>
-        <p class="insight-text">Ingen registrerte kjøp denne uken ennå.</p>`;
+      empty.innerHTML = `
+        <div class="insight-icon">ℹ️</div>
+        <div class="insight-text">Ingen registrerte kjøp denne uken ennå.</div>
+      `;
       grid.appendChild(empty);
       return;
     }
 
-    entries.forEach(([name, value])=>{
-      const percent = Math.round((value/total)*100);
+    entries.forEach(([name, value]) => {
+      const percent = Math.round((value / total) * 100);
       const item = document.createElement('div');
       item.className = 'category-item';
       item.innerHTML = `
-        <span class="category-icon">${guessIcon(name)}</span>
-        <div class="category-name">${escapeHTML(name)}</div>
-        <div class="category-bar">
-          <div class="category-progress" style="width:${percent}%"></div>
+        <div class="category-icon">${guessIcon(name)}</div>
+        <div class="category-content">
+          <div class="category-name">${escapeHTML(name)}</div>
+          <div class="category-bar">
+            <div class="category-progress" style="width:${percent}%;"></div>
+          </div>
+          <div class="category-percentage">${percent} %</div>
         </div>
-        <div class="category-percentage">${percent}%</div>
       `;
       grid.appendChild(item);
     });
   }
 
-  // ---------- Innsikter ----------
-  function addInsight(icon, text){
+  // ---------- Render: innsikter ----------
+  function addInsight(icon, text) {
     const li = document.createElement('div');
     li.className = 'insight-item';
-    li.innerHTML = `<span class="insight-icon">${icon}</span><p class="insight-text">${escapeHTML(text)}</p>`;
+    li.innerHTML = `
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-text">${escapeHTML(text)}</div>
+    `;
     document.getElementById('insightsList').appendChild(li);
   }
 
-  function renderInsights(){
+  function renderInsights() {
     const list = document.getElementById('insightsList');
-    if (!list) return;
     list.innerHTML = '';
 
-    const b = state.totalBudget || 0;
-    const s = state.spent || 0;
-    const saved = Math.max(0, b - s);
-    const over = Math.max(0, s - b);
+    const budget = state.totalBudget;
+    const spent = state.spent;
+    const saved = state.saved;
 
-    if (s === 0){
-      addInsight('🕒', 'Ingen registrerte kjøp enda – husk å loggføre handlekvitteringer når dere handler.');
-    } else if (over > 0){
-      addInsight('⚠️', `Budsjettet er overskredet med ${formatAmount(over)} kr. Vurder å redusere snacks/drikke eller dyre småturer neste uke.`);
-    } else if (saved > 0){
-      addInsight('👏', `Bra kontroll! Dere brukte under budsjett og sparte ${formatAmount(saved)} kr denne uken.`);
+    if (spent === 0) {
+      addInsight('🕒', 'Ingen registrerte kjøp enda – husk å legge inn handlebeløp når dere har vært i butikken.');
+    } else if (spent > budget) {
+      const over = spent - budget;
+      addInsight('⚠️', `Budsjettet er overskredet med ${formatAmount(over)} kr denne uken.`);
+    } else if (saved > 0) {
+      addInsight('👏', `Bra kontroll! Dere brukte mindre enn budsjettet og sparte ${formatAmount(saved)} kr.`);
     } else {
-      addInsight('💡', 'Stabil uke. Fortsett med planlagte handler – grunnvarer på tilbud gir best effekt.');
+      addInsight('💡', 'Stabil uke. Dere traff omtrent på budsjettet.');
     }
 
-    const entries = Object.entries(state.byCategory).sort((a,b)=> b[1]-a[1]);
-    if (entries.length >= 1){
+    const entries = Object.entries(state.byCategory).sort((a, b) => b[1] - a[1]);
+    if (entries.length >= 1) {
       const [topCat, topVal] = entries[0];
-      addInsight('🎯', `Størst andel gikk til «${topCat}» (${Math.round((topVal/Math.max(1,state.spent))*100)}%).`);
+      const pct = Math.round((topVal / Math.max(1, state.spent)) * 100);
+      addInsight('🎯', `Størst andel gikk til «${topCat}» (${pct} %).`);
     }
-    if (entries.length >= 2){
-      const [lowCat, lowVal] = entries[entries.length-1];
-      addInsight('👍', `Lav andel på «${lowCat}» (${Math.round((lowVal/Math.max(1,state.spent))*100)}%).`);
+    if (entries.length >= 2) {
+      const [lowCat, lowVal] = entries[entries.length - 1];
+      const pct = Math.round((lowVal / Math.max(1, state.spent)) * 100);
+      addInsight('👍', `Lav andel på «${lowCat}» (${pct} %).`);
     }
   }
 
-  // ---------- Knappene nederst ----------
-  function setupButtons(){
-    const startBtn = document.getElementById('startWeekButton');
-    const backBtn  = document.getElementById('backButton');
-    const likeBtn  = document.getElementById('weekLikeBtn');
+  // ---------- Knapper ----------
+  function setupButtons() {
+    document.getElementById('startWeekButton').addEventListener('click', () => {
+      const thisMon = new Date(state.weekISO + 'T12:00:00');
+      const nextMon = new Date(thisMon);
+      nextMon.setDate(thisMon.getDate() + 7);
+      const nextISO = nextMon.toISOString().slice(0, 10);
 
-    if (startBtn){
-      startBtn.addEventListener('click', ()=>{
-        const thisMon = new Date(state.weekISO + 'T12:00:00');
-        const nextMon = new Date(thisMon);
-        nextMon.setDate(thisMon.getDate()+7);
-        const nextISO = nextMon.toISOString().slice(0,10);
+      localStorage.setItem(`weeklyBudget_${nextISO}`, String(state.totalBudget));
+      localStorage.setItem('weeklyBudget', String(state.totalBudget));
+      localStorage.setItem(`purchases_${nextISO}`, '[]');
+      localStorage.setItem('lastClosedWeekISO', state.weekISO);
+      localStorage.setItem('activeWeekISO', nextISO);
 
-        localStorage.setItem(`weeklyBudget_${nextISO}`, String(state.totalBudget));
-        localStorage.setItem('weeklyBudget', String(state.totalBudget));
-        localStorage.setItem(`purchases_${nextISO}`, '[]');
-        localStorage.setItem('lastClosedWeekISO', state.weekISO);
-        localStorage.setItem('activeWeekISO', nextISO);
+      window.location.href = 'app.html';
+    });
 
-        window.location.href = 'app.html';
-      });
-    }
+    document.getElementById('backButton').addEventListener('click', () => {
+      window.location.href = 'app.html';
+    });
 
-    if (backBtn){
-      backBtn.addEventListener('click', ()=>{
-        window.location.href = 'app.html';
-      });
-    }
-
-    if (likeBtn){
-      likeBtn.addEventListener('click', ()=>{
-        likeBtn.textContent = 'Takk! 👍';
-        likeBtn.disabled = true;
-        likeBtn.style.opacity = '0.85';
-      });
-    }
+    // Feel-good like-knapp (kun UI, ingen lagring nødvendig)
+    const likeBtn = document.getElementById('weekLikeBtn');
+    likeBtn.addEventListener('click', () => {
+      likeBtn.disabled = true;
+      const original = likeBtn.textContent;
+      likeBtn.textContent = 'Takk! 👍';
+      likeBtn.style.transform = 'scale(1.05)';
+      setTimeout(() => {
+        likeBtn.textContent = original;
+        likeBtn.style.transform = 'scale(1)';
+        likeBtn.disabled = false;
+      }, 1200);
+    });
   }
 
   // ---------- Init ----------
-  async function init(){
-    // Auth guard (hvis brukt)
+  async function init() {
+    // Auth guard hvis du bruker det andre steder
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
     }
