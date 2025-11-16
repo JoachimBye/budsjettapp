@@ -421,48 +421,192 @@
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ---------- Coach overlay (intro) ----------
-  const COACH_SEEN_KEY = 'addPurchase_coach_seen_v1';
+// ---------- Coach overlay (intro) ----------
+const COACH_SEEN_KEY = 'addPurchase_coach_seen_v1';
 
-  let coachActive = false;
-  let coachCurrentStep = 0;
-  let prevBodyOverflow = '';
+let coachActive = false;
+let coachCurrentStep = 0;
+let prevBodyOverflow = '';
 
-  const coachOverlay     = document.getElementById('coachOverlay');
-  const coachHighlight   = document.getElementById('coachHighlight');
-  const coachTooltip     = document.getElementById('coachTooltip');
-  const coachTitleEl     = document.getElementById('coachTitle');
-  const coachTextEl      = document.getElementById('coachText');
-  const coachStepLabelEl = document.getElementById('coachStepLabel');
-  const coachSkipBtn     = document.getElementById('coachSkipBtn');
-  const coachPrevBtn     = document.getElementById('coachPrevBtn');
-  const coachNextBtn     = document.getElementById('coachNextBtn');
+let coachOverlay;
+let coachHighlight;
+let coachTooltip;
+let coachTitleEl;
+let coachTextEl;
+let coachStepLabelEl;
+let coachSkipBtn;
+let coachPrevBtn;
+let coachNextBtn;
 
-  const coachSteps = [
-    {
-      id: 'store',
-      selector: '#storeInput',
-      title: 'Hvor handlet du?',
-      text:  'Velg butikken du handlet i. Om det ikke er på lista kan du velge "Annet" og skrive navnet selv.',
-    },
-    {
-      id: 'amount',
-      selector: '#amountInput',
-      title: 'Hvor mye brukte du?',
-      text:  'Skriv inn totalsummen fra kvitteringen. Vi viser samtidig hvordan det påvirker ukesbudsjettet ditt.',
-    },
-    {
-      id: 'date',
-      selector: '#dateInput',
-      title: 'Når var kjøpet?',
-      text:  'Sjekk at datoen stemmer.',
-    },
-    {
-      id: 'save',
-      selector: '#saveButton',
-      title: 'Lagre kjøpet',
-      text:  'Når alt ser riktig ut trykker du her. Kjøpet lagres og budsjettet oppdateres i oversikten.',
-    },
-  ];
+const coachSteps = [
+  {
+    id: 'store',
+    selector: '#storeInput',
+    title: 'Hvor handlet du?',
+    text:  'Velg butikken du handlet i. Om det ikke er på lista kan du velge "Annet" og skrive navnet selv.',
+  },
+  {
+    id: 'amount',
+    selector: '#amountInput',
+    title: 'Hvor mye brukte du?',
+    text:  'Skriv inn totalsummen fra kvitteringen. Vi viser samtidig hvordan det påvirker ukesbudsjettet ditt.',
+  },
+  {
+    id: 'date',
+    selector: '#dateInput',
+    title: 'Når var kjøpet?',
+    text:  'Sjekk at datoen stemmer.',
+  },
+  {
+    id: 'save',
+    selector: '#saveButton',
+    title: 'Lagre kjøpet',
+    text:  'Når alt ser riktig ut trykker du her. Kjøpet lagres og budsjettet oppdateres i oversikten.',
+  },
+];
+
+function positionCoachForElement(el) {
+  if (!el || !coachHighlight || !coachTooltip) return;
+
+  const rect = el.getBoundingClientRect();
+  const padding = 8;
+
+  const left   = rect.left - padding;
+  const top    = rect.top  - padding;
+  const width  = rect.width  + padding * 2;
+  const height = rect.height + padding * 2;
+
+  coachHighlight.style.left   = `${left}px`;
+  coachHighlight.style.top    = `${top}px`;
+  coachHighlight.style.width  = `${width}px`;
+  coachHighlight.style.height = `${height}px`;
+
+  coachTooltip.style.left = '50%';
+  coachTooltip.style.transform = 'translateX(-50%)';
+
+  requestAnimationFrame(() => {
+    const ttRect = coachTooltip.getBoundingClientRect();
+    const viewportH = window.innerHeight || document.documentElement.clientHeight;
+    const placeAbove = rect.top > viewportH / 2;
+
+    let ttTop;
+    if (placeAbove) {
+      ttTop = Math.max(16, rect.top - ttRect.height - 16);
+    } else {
+      ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
+    }
+    coachTooltip.style.top = `${ttTop}px`;
+  });
+}
+
+function goToCoachStep(index) {
+  if (!coachOverlay) return;
+
+  if (index < 0 || index >= coachSteps.length) {
+    endCoachTour();
+    return;
+  }
+
+  coachCurrentStep = index;
+  const step = coachSteps[coachCurrentStep];
+  const target = document.querySelector(step.selector);
+
+  if (!target) {
+    // Hopper videre hvis elementet mangler
+    if (coachCurrentStep < coachSteps.length - 1) {
+      goToCoachStep(coachCurrentStep + 1);
+    } else {
+      endCoachTour();
+    }
+    return;
+  }
+
+  coachTitleEl.textContent = step.title;
+  coachTextEl.textContent  = step.text;
+  coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
+
+  coachPrevBtn.disabled = coachCurrentStep === 0;
+  coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
+
+  // 1) Scroll elementet inn midt på skjermen
+  target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+  // 2) Etter litt tid → posisjoner highlight + tooltip
+  setTimeout(() => {
+    positionCoachForElement(target);
+  }, 350);
+}
+
+function startCoachTour() {
+  if (!coachOverlay) return;
+  coachActive = true;
+  coachOverlay.style.display = 'block';
+  prevBodyOverflow = document.body.style.overflow || '';
+  document.body.style.overflow = 'hidden';
+  goToCoachStep(0);
+}
+
+function endCoachTour() {
+  coachActive = false;
+  if (coachOverlay) coachOverlay.style.display = 'none';
+  document.body.style.overflow = prevBodyOverflow || '';
+  try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+}
+
+function shouldStartCoachTour() {
+  try {
+    return localStorage.getItem(COACH_SEEN_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}
+
+function initCoach() {
+  coachOverlay     = document.getElementById('coachOverlay');
+  coachHighlight   = document.getElementById('coachHighlight');
+  coachTooltip     = document.getElementById('coachTooltip');
+  coachTitleEl     = document.getElementById('coachTitle');
+  coachTextEl      = document.getElementById('coachText');
+  coachStepLabelEl = document.getElementById('coachStepLabel');
+  coachSkipBtn     = document.getElementById('coachSkipBtn');
+  coachPrevBtn     = document.getElementById('coachPrevBtn');
+  coachNextBtn     = document.getElementById('coachNextBtn');
+
+  if (!coachOverlay || !coachTooltip) return;
+
+  if (coachSkipBtn) {
+    coachSkipBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      endCoachTour();
+    });
+  }
+  if (coachPrevBtn) {
+    coachPrevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (coachCurrentStep > 0) {
+        goToCoachStep(coachCurrentStep - 1);
+      }
+    });
+  }
+  if (coachNextBtn) {
+    coachNextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (coachCurrentStep < coachSteps.length - 1) {
+        goToCoachStep(coachCurrentStep + 1);
+      } else {
+        endCoachTour();
+      }
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (!coachActive) return;
+    const step = coachSteps[coachCurrentStep];
+    if (!step) return;
+    const target = document.querySelector(step.selector);
+    if (target) positionCoachForElement(target);
+  });
+}
 
   // ---------- Kategorier fra settings.html (localStorage) ----------
   const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
@@ -695,13 +839,6 @@
     });
   }
 
-  window.addEventListener('resize', () => {
-    if (!coachActive) return;
-    const step = coachSteps[coachCurrentStep];
-    if (!step) return;
-    const target = document.querySelector(step.selector);
-    if (target) positionCoachForElement(target);
-  });
 
   // ---------- Hent budsjett + brukt fra Supabase for gitt dato ----------
   async function loadWeekDataFor(date){
@@ -1109,6 +1246,7 @@
     // Init UI
     updateBudgetHint();
     updateOtherStoreVisibility();
+    initCoach();
 
     // Start liten intro første gang
     if (shouldStartCoachTour()) {
