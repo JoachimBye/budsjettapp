@@ -304,17 +304,43 @@
 
     try {
       const { data:{ session } } = await supa.auth.getSession();
+
       if (session) {
-        const { data, error } = await supa
+        // Først: prøv household_budgets (uke-spesifikt)
+        const { data: budgetRow, error: bErr } = await supa
           .from('household_budgets')
           .select('amount')
           .eq('user_id', session.user.id)
           .eq('week_start', iso)
           .maybeSingle();
 
-        if (!error && data && typeof data.amount === 'number') {
-          budget = data.amount;
+        if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
+          budget = budgetRow.amount;
+        } else {
+          // Hvis ingen rad for denne uka → bruk husstandens standardbudsjett
+          const { data: member, error: mErr } = await supa
+            .from('members')
+            .select('household_id')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (!mErr && member?.household_id) {
+            const { data: household, error: hErr } = await supa
+              .from('households')
+              .select('default_weekly_budget')
+              .eq('id', member.household_id)
+              .maybeSingle();
+
+            if (!hErr && household && typeof household.default_weekly_budget === 'number') {
+              budget = household.default_weekly_budget;
+            }
+          }
+        }
+
+        // Speil uansett siste “sanne” budsjett til localStorage
+        if (budget) {
           localStorage.setItem(`weeklyBudget_${iso}`, String(budget));
+          localStorage.setItem('weeklyBudget', String(budget));
         }
       }
     } catch (err) {
