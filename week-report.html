@@ -331,6 +331,7 @@
       color: #1e293b;
       font-size: 14px;
       line-height: 1.4;
+      transition: opacity 0.25s ease, top 0.25s ease;
     }
 
     .coach-title {
@@ -580,6 +581,7 @@
     coachHighlight.style.top    = `${top}px`;
     coachHighlight.style.width  = `${width}px`;
     coachHighlight.style.height = `${height}px`;
+    coachHighlight.style.opacity = 1;
 
     coachTooltip.style.left = '50%';
     coachTooltip.style.transform = 'translateX(-50%)';
@@ -596,6 +598,7 @@
         ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
       }
       coachTooltip.style.top = `${ttTop}px`;
+      coachTooltip.style.opacity = 1;
     });
   }
 
@@ -617,6 +620,9 @@
     }
     return;
   }
+
+  if (coachTooltip) coachTooltip.style.opacity = 0;
+  if (coachHighlight) coachHighlight.style.opacity = 0;
 
   coachTitleEl.textContent = step.title;
   coachTextEl.textContent  = step.text;
@@ -851,11 +857,13 @@
     const localKey = `purchases_${weekISO}`;
     const localPurchases = safeGet(localKey, []);
 
-    if (session && dbRows.length > 0) {
-      purchases = dbRows;
-    } else {
-      purchases = localPurchases;
-    }
+    if (session) {
+      purchases = dbRows; // Bruk alltid DB-data hvis logget inn (selv om listen er tom)
+    } else {
+      purchases = localPurchases; // Bruk lokal data kun hvis ikke logget inn
+    }
+
+ 
 
     const spent = purchases.reduce((s, p) => s + (Number(p.amount) || 0), 0);
     const saved = Math.max(0, totalBudget - spent);
