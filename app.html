@@ -113,15 +113,23 @@
       max-width:80%;
     }
 
-    /* Ny hero: IGJEN */
-    .remaining-amount{
-      font-size:36px;
-      font-weight:800;
-      color:#4caf50;
-      margin:0 0 4px 0;
-    }
-    .remaining-amount.warn{color:#f9a825;}
-    .remaining-amount.over{color:#d32f2f;}
+
+    /* Ny hero: IGJEN – alltid god kontrast mot ringen */
+.remaining-amount{
+  font-size:36px;
+  font-weight:800;
+  color:#2d5f4d;   /* mørk, lesbar tekst */
+  margin:0 0 4px 0;
+}
+
+/* brukes bare hvis du vil ha litt fargestemning i tillegg */
+.remaining-amount.warn{color:#7c5a00;}   /* mørkere “gul/brun” */
+.remaining-amount.over{color:#ffffff;}   /* hvit tekst på rød ring */
+
+.remaining-text.warn{color:#7c5a00;}
+.remaining-text.over{color:#ffffff;}
+
+
 
     .remaining-text{
       font-size:16px;
@@ -590,48 +598,63 @@ function updateBudgetDisplay() {
   const remainingRaw = total > 0 ? (total - spent) : 0;
   state.remaining = remainingRaw;
 
+  // Oppdater "Brukt X av Y"
   if (spentSummaryEl) {
     spentSummaryEl.textContent = `Brukt ${formatAmount(spent)} kr av ${formatAmount(total)} kr`;
   }
 
-  let color = '#4caf50';
+  // Reset tekstfarger til "normal" hver gang
+  remainingElement.style.color = '#2d5f4d';
+  remainingText.style.color    = '#2d5f4d';
+  remainingElement.classList.remove('warn','over');
+  remainingText.classList.remove('warn','over');
+
+  let color  = '#4caf50';   // ring-farge
   let ringDeg = 0;
   let status = 'Bra kontroll så langt 💪';
 
-  remainingElement.classList.remove('over','warn');
-
   if (total > 0) {
-    const ratioSpent      = spent / total;                  // brukt-andel
-    const ratioRemaining  = Math.max(0, remainingRaw / total); // igjen-andel (0–1)
-    ringDeg = Math.min(360, Math.max(0, ratioRemaining * 360));
+    const ratio = spent / total;
+    ringDeg = Math.min(360, Math.max(0, ratio * 360));
 
-    if (ratioSpent >= 1.0) {
-      // Over budsjett: full rød ring
+    if (ratio >= 1.0) {
+      // OVER budsjett – full rød ring, hvit tekst for maks kontrast
       color = '#d32f2f';
       ringDeg = 360;
+
       remainingElement.classList.add('over');
+      remainingText.classList.add('over');
       remainingElement.textContent = `${formatAmount(Math.abs(remainingRaw))} kr`;
-      remainingText.textContent = 'overskredet';
+      remainingText.textContent    = 'overskredet';
+
       status = 'Over budsjett – kutt kostnader 💸';
-    } else if (ratioSpent >= 0.9) {
-      // Nesten brukt opp
+
+    } else if (ratio >= 0.9) {
+      // NÆR budsjett – gul ring, mørk gul/brun tekst
       color = '#f9a825';
+
       remainingElement.classList.add('warn');
+      remainingText.classList.add('warn');
       remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-      remainingText.textContent = 'igjen denne uka';
+      remainingText.textContent    = 'igjen denne uka';
+
       status = 'Nær budsjett – vurder billigere valg ⚠️';
+
     } else {
-      // God kontroll
+      // God kontroll – grønn ring, mørk tekst
       color = '#4caf50';
       remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-      remainingText.textContent = 'igjen denne uka';
+      remainingText.textContent    = 'igjen denne uka';
       status = 'Bra kontroll så langt 💪';
     }
   } else {
+    // Ikke satt budsjett
     color = '#4caf50';
     ringDeg = 0;
+    remainingElement.style.color = '#2d5f4d';
+    remainingText.style.color    = '#5a7a6d';
     remainingElement.textContent = `0 kr`;
-    remainingText.textContent = 'sett ukesbudsjett i innstillinger';
+    remainingText.textContent    = 'sett ukesbudsjett i innstillinger';
     status = 'Sett et ukesbudsjett for å komme i gang 🙂';
   }
 
@@ -646,9 +669,10 @@ function updateBudgetDisplay() {
 
   statusMsg.textContent = status;
 
+  // Liten “pulse” når tallene oppdateres
   if (remainingElement) {
     remainingElement.classList.add('pulse');
-    setTimeout(()=>remainingElement.classList.remove('pulse'), 600);
+    setTimeout(() => remainingElement.classList.remove('pulse'), 600);
   }
 }
 
