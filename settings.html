@@ -499,6 +499,107 @@
 
   let householdId = null;
 
+  // --------- Kategori-innstillinger (localStorage) ----------
+  const CATEGORY_SETTINGS_KEY = 'purchase_categories_v1';
+  let categorySettings = [];
+
+  function loadCategorySettings() {
+    try {
+      const raw = localStorage.getItem(CATEGORY_SETTINGS_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveCategorySettings(settings) {
+    try {
+      localStorage.setItem(CATEGORY_SETTINGS_KEY, JSON.stringify(settings));
+    } catch (e) {
+      console.error('Kunne ikke lagre kategori-innstillinger', e);
+    }
+  }
+
+  function getCategoriesFromDOM() {
+    const list = document.getElementById('category-list');
+    if (!list) return [];
+    const items = list.querySelectorAll('.category-item');
+    const result = [];
+    items.forEach((item) => {
+      const checkbox = item.querySelector('input[type="checkbox"]');
+      const nameEl = item.querySelector('.category-name');
+      if (!checkbox || !nameEl) return;
+      result.push({
+        name: nameEl.textContent.trim(),
+        enabled: checkbox.checked
+      });
+    });
+    return result;
+  }
+
+  function renderCategories(settings) {
+    const list = document.getElementById('category-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    settings.forEach((cat, index) => {
+      const div = document.createElement('div');
+      div.className = 'category-item';
+      div.dataset.index = String(index);
+      div.innerHTML = `
+        <input type="checkbox">
+        <span class="category-name"></span>
+        <span class="edit-icon">✏️</span>
+      `;
+
+      const checkbox = div.querySelector('input[type="checkbox"]');
+      const nameEl = div.querySelector('.category-name');
+      const editIcon = div.querySelector('.edit-icon');
+
+      if (checkbox) {
+        checkbox.checked = !!cat.enabled;
+        checkbox.addEventListener('change', () => {
+          categorySettings[index].enabled = checkbox.checked;
+          saveCategorySettings(categorySettings);
+        });
+      }
+
+      if (nameEl) {
+        nameEl.textContent = cat.name;
+      }
+
+      if (editIcon) {
+        editIcon.addEventListener('click', () => {
+          const current = categorySettings[index].name || '';
+          const newName = prompt('Nytt navn på kategori:', current);
+          if (!newName) return;
+          categorySettings[index].name = newName.trim();
+          saveCategorySettings(categorySettings);
+          nameEl.textContent = categorySettings[index].name;
+        });
+      }
+
+      list.appendChild(div);
+    });
+  }
+
+  function initCategories() {
+    // Les default-kategorier fra HTML (fallback)
+    const defaults = getCategoriesFromDOM();
+    const stored = loadCategorySettings();
+
+    categorySettings =
+      stored && Array.isArray(stored) && stored.length > 0
+        ? stored
+        : defaults;
+
+    saveCategorySettings(categorySettings);
+    renderCategories(categorySettings);
+  }
+
   function showToast(message, type) {
     const el = document.createElement('div');
     el.style.cssText = `
@@ -615,17 +716,17 @@
     const name = input.value.trim();
     if (!name) return;
 
-    const list = document.getElementById('category-list');
-    const div = document.createElement('div');
-    div.className = 'category-item';
-    div.innerHTML = `
-      <input type="checkbox" checked>
-      <span class="category-name">📦 ${name}</span>
-      <span class="edit-icon">✏️</span>
-    `;
-    list.appendChild(div);
+    const fullName = `📦 ${name}`;
+    categorySettings.push({
+      name: fullName,
+      enabled: true,
+    });
+
+    saveCategorySettings(categorySettings);
+    renderCategories(categorySettings);
+
     input.value = '';
-    showToast('Kategori lagt til (foreløpig kun visuelt).', 'success');
+    showToast('Kategori lagt til.', 'success');
   }
 
   function addStore() {
@@ -647,12 +748,13 @@
 
   async function doLogout() {
     try {
-      if (window.authHelpers?.logout) {
-        await window.authHelpers.logout(supa);
+      if (window.authHelpers?.handleLogout) {
+        await window.authHelpers.handleLogout(supa);
+        return; // handleLogout tar seg av redirect + localStorage-rydding
       } else {
         await supa.auth.signOut();
+        window.location.href = '/innlogging.html';
       }
-      window.location.href = '/innlogging.html';
     } catch (err) {
       console.error(err);
       showToast('Klarte ikke å logge ut.', 'error');
@@ -677,6 +779,7 @@
     }
 
     await loadSettings();
+    initCategories();
 
     // Knapper
     document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
