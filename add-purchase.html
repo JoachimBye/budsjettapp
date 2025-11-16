@@ -15,9 +15,11 @@
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/store-service.js"></script>
   <script src="/js/services/budget-utils.js"></script>
+  <script src="/js/services/budget-service.js"></script>
 
   <style>
     html {
@@ -748,147 +750,56 @@ function initCoach() {
     currentBudget: 0,
     currentSpent: 0
   };
-
-  // ---- Utils (lokal tid / uke) ----
-  function isoLocalToday(){
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const day = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  }
-  function dateFromISOLocal(iso){ // yyyy-mm-dd -> Date (lokal tid)
-    const [y,m,d] = iso.split('-').map(Number);
-    return new Date(y, m-1, d);
-  }
-  // Mandag kl 12:00 (samme som app.html) for stabil uke-nøkkel
-  function mondayOfLocal(date){
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const day = (d.getDay()+6)%7; // 0=mandag
-    d.setDate(d.getDate()-day);
-    d.setHours(12,0,0,0);
-    return d;
-  }
-  // Bruk aktiv uke hvis satt (fra "Start ny uke"), ellers mandag for valgt dato
-  function resolveWeekISOFor(date){
-    return localStorage.getItem('activeWeekISO') || mondayOfLocal(date).toISOString().slice(0,10);
-  }
+  const dateUtils = window.dateUtils || {};
+  const budgetService = window.budgetService || null;
+  const budgetUtils = window.budgetUtils || {};
+  const isoToday = () => (dateUtils.isoLocalToday ? dateUtils.isoLocalToday() : new Date().toISOString().slice(0, 10));
+  const parseLocalDate = (iso) => (dateUtils.dateFromISOLocal ? dateUtils.dateFromISOLocal(iso) : new Date(iso));
+  const resolveWeekISO = (date) => (dateUtils.resolveWeekISOForDate ? dateUtils.resolveWeekISOForDate(date) : (date ? date.toISOString().slice(0, 10) : isoToday()));
+  const getISOWeekNumber = (iso) => (dateUtils.getISOWeekFromISODate ? dateUtils.getISOWeekFromISODate(iso) : null);
 
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
-  // ISO-ukenummer fra en dato-streng "yyyy-mm-dd"
-  function getISOWeekFromISODate(isoDate) {
-    if (!isoDate) return null;
-    const [y, m, d] = isoDate.split('-').map(Number);
-    const date = new Date(y, m - 1, d);
-
-    // ISO-uke: torsdagstrikset
-    const target = new Date(date.valueOf());
-    const dayNr = (date.getDay() + 6) % 7; // 0 = mandag
-    target.setDate(target.getDate() - dayNr + 3);
-
-    const firstThursday = new Date(target.getFullYear(), 0, 4);
-    const diff = target - firstThursday;
-    const week = 1 + Math.round(diff / (7 * 24 * 60 * 60 * 1000));
-
-    return week;
+  function readJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      return JSON.parse(raw) ?? fallback;
+    } catch {
+      return fallback;
+    }
   }
 
 
   // ---------- Hent budsjett + brukt fra Supabase for gitt dato ----------
   async function loadWeekDataFor(date){
-    const weekISO = resolveWeekISOFor(date);
+    const weekISO = resolveWeekISO(date);
     state.currentWeekISO = weekISO;
 
-    let budget = 0;
-    let spent = 0;
-
-    try {
-      const { data: { session } } = await supa.auth.getSession();
-      if (!session) {
-        // Hvis ikke innlogget: send til innlogging
-        window.location.href = '/innlogging.html';
-        return;
-      }
-
-      // 1) Forsøk uke-spesifikt budsjett for denne brukeren
-      const { data: budgetRow, error: bErr } = await supa
-        .from('household_budgets')
-        .select('amount')
-        .eq('user_id', session.user.id)
-        .eq('week_start', weekISO)
-        .maybeSingle();
-
-      if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
-        budget = budgetRow.amount;
-      } else {
-        // 2) Ingen rad for denne uka → bruk husstandens default_weekly_budget
-        const { data: member, error: mErr } = await supa
-          .from('members')
-          .select('household_id')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        if (!mErr && member?.household_id) {
-          const { data: household, error: hErr } = await supa
-            .from('households')
-            .select('default_weekly_budget')
-            .eq('id', member.household_id)
-            .maybeSingle();
-
-          if (!hErr && household && typeof household.default_weekly_budget === 'number') {
-            budget = household.default_weekly_budget;
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('Feil ved henting budsjett (DB):', err);
+    let summary = null;
+    if (budgetService?.loadWeekSummary) {
+      summary = await budgetService.loadWeekSummary(supa, weekISO);
     }
 
-    // 3) Fallback hvis vi fortsatt ikke har budsjett
-    if (!budget) {
-      const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
-      budget = (!isNaN(global) && global > 0) ? global : 3000;
-    }
-
-    try {
-      // Hent alle kjøp for samme uke (RLS sørger for riktig husstand)
-      const { data: rows, error: pErr } = await supa
-        .from('purchases')
-        .select('amount')
-        .eq('week_start', weekISO);
-
-      if (pErr) {
-        console.warn('Feil ved henting kjøp:', pErr);
-      } else {
-        const list = Array.isArray(rows) ? rows : [];
-        if (window.budgetUtils?.safeSumPurchases) {
-          spent = window.budgetUtils.safeSumPurchases(list);
-        } else {
-          spent = list.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-        }
-      }
-    } catch (err) {
-      console.warn('Feil ved henting kjøp-session:', err);
-    }
+    const budget = summary?.budget
+      ?? (budgetService?.readWeeklyBudgetLocal
+        ? budgetService.readWeeklyBudgetLocal(weekISO)
+        : 3000);
+    const spent = summary?.spent
+      ?? (budgetUtils.safeSumPurchases
+        ? budgetUtils.safeSumPurchases(readJSON(`purchases_${weekISO}`, []))
+        : 0);
 
     state.currentBudget = budget;
     state.currentSpent = spent;
 
-    // Oppdater uke-pill i headeren
     const weekPill = document.getElementById('weekPill');
     if (weekPill && weekISO) {
-      const weekNum = getISOWeekFromISODate(weekISO);
+      const weekNum = getISOWeekNumber(weekISO);
       if (weekNum) {
         weekPill.textContent = `Uke ${weekNum}`;
       }
     }
-
-    // Speil budsjett lokalt for ev. eldre kode / andre sider
-    localStorage.setItem('budget_total', String(budget));
-    localStorage.setItem('activeWeekISO', weekISO);
-    localStorage.setItem(`weeklyBudget_${weekISO}`, String(budget));
-    localStorage.setItem('weeklyBudget', String(budget));
   }
 
   // ---------- Budsjett-varsel (live) ----------
@@ -897,7 +808,7 @@ function initCoach() {
   async function updateBudgetHint(){
     const hint = document.getElementById('budgetHint');
     const amountRaw = document.getElementById('amountInput').value;
-    const dateISO = document.getElementById('dateInput').value || isoLocalToday();
+    const dateISO = document.getElementById('dateInput').value || isoToday();
     const amount = Number(String(amountRaw).replace(',', '.'));
 
     if (!amount || amount <= 0) {
@@ -907,8 +818,8 @@ function initCoach() {
       return;
     }
 
-    const date = dateFromISOLocal(dateISO);
-    const weekISO = resolveWeekISOFor(date);
+    const date = parseLocalDate(dateISO);
+    const weekISO = resolveWeekISO(date);
 
     // Hvis uke har endret seg → last nye tall
     if (weekISO !== state.currentWeekISO && !isHintLoading) {
@@ -1032,8 +943,8 @@ function initCoach() {
         return;
       }
 
-      const date = dateFromISOLocal(dateISO);
-      const weekISO = resolveWeekISOFor(date);
+      const date = parseLocalDate(dateISO);
+      const weekISO = resolveWeekISO(date);
       localStorage.setItem('activeWeekISO', weekISO);
 
       const { error: insertError } = await supa
@@ -1183,14 +1094,14 @@ function initCoach() {
 
     // Sett dagens dato
     const dateInput = document.getElementById('dateInput');
-    dateInput.value = isoLocalToday();
+    dateInput.value = isoToday();
 
     // Bygg kategori- og butikklister basert på settings.html
     initCategorySelect();
     initStoreSelect();
 
     // Last budsjett/spent for denne datoen
-    await loadWeekDataFor(dateFromISOLocal(dateInput.value));
+    await loadWeekDataFor(parseLocalDate(dateInput.value));
 
     // Lyttere
     document.getElementById('amountInput').addEventListener('input', () => { updateBudgetHint(); });

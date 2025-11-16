@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Middagsanbefaling</title>
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <style>
     /* ------ Base ------ */
@@ -382,26 +383,6 @@
       });
     }
 
-    /* =========================
-       Uke-/budsjett-nøkler
-       ========================= */
-    function getCurrentWeekMondayISO(dateObj = new Date()) {
-      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-      const day = (d.getDay() + 6) % 7; // 0 = mandag
-      d.setDate(d.getDate() - day);
-      d.setHours(12, 0, 0, 0); // DST-safe
-      return d.toISOString().slice(0, 10); // YYYY-MM-DD
-    }
-
-    function getActiveWeekISO() {
-      let iso = localStorage.getItem('activeWeekISO');
-      if (!iso) {
-        iso = getCurrentWeekMondayISO();
-        localStorage.setItem('activeWeekISO', iso);
-      }
-      return iso;
-    }
-
     function formatKr(n) {
       const v = Number.isFinite(n) ? n : 0;
       return v.toLocaleString('no-NO');
@@ -446,6 +427,8 @@
     /* =========================
        State
        ========================= */
+    const dateUtils = window.dateUtils || {};
+
     const state = {
       filters: {
         maxPrice: 70,
@@ -455,7 +438,9 @@
         quickOnly: false,
       },
       budget: { total: 0, used: 0, remaining: 0 },
-      activeWeekISO: getActiveWeekISO(),
+      activeWeekISO: (dateUtils.getActiveWeekISO
+        ? dateUtils.getActiveWeekISO()
+        : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10))),
       currentRecipe: null,
     };
 

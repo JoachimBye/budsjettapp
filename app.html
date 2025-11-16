@@ -17,7 +17,9 @@
 
   <!-- Ny: sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
+  <script src="/js/services/budget-service.js"></script>
 
   <style>
     body{
@@ -425,169 +427,83 @@
     spent: 0,
     remaining: 0
   };
+  const dateUtils = window.dateUtils || {};
+  const budgetService = window.budgetService || null;
+  const budgetUtils = window.budgetUtils || {};
 
   // ---------- Uke-hjelpere ----------------------------------------------
-  function mondayAtNoon(d = new Date()){
-    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const day = (x.getDay()+6)%7; // 0=man
-    x.setDate(x.getDate()-day);
-    x.setHours(12,0,0,0);
-    return x;
-  }
-
-  function isoWeekNumber(date = new Date()) {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-  }
-
-  function formatRangeNoNO(fromDate, toDate) {
-    const optsDayMonth = { day:'numeric', month:'long' };
-    const optsDay = { day:'numeric' };
-    const from = fromDate.toLocaleDateString('no-NO', optsDayMonth);
-    const to = toDate.toLocaleDateString(
-      'no-NO',
-      (fromDate.getMonth()===toDate.getMonth()? optsDay : optsDayMonth)
-    );
-    return `${from}–${to}`;
-  }
-
-  function getActiveWeekISO(){
-    let iso = localStorage.getItem('activeWeekISO');
-    if (!iso) {
-      iso = mondayAtNoon().toISOString().slice(0,10);
-      localStorage.setItem('activeWeekISO', iso);
-    }
-    return iso;
-  }
-
   function getActiveMondayDate(){
-    const iso = state.activeWeekISO || getActiveWeekISO();
-    const [y,m,d] = iso.split('-').map(Number);
-    return new Date(y, m-1, d, 12, 0, 0, 0);
+    const iso =
+      state.activeWeekISO ||
+      (dateUtils.getActiveWeekISO
+        ? dateUtils.getActiveWeekISO()
+        : new Date().toISOString().slice(0, 10));
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0, 0);
   }
 
   function setWeekHeader() {
     const mon = getActiveMondayDate();
     const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-    const weekNo = isoWeekNumber(mon);
+    const weekNo = dateUtils.isoWeekNumber ? dateUtils.isoWeekNumber(mon) : '';
 
     const weekTextEl = document.getElementById('weekText');
     const dateRangeEl = document.getElementById('dateRange');
     if (weekTextEl) weekTextEl.textContent = `Uke ${weekNo}`;
-    if (dateRangeEl) dateRangeEl.textContent = formatRangeNoNO(mon, sun);
+    if (dateRangeEl) {
+      const range = dateUtils.formatRangeNoNO
+        ? dateUtils.formatRangeNoNO(mon, sun)
+        : `${mon.toLocaleDateString('no-NO')}–${sun.toLocaleDateString('no-NO')}`;
+      dateRangeEl.textContent = range;
+    }
   }
 
   // ---------- Local fallback for budsjett/kjøp --------------------------
-  function readWeeklyBudgetLocal(isoMonday){
-    const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${isoMonday}`) || '', 10);
-    if (!isNaN(byWeek) && byWeek > 0) return byWeek;
-    const global = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
-    if (!isNaN(global) && global > 0) return global;
-    return 3000;
-  }
+  function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
-  function sumPurchasesLocal(isoMonday) {
-    const key = `purchases_${isoMonday}`;
+  function readJSON(key, fallback) {
     try {
-      const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      if (!Array.isArray(arr)) return 0;
-      if (window.budgetUtils?.safeSumPurchases) {
-        return window.budgetUtils.safeSumPurchases(arr);
-      }
-      return arr.reduce((acc, p) => acc + (Number(p.amount) || 0), 0);
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      return JSON.parse(raw) ?? fallback;
     } catch {
-      return 0;
+      return fallback;
     }
   }
-
-  function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
 
   // ---------- Hent uke-data fra Supabase + cache til localStorage -------
   async function loadWeekData() {
-    const iso = state.activeWeekISO || getActiveWeekISO();
+    const iso =
+      state.activeWeekISO ||
+      (dateUtils.getActiveWeekISO
+        ? dateUtils.getActiveWeekISO()
+        : new Date().toISOString().slice(0, 10));
+
+    let summary = null;
+    if (budgetService?.loadWeekSummary) {
+      summary = await budgetService.loadWeekSummary(supa, iso);
+    }
+
+    if (summary) {
+      state.activeWeekISO = summary.weekISO;
+      state.budget = summary.budget;
+      state.spent = summary.spent;
+      state.remaining = summary.remaining;
+      return;
+    }
+
+    // Fallback dersom tjenesten ikke er tilgjengelig
+    const fallbackBudget = budgetService?.readWeeklyBudgetLocal
+      ? budgetService.readWeeklyBudgetLocal(iso)
+      : 3000;
+    const localPurchases = readJSON(`purchases_${iso}`, []);
+    const fallbackSpent = budgetUtils.safeSumPurchases
+      ? budgetUtils.safeSumPurchases(localPurchases)
+      : 0;
+
     state.activeWeekISO = iso;
-
-    // 1) Budsjett – start med local fallback
-    let budget = readWeeklyBudgetLocal(iso);
-
-    try {
-      const { data:{ session } } = await supa.auth.getSession();
-
-      if (session) {
-        // Først: prøv household_budgets (uke-spesifikt)
-        const { data: budgetRow, error: bErr } = await supa
-          .from('household_budgets')
-          .select('amount')
-          .eq('user_id', session.user.id)
-          .eq('week_start', iso)
-          .maybeSingle();
-
-        if (!bErr && budgetRow && typeof budgetRow.amount === 'number') {
-          budget = budgetRow.amount;
-        } else {
-          // Hvis ingen rad for denne uka → bruk husstandens standardbudsjett
-          const { data: member, error: mErr } = await supa
-            .from('members')
-            .select('household_id')
-            .eq('user_id', session.user.id)
-            .maybeSingle();
-
-          if (!mErr && member?.household_id) {
-            const { data: household, error: hErr } = await supa
-              .from('households')
-              .select('default_weekly_budget')
-              .eq('id', member.household_id)
-              .maybeSingle();
-
-            if (!hErr && household && typeof household.default_weekly_budget === 'number') {
-              budget = household.default_weekly_budget;
-            }
-          }
-        }
-
-        // Speil uansett siste “sanne” budsjett til localStorage
-        if (budget) {
-          localStorage.setItem(`weeklyBudget_${iso}`, String(budget));
-          localStorage.setItem('weeklyBudget', String(budget));
-        }
-      }
-    } catch (err) {
-      console.warn('Feil ved henting budsjett:', err);
-    }
-
-    state.budget = Number(budget) || 0;
-    localStorage.setItem('budget_total', String(state.budget));
-
-    // 2) Kjøp – primærkilde: Supabase; fallback: localStorage
-    let spent = 0;
-
-    try {
-      const { data: rows, error } = await supa
-        .from('purchases')
-        .select('amount, category')
-        .eq('week_start', iso);
-
-      if (!error && rows) {
-        // cache hele listen slik at week-report kan lese den fra localStorage
-        localStorage.setItem(`purchases_${iso}`, JSON.stringify(rows));
-        if (window.budgetUtils?.safeSumPurchases) {
-          spent = window.budgetUtils.safeSumPurchases(rows);
-        } else {
-          spent = rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-        }
-      } else if (error) {
-        console.warn('Feil ved henting kjøp (DB):', error);
-        spent = sumPurchasesLocal(iso);
-      }
-    } catch (err) {
-      console.warn('Feil ved henting kjøp (nett):', err);
-      spent = sumPurchasesLocal(iso);
-    }
-
-    state.spent = spent;
+    state.budget = fallbackBudget;
+    state.spent = fallbackSpent;
     state.remaining = state.budget - state.spent;
   }
 
@@ -1051,7 +967,9 @@ function updateBudgetDisplay() {
     }
 
     // Sett uke og last data
-    state.activeWeekISO = getActiveWeekISO();
+    state.activeWeekISO = dateUtils.getActiveWeekISO
+      ? dateUtils.getActiveWeekISO()
+      : (state.activeWeekISO || new Date().toISOString().slice(0, 10));
     await loadWeekData();
     setWeekHeader();
     updateBudgetDisplay();
@@ -1080,7 +998,9 @@ function updateBudgetDisplay() {
   // Når man kommer tilbake via tilbakeknappen (BFCache), refreshe tall
   window.addEventListener('pageshow', async (event) => {
     if (event.persisted) {
-      state.activeWeekISO = getActiveWeekISO();
+      state.activeWeekISO = dateUtils.getActiveWeekISO
+        ? dateUtils.getActiveWeekISO()
+        : state.activeWeekISO;
       await loadWeekData();
       setWeekHeader();
       updateBudgetDisplay();

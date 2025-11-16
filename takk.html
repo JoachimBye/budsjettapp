@@ -14,6 +14,7 @@
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="/js/services/date-utils.js"></script>
 
   <!-- Sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
@@ -122,19 +123,13 @@
       return id ? `${base}_${id}` : base;
     }
 
-    // Hjelp: finn uke-start (mandag 12:00 lokal tid) som YYYY-MM-DD
-    function getCurrentWeekMondayISO(dateObj = new Date()) {
-      const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-      const day = (d.getDay() + 6) % 7; // 0=mandag
-      d.setDate(d.getDate() - day);
-      d.setHours(12,0,0,0);
-      return d.toISOString().slice(0,10);
-    }
+    const dateUtils = window.dateUtils || {};
 
     // Sørg for at budsjettpost for aktiv uke finnes i DB (idempotent)
     async function ensureWeekBudget(session){
       try{
-        const week = localStorage.getItem('activeWeekISO') || getCurrentWeekMondayISO();
+        const week = localStorage.getItem('activeWeekISO')
+          || (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0,10));
         const amount = parseInt((localStorage.getItem('weeklyBudget')||'').replace(/\s|kr/g,''),10);
         if (session && week && !Number.isNaN(amount)) {
           await supa.from('household_budgets')

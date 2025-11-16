@@ -11,6 +11,7 @@
 
   <!-- (valgfritt) Tailwind, men vi bruker mest egen CSS -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
 
   <style>
@@ -649,14 +650,7 @@
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
   const fmtInt = (n) => Number(n || 0).toLocaleString("no-NO");
-
-  function mondayISO(date = new Date()) {
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const day = (d.getDay() + 6) % 7; // 0=mandag
-    d.setDate(d.getDate() - day);
-    d.setHours(12,0,0,0);
-    return d.toISOString().slice(0,10);
-  }
+  const dateUtils = window.dateUtils || {};
 
   function getLS(key, fallback) {
     try {
@@ -758,7 +752,7 @@
   }
 
   // ---------- Nøkler ----------
-  const WEEK_ISO = mondayISO();
+  const WEEK_ISO = dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10);
   const WEEK_MENU_KEY   = `weeklyMenu_${WEEK_ISO}`;
   const FREQ_KEY        = `frequentItems`;
   const INBOX_KEY       = `shoppingList_inbox_${WEEK_ISO}`;

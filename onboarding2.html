@@ -14,6 +14,7 @@
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="/js/services/date-utils.js"></script>
     <!-- Sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
 
@@ -138,14 +139,8 @@
   const maxBudget = 8000;
   const step = 100;
 
-  // Mandag kl. 12:00 lokal tid → ISO (UTC) → YYYY-MM-DD
-  function getCurrentWeekMondayISO(dateObj = new Date()) {
-    const d = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
-    const day = (d.getDay() + 6) % 7; // 0=mandag
-    d.setDate(d.getDate() - day);
-    d.setHours(12,0,0,0);
-    return d.toISOString().slice(0, 10);
-  }
+  const dateUtils = window.dateUtils || {};
+  const getMondayISO = () => (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10));
 
   // Lavt og nøkternt nivå med skalaeffekt
   // 1: 900–1300, 2: 1500–2200, 3: 2000–2800, 4: 2400–3300, 5: 2800–3800, 6: 3200–4300, 7+: +400/+500
@@ -320,7 +315,7 @@
       localStorage.setItem('weeklyBudget', String(budgetInt));
 
       // 2) Finn ISO for aktiv uke (mandag 12:00) og sett som aktiv
-      const mondayISO = getCurrentWeekMondayISO();
+      const mondayISO = getMondayISO();
       localStorage.setItem('activeWeekISO', mondayISO);
 
 // 3) Lagre uke-spesifikt budsjett for aktiv uke
