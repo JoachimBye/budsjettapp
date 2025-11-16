@@ -577,76 +577,80 @@
   }
 
   // ---------- Oppdater UI ----------------------------------------------
-  function updateBudgetDisplay() {
-    const remainingElement = document.getElementById('remainingAmount');
-    const remainingText    = document.getElementById('remainingText');
-    const spentSummaryEl   = document.getElementById('spentSummary');
-    const circleProgress   = document.getElementById('circleProgress');
-    const statusMsg        = document.getElementById('statusMessage');
-    const mealBtn          = document.getElementById('mealPlanBtn');
+function updateBudgetDisplay() {
+  const remainingElement = document.getElementById('remainingAmount');
+  const remainingText    = document.getElementById('remainingText');
+  const spentSummaryEl   = document.getElementById('spentSummary');
+  const circleProgress   = document.getElementById('circleProgress');
+  const statusMsg        = document.getElementById('statusMessage');
+  const mealBtn          = document.getElementById('mealPlanBtn');
 
-    const total = state.budget;
-    const spent = state.spent;
-    const remainingRaw = total > 0 ? (total - spent) : 0;
-    state.remaining = remainingRaw;
+  const total = state.budget;
+  const spent = state.spent;
+  const remainingRaw = total > 0 ? (total - spent) : 0;
+  state.remaining = remainingRaw;
 
-    if (spentSummaryEl) {
-      spentSummaryEl.textContent = `Brukt ${formatAmount(spent)} kr av ${formatAmount(total)} kr`;
-    }
-
-    let color = '#4caf50';
-    let ringDeg = 0;
-    let status = 'Bra kontroll så langt 💪';
-
-    remainingElement.classList.remove('over','warn');
-
-    if (total > 0) {
-      const ratio = spent / total;
-      ringDeg = Math.min(360, Math.max(0, ratio * 360));
-
-      if (ratio >= 1.0) {
-        color = '#d32f2f';
-        ringDeg = 360;
-        remainingElement.classList.add('over');
-        remainingElement.textContent = `${formatAmount(Math.abs(remainingRaw))} kr`;
-        remainingText.textContent = 'overskredet';
-        status = 'Over budsjett – kutt kostnader 💸';
-      } else if (ratio >= 0.9) {
-        color = '#f9a825';
-        remainingElement.classList.add('warn');
-        remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-        remainingText.textContent = 'igjen denne uka';
-        status = 'Nær budsjett – vurder billigere valg ⚠️';
-      } else {
-        color = '#4caf50';
-        remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-        remainingText.textContent = 'igjen denne uka';
-        status = 'Bra kontroll så langt 💪';
-      }
-    } else {
-      color = '#4caf50';
-      ringDeg = 0;
-      remainingElement.textContent = `0 kr`;
-      remainingText.textContent = 'sett ukesbudsjett i innstillinger';
-      status = 'Sett et ukesbudsjett for å komme i gang 🙂';
-    }
-
-    circleProgress.style.setProperty('--ring-color', color);
-    circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
-
-    if (mealBtn) {
-      mealBtn.textContent = (state.remaining < 0)
-        ? `Middag – billige forslag`
-        : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
-    }
-
-    statusMsg.textContent = status;
-
-    if (remainingElement) {
-      remainingElement.classList.add('pulse');
-      setTimeout(()=>remainingElement.classList.remove('pulse'), 600);
-    }
+  if (spentSummaryEl) {
+    spentSummaryEl.textContent = `Brukt ${formatAmount(spent)} kr av ${formatAmount(total)} kr`;
   }
+
+  let color = '#4caf50';
+  let ringDeg = 0;
+  let status = 'Bra kontroll så langt 💪';
+
+  remainingElement.classList.remove('over','warn');
+
+  if (total > 0) {
+    const ratioSpent      = spent / total;                  // brukt-andel
+    const ratioRemaining  = Math.max(0, remainingRaw / total); // igjen-andel (0–1)
+    ringDeg = Math.min(360, Math.max(0, ratioRemaining * 360));
+
+    if (ratioSpent >= 1.0) {
+      // Over budsjett: full rød ring
+      color = '#d32f2f';
+      ringDeg = 360;
+      remainingElement.classList.add('over');
+      remainingElement.textContent = `${formatAmount(Math.abs(remainingRaw))} kr`;
+      remainingText.textContent = 'overskredet';
+      status = 'Over budsjett – kutt kostnader 💸';
+    } else if (ratioSpent >= 0.9) {
+      // Nesten brukt opp
+      color = '#f9a825';
+      remainingElement.classList.add('warn');
+      remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
+      remainingText.textContent = 'igjen denne uka';
+      status = 'Nær budsjett – vurder billigere valg ⚠️';
+    } else {
+      // God kontroll
+      color = '#4caf50';
+      remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
+      remainingText.textContent = 'igjen denne uka';
+      status = 'Bra kontroll så langt 💪';
+    }
+  } else {
+    color = '#4caf50';
+    ringDeg = 0;
+    remainingElement.textContent = `0 kr`;
+    remainingText.textContent = 'sett ukesbudsjett i innstillinger';
+    status = 'Sett et ukesbudsjett for å komme i gang 🙂';
+  }
+
+  circleProgress.style.setProperty('--ring-color', color);
+  circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
+
+  if (mealBtn) {
+    mealBtn.textContent = (state.remaining < 0)
+      ? `Middag – billige forslag`
+      : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
+  }
+
+  statusMsg.textContent = status;
+
+  if (remainingElement) {
+    remainingElement.classList.add('pulse');
+    setTimeout(()=>remainingElement.classList.remove('pulse'), 600);
+  }
+}
 
   // ---------- Farge/tema fra Element SDK -------------------------------
   function adjustColor(color, percent) {
