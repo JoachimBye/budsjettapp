@@ -468,14 +468,11 @@
   }
 
   function weekLabelFromISO(isoMonday) {
-    const [y, m, d] = isoMonday.split('-').map(Number);
-    const mon = new Date(y, m - 1, d, 12, 0, 0, 0);
-    const sun = new Date(mon);
-    sun.setDate(mon.getDate() + 6);
-    const nf = new Intl.DateTimeFormat('no-NO', { day: 'numeric', month: 'long' });
-    const wn = weekNumberISO(mon);
-    return `Uke ${wn} – ${nf.format(mon)}–${nf.format(sun)}`;
-  }
+  const [y, m, d] = isoMonday.split('-').map(Number);
+  const mon = new Date(y, m - 1, d, 12, 0, 0, 0);
+  const wn = weekNumberISO(mon);
+  return `Uke ${wn}`;
+}
 
   function safeGet(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) ?? JSON.stringify(fallback)); }
