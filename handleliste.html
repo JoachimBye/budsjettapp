@@ -3,31 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Handleliste</title>
+  <title>Planlegg uka</title>
+
+  <!-- Canva / Element SDK -->
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+
+  <!-- (valgfritt) Tailwind, men vi bruker mest egen CSS -->
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+
   <style>
-    body { box-sizing: border-box; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #f8fffe 0%, #f0f9f4 100%);
       color: #2d5f4d;
-      overflow-x: hidden;
     }
-    .container { max-width: 800px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 20px 110px;
+    }
 
     /* Header */
-    .header { margin-bottom: 16px; }
+    .header { margin-bottom: 20px; }
     .back-button {
-      display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
-      color: #5a7a6d; font-size: 14px; cursor: pointer; padding: 8px 12px; border-radius: 12px;
-      transition: background 0.2s; font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      color: #5a7a6d;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 12px;
+      transition: background 0.2s;
+      font-family: inherit;
     }
     .back-button:hover { background: rgba(76, 175, 80, 0.1); }
     .back-button:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .page-title { font-size: 32px; font-weight: 700; color: #2d5f4d; margin: 12px 0 4px 0; text-align: center;}
-    .page-subtitle { font-size: 16px; color: #5a7a6d; text-align: center; }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2d5f4d;
+      margin: 10px 0 4px;
+      text-align: center;
+    }
+    .page-subtitle {
+      font-size: 16px;
+      color: #5a7a6d;
+      text-align: center;
+    }
 
     .header-actions {
       margin-top: 10px;
@@ -35,6 +65,7 @@
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
     }
     .inbox-button,
     .mode-toggle {
@@ -63,289 +94,480 @@
       border-color: #4caf50;
     }
 
-    /* Budget Card */
-    .budget-card {
-      background: #ffffff; border-radius: 20px; padding: 16px 20px; margin-bottom: 8px;
-      box-shadow: 0 2px 8px rgba(45, 95, 77, 0.08);
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
+    /* Seksjoner */
+    .section {
+      margin-top: 24px;
+      margin-bottom: 16px;
     }
-    .budget-item { display: flex; flex-direction: column; gap: 4px; }
-    .budget-label { font-size: 13px; color: #5a7a6d; font-weight: 500; }
-    .budget-amount { font-size: 18px; font-weight: 700; color: #2d5f4d; transition: transform 0.3s; }
-    .budget-amount.pulse { animation: pulse 0.4s ease; }
-    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
-
-    .budget-warning {
-      margin: 6px 2px 18px 2px;
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-subtitle {
       font-size: 14px;
+      color: #5a7a6d;
+      margin-bottom: 12px;
+    }
+
+    /* Ukens middager */
+    .weekly-menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .weekly-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 2px 6px rgba(45,95,77,0.1);
+    }
+    .weekly-day-label {
+      font-weight: 600;
+      color: #2d5f4d;
+      flex-shrink: 0;
+    }
+    .weekly-dish {
+      flex: 1;
+      font-size: 14px;
+      color: #5a7a6d;
+      padding: 4px 8px;
+      border-radius: 10px;
+      background: #f8fffe;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .weekly-add-btn {
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: #4caf50;
+      color: #ffffff;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .weekly-add-btn:hover { background: #45a049; }
+    .weekly-add-btn:active { transform: scale(0.96); }
+    .weekly-dish.empty {
+      color: #9e9e9e;
+      font-style: italic;
+    }
+
+    /* Faste varer */
+    .frequent-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .frequent-chip {
+      padding: 8px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(76,175,80,0.2);
+      background: #ffffff;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.08s;
+    }
+    .frequent-chip:hover {
+      background: rgba(76,175,80,0.06);
+      box-shadow: 0 1px 4px rgba(45,95,77,0.12);
+    }
+    .frequent-chip:active { transform: scale(0.96); }
+
+    /* Handleliste / kategorier */
+    .category-card {
+      background: #ffffff;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(45,95,77,0.08);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .category-card:hover {
+      box-shadow: 0 4px 12px rgba(45,95,77,0.12);
+    }
+    .category-header {
+      padding: 16px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .category-card.open .category-header {
+      background: rgba(76,175,80,0.04);
+    }
+    .category-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d5f4d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .category-count {
+      font-size: 13px;
+      color: #5a7a6d;
+      font-weight: 400;
+    }
+    .category-chevron {
+      font-size: 20px;
+      color: #4caf50;
+      transition: transform 0.25s;
+    }
+    .category-card.open .category-chevron {
+      transform: rotate(180deg);
+    }
+    .category-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+    .category-card.open .category-content {
+      max-height: 2000px;
+      opacity: 1;
+    }
+    .category-inner {
+      padding: 0 16px 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .category-quick-add {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    .category-quick-input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(76,175,80,0.2);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .category-quick-input:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 2px rgba(76,175,80,0.15);
+    }
+    .category-quick-btn {
+      border-radius: 12px;
+      border: none;
+      padding: 8px 10px;
+      background: #4caf50;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.08s;
+    }
+    .category-quick-btn:hover { background: #45a049; }
+    .category-quick-btn:active { transform: scale(0.96); }
+
+    /* Item-kort */
+    .item-card {
+      background: #f8fffe;
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(76,175,80,0.15);
+      transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+    }
+    .item-card.checked {
+      background: #eeeeee;
+      opacity: 0.85;
+      text-decoration-line: line-through;
+      text-decoration-color: #9e9e9e;
+    }
+    .item-checkbox {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      cursor: pointer;
+      accent-color: #4caf50;
+    }
+    .item-details {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+    .item-name {
+      font-size: 15px;
       font-weight: 500;
       color: #2d5f4d;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .budget-warning.ok { color: #2e7d32; }
-    .budget-warning.warn { color: #f9a825; }
-    .budget-warning.over { color: #d32f2f; }
-
-    /* Category Cards */
-    .category-card {
-      background: #ffffff; border-radius: 20px; margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(45,95,77,0.08); overflow: hidden; transition: box-shadow 0.2s;
-    }
-    .category-card:hover { box-shadow: 0 4px 12px rgba(45,95,77,0.12); }
-    .category-header {
-      padding: 20px; cursor: pointer; display: flex; justify-content: space-between;
-      align-items: center; user-select: none; transition: background 0.2s;
-    }
-    .category-header:hover { background: rgba(76, 175, 80, 0.05); }
-    .category-header:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
-    .category-title { font-size: 18px; font-weight: 600; color: #2d5f4d; display: flex; align-items: center; gap: 8px; }
-    .category-count { font-size: 14px; color: #5a7a6d; font-weight: 400; }
-    .category-chevron { font-size: 20px; color: #4caf50; transition: transform 0.3s; }
-    .category-card.open .category-chevron { transform: rotate(180deg); }
-    .category-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; opacity: 0; }
-    .category-card.open .category-content { max-height: 2000px; opacity: 1; }
-    .category-items { padding: 0 20px 20px 20px; display: flex; flex-direction: column; gap: 12px; }
-
-    .purchased-section .category-header {
-      background: #f8fffe;
-      border-top: 1px solid rgba(76,175,80,0.2);
-    }
-
-    /* Item Card */
-    .item-card {
-      background: #f8fffe; border-radius: 15px; padding: 16px;
-      display: flex; align-items: center; gap: 12px;
-      transition: all 0.2s; border: 1px solid rgba(76,175,80,0.1);
-    }
-    .item-card.checked { background: #f0f0f0; opacity: 0.8; }
-    .item-card:hover { border-color: rgba(76,175,80,0.3); }
-    .item-checkbox { width: 24px; height: 24px; cursor: pointer; accent-color: #4caf50; flex-shrink: 0; }
-    .item-checkbox:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .item-details { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-    .item-name { font-size: 16px; font-weight: 500; color: #2d5f4d; transition: text-decoration 0.2s; }
-    .item-card.checked .item-name { text-decoration: line-through; }
-    .item-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
     .stepper {
-      display: flex; align-items: center; gap: 8px; background: #ffffff;
-      border-radius: 12px; padding: 4px; border: 1px solid rgba(76,175,80,0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border-radius: 9999px;
+      padding: 3px 6px;
+      border: 1px solid rgba(76,175,80,0.25);
     }
     .stepper-btn {
-      width: 28px; height: 28px; border: none; background: #4caf50; color: white; border-radius: 8px; cursor: pointer;
-      font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0;
+      border: none;
+      border-radius: 9999px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      background: #4caf50;
+      color: #ffffff;
+      flex-shrink: 0;
+      transition: background 0.2s, transform 0.08s;
     }
     .stepper-btn:hover { background: #45a049; }
-    .stepper-btn:active { background: #3d8b40; }
-    .stepper-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .stepper-value { min-width: 30px; text-align: center; font-weight: 600; color: #2d5f4d; font-size: 14px; }
+    .stepper-btn:active { transform: scale(0.94); }
+    .stepper-value {
+      min-width: 24px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d5f4d;
+    }
 
-    .price-input {
-      width: 80px; padding: 6px 10px; border: 1px solid rgba(76,175,80,0.2); border-radius: 10px;
-      font-size: 14px; font-family: inherit; color: #2d5f4d; background: #ffffff;
+    .item-delete-btn {
+      border: none;
+      border-radius: 9999px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: transparent;
+      color: #9e9e9e;
+      flex-shrink: 0;
+      transition: background 0.2s, color 0.2s;
     }
-    .price-input:focus { outline: 2px solid #4caf50; outline-offset: 0; border-color: #4caf50; }
-    .item-total {
-      font-size: 16px; font-weight: 700; color: #4caf50; min-width: 70px; text-align: right;
-      transition: transform 0.3s;
+    .item-delete-btn:hover {
+      background: rgba(211,47,47,0.08);
+      color: #d32f2f;
     }
-    .item-total.pulse { animation: pulse 0.4s ease; }
-
-    .item-menu-btn {
-      width: 32px; height: 32px; border: none; background: none; color: #5a7a6d; cursor: pointer;
-      border-radius: 8px; font-size: 18px; display: flex; align-items: center; justify-content: center;
-      transition: background 0.2s; flex-shrink: 0; position: relative;
-    }
-    .item-menu-btn:hover { background: rgba(76,175,80,0.1); }
-    .item-menu-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .item-menu {
-      position: absolute; top: 100%; right: 0; background: #ffffff; border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(45,95,77,0.15); padding: 8px; min-width: 180px; z-index: 100; display: none;
-    }
-    .item-menu.open { display: block; }
-    .menu-item {
-      padding: 10px 12px; cursor: pointer; border-radius: 8px; font-size: 14px; color: #2d5f4d;
-      transition: background 0.2s; display: block; width: 100%; text-align: left; border: none;
-      background: none; font-family: inherit;
-    }
-    .menu-item:hover { background: rgba(76,175,80,0.1); }
-    .menu-item:focus { outline: 2px solid #4caf50; outline-offset: -2px; }
-    .menu-item.delete { color: #d32f2f; }
-    .menu-item.delete:hover { background: rgba(211,47,47,0.1); }
 
     /* FAB */
     .fab {
-      position: fixed; bottom: 100px; right: 24px; width: 60px; height: 60px; border-radius: 50%;
-      background: #4caf50; color: white; border: none; font-size: 28px; cursor: pointer;
-      box-shadow: 0 4px 16px rgba(76,175,80,0.4); display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s; z-index: 50;
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #4caf50;
+      color: white;
+      border: none;
+      font-size: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(76,175,80,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 30;
     }
-    .fab:hover { background: #45a049; transform: scale(1.05); box-shadow: 0 6px 20px rgba(76,175,80,0.5); }
-    .fab:active { transform: scale(0.95); }
-    .fab:focus { outline: 3px solid #4caf50; outline-offset: 3px; }
+    .fab:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+    .fab:active { transform: scale(0.94); }
 
-    /* Modal */
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(45,95,77,0.5);
-      display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #ffffff; border-radius: 24px; padding: 28px; max-width: 500px; width: 100%;
-      box-shadow: 0 8px 32px rgba(45,95,77,0.2); max-height: 90%; overflow-y: auto;
-    }
-    .modal-title { font-size: 24px; font-weight: 700; color: #2d5f4d; margin-bottom: 24px; }
-    .form-group { margin-bottom: 20px; }
-    .form-label { display: block; font-size: 14px; font-weight: 600; color: #2d5f4d; margin-bottom: 8px; }
-    .form-input, .form-select {
-      width: 100%; padding: 12px 16px; border: 1px solid rgba(76,175,80,0.2); border-radius: 12px;
-      font-size: 16px; font-family: inherit; color: #2d5f4d; background: #f8fffe; transition: border-color 0.2s;
-    }
-    .form-input:focus, .form-select:focus {
-      outline: none; border-color: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,0.1);
-    }
-    .modal-actions { display: flex; gap: 12px; margin-top: 28px; }
-    .btn {
-      flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; font-family: inherit;
-    }
-    .btn-primary { background: #4caf50; color: white; }
-    .btn-primary:hover { background: #45a049; }
-    .btn-primary:active { background: #3d8b40; }
-    .btn-primary:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .btn-secondary { background: #f0f0f0; color: #5a7a6d; }
-    .btn-secondary:hover { background: #e0e0e0; }
-    .btn-secondary:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
-
-    /* Footer */
-    .footer {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 1px solid rgba(76,175,80,0.1);
-      padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-      gap: 16px; box-shadow: 0 -2px 8px rgba(45,95,77,0.08); flex-wrap: wrap; z-index: 40;
-    }
-    .footer-total { font-size: 18px; font-weight: 700; color: #2d5f4d; }
-    .footer-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .footer-btn {
-      padding: 10px 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: all 0.2s; font-family: inherit;
-    }
-    .footer-btn.mark-all { background: #4caf50; color: white; }
-    .footer-btn.mark-all:hover { background: #45a049; }
-    .footer-btn.mark-all:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .footer-btn.clear { background: #f0f0f0; color: #5a7a6d; }
-    .footer-btn.clear:hover { background: #e0e0e0; }
-    .footer-btn.clear:focus { outline: 2px solid #5a7a6d; outline-offset: 2px; }
-
-    .footer-btn.done {
-      background: #2d5f4d;
-      color: #ffffff;
-    }
-    .footer-btn.done:hover { background: #244538; }
-    .footer-btn.done:focus { outline: 2px solid #2d5f4d; outline-offset: 2px; }
-
-    /* Store mode */
     .store-mode .fab {
       display: none;
     }
-    .store-mode .item-card {
-      padding: 18px;
-    }
-    .store-mode .item-checkbox {
-      width: 30px;
-      height: 30px;
-    }
 
-    /* Coach overlay (guide-bobler) */
-    .coach-overlay {
+    /* Modal felles */
+    .modal-overlay {
       position: fixed;
       inset: 0;
-      z-index: 500;
+      background: rgba(0,0,0,0.45);
       display: none;
-      pointer-events: auto;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      padding: 16px;
     }
-    .coach-highlight {
-      position: fixed;
-      border-radius: 16px;
-      border: 2px solid #4caf50;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
-      transition: all 0.25s ease;
-      pointer-events: none;
-    }
-    .coach-tooltip {
-      position: fixed;
-      max-width: 320px;
+    .modal-overlay.open { display: flex; }
+    .modal {
       background: #ffffff;
-      border-radius: 16px;
-      padding: 14px 16px 12px 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-      color: #2d5f4d;
-      font-size: 14px;
-      line-height: 1.4;
+      border-radius: 22px;
+      padding: 22px 22px 20px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.35);
     }
-    .coach-title {
+    .modal-title {
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 14px;
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .form-input,
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(76,175,80,0.2);
+      background: #f8fffe;
+      font-family: inherit;
       font-size: 15px;
+      color: #2d5f4d;
     }
-    .coach-text {
-      margin: 0;
+    .form-input:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: #4caf50;
+      box-shadow: 0 0 0 2px rgba(76,175,80,0.15);
     }
-    .coach-step-label {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #5a7a6d;
-    }
-    .coach-buttons {
+    .modal-actions {
       display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 10px;
+      margin-top: 18px;
     }
-    .coach-btn {
+    .btn {
+      flex: 1;
+      border-radius: 12px;
       border: none;
-      border-radius: 9999px;
-      padding: 6px 12px;
-      font-size: 13px;
+      padding: 11px 16px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.2s, color 0.2s;
+      transition: background 0.2s, transform 0.08s;
     }
-    .coach-btn.coach-skip {
-      background: transparent;
-      color: #5a7a6d;
-    }
-    .coach-btn.coach-prev {
-      background: #f0f0f0;
-      color: #2d5f4d;
-    }
-    .coach-btn.coach-next {
+    .btn-primary {
       background: #4caf50;
       color: #ffffff;
     }
-    .coach-btn.coach-next:hover { background: #45a049; }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .container { padding: 16px; }
-      .page-title { font-size: 28px; }
-      .item-controls { flex-direction: column; align-items: flex-start; width: 100%; }
-      .price-input { width: 100%; }
-      .footer { flex-direction: column; align-items: stretch; }
-      .footer-actions { width: 100%; }
-      .footer-btn { flex: 1; }
-      .fab { bottom: 140px; right: 16px; }
+    .btn-primary:hover { background: #45a049; }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #5a7a6d;
     }
+    .btn-secondary:hover { background: #e0e0e0; }
+
+    /* Footer */
+    .footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff;
+      border-top: 1px solid rgba(76,175,80,0.12);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      box-shadow: 0 -2px 8px rgba(45,95,77,0.12);
+      z-index: 25;
+    }
+    .footer-total {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2d5f4d;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .footer-btn {
+      border-radius: 9999px;
+      border: none;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, transform 0.08s;
+    }
+    .footer-btn.mark-all {
+      background: #4caf50;
+      color: #ffffff;
+    }
+    .footer-btn.mark-all:hover { background: #45a049; }
+    .footer-btn.clear {
+      background: #f0f0f0;
+      color: #5a7a6d;
+    }
+    .footer-btn.clear:hover { background: #e0e0e0; }
+
+    /* Kjøpt-seksjon i butikk-modus */
+    .purchased-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5a7a6d;
+      margin: 6px 0;
+    }
+
+    .store-mode .category-card .item-card.checked {
+      opacity: 0.4;
+    }
+
+    @media (max-width: 640px) {
+      .container { padding: 16px 16px 110px; }
+      .page-title { font-size: 26px; }
+      .weekly-row { flex-direction: column; align-items: flex-start; }
+      .weekly-add-btn { align-self: flex-end; }
+      .footer { flex-direction: column; align-items: stretch; }
+      .footer-actions { justify-content: stretch; }
+      .footer-btn { flex: 1; text-align: center; }
+      .fab { bottom: 120px; right: 20px; }
+    }
+
+    @view-transition { navigation: auto; }
   </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <button class="back-button" id="backBtn" aria-label="Gå tilbake"> ← Tilbake </button>
-      <h1 class="page-title" id="pageTitle">Handleliste</h1>
-      <p class="page-subtitle" id="pageSubtitle">Planlegg ukens innkjøp og kryss av etter hvert ✅</p>
+      <button class="back-button" id="backBtn" aria-label="Gå tilbake">← Tilbake</button>
+      <h1 class="page-title" id="pageTitle">Planlegg uka</h1>
+      <p class="page-subtitle" id="pageSubtitle">
+        Lag ukens middager, legg til faste varer og få en enkel handleliste 📝
+      </p>
 
       <div class="header-actions">
         <button class="inbox-button" id="inboxBtn" style="display:none;">
@@ -355,44 +577,51 @@
       </div>
     </header>
 
-    <div class="budget-card">
-      <div class="budget-item">
-        <span class="budget-label" id="budgetLabel">Ukas budsjett</span>
-        <span class="budget-amount" id="budgetAmount">3 000 kr</span>
-      </div>
-      <div class="budget-item">
-        <span class="budget-label" id="spentLabel">Brukt så langt</span>
-        <span class="budget-amount" id="spentAmount">0 kr</span>
-      </div>
-      <div class="budget-item">
-        <span class="budget-label" id="estimatedLabel">Estimert sum i liste</span>
-        <span class="budget-amount" id="estimatedSum">0 kr</span>
-      </div>
-      <div class="budget-item">
-        <span class="budget-label" id="remainingLabel">Gjenstår etter handlelista</span>
-        <span class="budget-amount" id="remainingAfter">0 kr</span>
-      </div>
-    </div>
+    <!-- DEL 1: Ukens middager -->
+    <section class="section" id="weeklySection">
+      <h2 class="section-title">Ukens middager</h2>
+      <p class="section-subtitle">
+        Trykk på en dag og skriv inn hva dere skal ha til middag.
+      </p>
+      <div class="weekly-menu-list" id="weeklyMenuList"></div>
+    </section>
 
-    <p id="budgetWarning" class="budget-warning" style="display:none;"></p>
+    <!-- DEL 2: Faste varer -->
+    <section class="section" id="frequentSection">
+      <h2 class="section-title">Faste varer</h2>
+      <p class="section-subtitle">
+        Her dukker ting opp som dere ofte legger til på handlelisten. Trykk for å legge til.
+      </p>
+      <div class="frequent-grid" id="frequentGrid"></div>
+    </section>
 
-    <div id="categoriesContainer"></div>
-    <div id="purchasedContainer"></div>
+    <!-- DEL 3: Handleliste -->
+    <section class="section" id="shoppingSection">
+      <h2 class="section-title">Handleliste</h2>
+      <p class="section-subtitle" id="shoppingEmptyText">
+        Handlelisten er tom. Start med å legge til en middag eller en fast vare.
+      </p>
+      <div id="categoriesContainer"></div>
+
+      <div id="purchasedContainer" style="margin-top:8px;"></div>
+    </section>
   </div>
 
+  <!-- Flytende + for å legge til vare -->
   <button class="fab" id="fabBtn" aria-label="Legg til ny vare">+</button>
 
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal" role="dialog" aria-labelledby="modalTitle">
-      <h2 class="modal-title" id="modalTitle">Legg til vare</h2>
+  <!-- Modal: Legg til vare -->
+  <div class="modal-overlay" id="itemModalOverlay">
+    <div class="modal" role="dialog" aria-labelledby="itemModalTitle">
+      <h2 class="modal-title" id="itemModalTitle">Legg til vare</h2>
       <form id="addItemForm">
         <div class="form-group">
-          <label for="itemName" class="form-label">Varenavn</label>
-          <input type="text" id="itemName" class="form-input" required placeholder="F.eks. Melk 1L">
+          <label class="form-label" for="itemNameInput">Varenavn</label>
+          <input type="text" id="itemNameInput" class="form-input" placeholder="F.eks. Melk 1L" required>
         </div>
         <div class="form-group">
-          <label for="itemCategory" class="form-label">Kategori</label>
-          <select id="itemCategory" class="form-select">
+          <label class="form-label" for="itemCategorySelect">Kategori</label>
+          <select id="itemCategorySelect" class="form-select">
             <option value="Matvarer">Matvarer</option>
             <option value="Snacks/drikke">Snacks/drikke</option>
             <option value="Husholdning">Husholdning</option>
@@ -402,57 +631,51 @@
         <div class="form-group">
           <label class="form-label">Antall</label>
           <div class="stepper">
-            <button type="button" class="stepper-btn" id="modalDecrement" aria-label="Reduser antall">−</button>
-            <span class="stepper-value" id="modalQuantity">1</span>
-            <button type="button" class="stepper-btn" id="modalIncrement" aria-label="Øk antall">+</button>
+            <button type="button" class="stepper-btn" id="modalDecBtn">−</button>
+            <span class="stepper-value" id="modalQty">1</span>
+            <button type="button" class="stepper-btn" id="modalIncBtn">+</button>
           </div>
         </div>
-        <div class="form-group">
-          <label for="itemPrice" class="form-label">Estimert pris (kr)</label>
-          <input type="number" id="itemPrice" class="form-input" min="0" step="1" placeholder="0">
-        </div>
         <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" id="cancelBtn">Avbryt</button>
+          <button type="button" class="btn btn-secondary" id="itemCancelBtn">Avbryt</button>
           <button type="submit" class="btn btn-primary">Legg til</button>
         </div>
       </form>
     </div>
   </div>
 
-  <footer class="footer">
-    <div class="footer-total" id="footerTotal">Totalt i handlelista: 0 kr</div>
-    <div class="footer-actions">
-      <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
-      <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
-      <button class="footer-btn done" id="doneBtn" style="display:none;">Ferdig – registrer kjøp</button>
-    </div>
-  </footer>
-
-  <!-- Coach overlay root (guide-bobler) -->
-  <div class="coach-overlay" id="coachOverlay">
-    <div class="coach-highlight" id="coachHighlight"></div>
-    <div class="coach-tooltip" id="coachTooltip">
-      <div class="coach-title" id="coachTitle"></div>
-      <p class="coach-text" id="coachText"></p>
-      <div class="coach-step-label" id="coachStepLabel"></div>
-      <div class="coach-buttons">
-        <button type="button" class="coach-btn coach-skip" id="coachSkipBtn">Hopp over</button>
-        <button type="button" class="coach-btn coach-prev" id="coachPrevBtn">Tilbake</button>
-        <button type="button" class="coach-btn coach-next" id="coachNextBtn">Neste</button>
-      </div>
+  <!-- Modal: Middag på dag -->
+  <div class="modal-overlay" id="menuModalOverlay">
+    <div class="modal" role="dialog" aria-labelledby="menuModalTitle">
+      <h2 class="modal-title" id="menuModalTitle">Middag</h2>
+      <form id="weeklyMenuForm">
+        <div class="form-group">
+          <label class="form-label" for="menuTextInput">Hva skal dere ha?</label>
+          <input type="text" id="menuTextInput" class="form-input" placeholder="F.eks. Laks og poteter">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="menuCancelBtn">Avbryt</button>
+          <button type="submit" class="btn btn-primary">Lagre</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <!-- Footer (antall varer + handlinger) -->
+  <footer class="footer">
+    <div class="footer-total" id="footerTotal">Antall varer i handlelista: 0</div>
+    <div class="footer-actions">
+      <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
+      <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
+    </div>
+  </footer>
+
 <script>
-  // ---------- Konfig ----------
+  // ---------- Konfig for Canva / Element ----------
   const defaultConfig = {
-    page_title: "Handleliste",
-    page_subtitle: "Planlegg ukens innkjøp og kryss av etter hvert ✅",
-    budget_label: "Ukas budsjett",
-    estimated_label: "Estimert sum i liste",
-    total_label: "Totalt i handlelista",
-    mark_all_button: "Merk alle som kjøpt",
-    clear_button: "Tøm kjøpte",
+    page_title: "Planlegg uka",
+    page_subtitle: "Lag ukens middager, legg til faste varer og få en enkel handleliste 📝",
+    total_label: "Antall varer i handlelista",
     background_color: "#f8fffe",
     primary_color: "#4caf50",
     text_color: "#2d5f4d",
@@ -463,575 +686,629 @@
   };
   let currentConfig = { ...defaultConfig };
 
-  const COACH_SEEN_KEY = 'shoppingList_coach_seen_v1';
-
   // ---------- Utils ----------
-  const fmt = (n) => (Number(n)||0).toLocaleString('no-NO');
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+  const fmtInt = (n) => Number(n || 0).toLocaleString("no-NO");
 
-  function mondayISO12(d = new Date()){
-    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const day = (x.getDay()+6)%7; // 0=man
-    x.setDate(x.getDate()-day);
-    x.setHours(12,0,0,0); // 12:00 for DST
-    return x.toISOString().slice(0,10);
+  function mondayISO(date = new Date()) {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = (d.getDay() + 6) % 7; // 0=mandag
+    d.setDate(d.getDate() - day);
+    d.setHours(12,0,0,0);
+    return d.toISOString().slice(0,10);
   }
-  function getActiveWeekISO(){
-    return localStorage.getItem('activeWeekISO') || mondayISO12();
-  }
 
-  const get = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(fb)); } catch { return fb; } };
-  const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-
-  // ---------- Nøkler ----------
-  const WEEK_ISO = getActiveWeekISO();
-  const WEEK_LIST_KEY = `shoppingList_${WEEK_ISO}`;
-  const INBOX_KEY = `shoppingList_inbox_${WEEK_ISO}`;
-
-  // ---------- Budsjettoppslag ----------
-  function parseMoneyStr(s){
-    if (s == null) return NaN;
-    const n = String(s).replace(/\s|kr/g,'').replace(',','.');
-    const v = parseFloat(n);
-    return isNaN(v) ? NaN : v;
-  }
-  function readWeeklyBudgetFor(isoMonday){
-    const byWeekRaw = localStorage.getItem(`weeklyBudget_${isoMonday}`);
-    const byWeek = parseMoneyStr(byWeekRaw);
-    if (!isNaN(byWeek) && byWeek > 0) return byWeek;
-
-    const globalRaw = localStorage.getItem('weeklyBudget');
-    const global = parseMoneyStr(globalRaw);
-    if (!isNaN(global) && global > 0) return global;
-
-    return 3000;
-  }
-  function sumPurchasesLocal(isoMonday) {
-    const key = `purchases_${isoMonday}`;
+  function getLS(key, fallback) {
     try {
-      const arr = JSON.parse(localStorage.getItem(key) || '[]');
-      return Array.isArray(arr)
-        ? arr.reduce((acc, p) => acc + (Number(p.amount) || 0), 0)
-        : 0;
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      const val = JSON.parse(raw);
+      return val ?? fallback;
     } catch {
-      return 0;
+      return fallback;
     }
   }
+  function setLS(key, val) {
+    try {
+      localStorage.setItem(key, JSON.stringify(val));
+    } catch {}
+  }
 
+  // ---------- Nøkler ----------
+  const WEEK_ISO = mondayISO();
+  const WEEK_LIST_KEY   = `shoppingList_${WEEK_ISO}`;
+  const WEEK_MENU_KEY   = `weeklyMenu_${WEEK_ISO}`;
+  const FREQ_KEY        = `frequentItems`;
+  const INBOX_KEY       = `shoppingList_inbox_${WEEK_ISO}`;
+
+  // ---------- State ----------
+  const DAYS = [
+    { key: "mon", label: "Mandag"  },
+    { key: "tue", label: "Tirsdag" },
+    { key: "wed", label: "Onsdag"  },
+    { key: "thu", label: "Torsdag" },
+    { key: "fri", label: "Fredag"  },
+    { key: "sat", label: "Lørdag"  },
+    { key: "sun", label: "Søndag"  }
+  ];
+
+  const defaultMenu = {
+    mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: ""
+  };
+
+  const defaultCategories = [
+    { name: "Matvarer",       open: true,  items: [] },
+    { name: "Snacks/drikke",  open: false, items: [] },
+    { name: "Husholdning",    open: false, items: [] },
+    { name: "Annet",          open: false, items: [] }
+  ];
+
+  const defaultFrequentItems = [
+    { name: "Melk",        category: "Matvarer",      timesUsed: 3 },
+    { name: "Brød",        category: "Matvarer",      timesUsed: 3 },
+    { name: "Ost",         category: "Matvarer",      timesUsed: 2 },
+    { name: "Kaffe",       category: "Snacks/drikke", timesUsed: 2 },
+    { name: "Epler",       category: "Matvarer",      timesUsed: 1 },
+    { name: "Tørkepapir",  category: "Husholdning",   timesUsed: 1 }
+  ];
+
+  let weeklyMenu    = getLS(WEEK_MENU_KEY, defaultMenu);
+  let categories    = getLS(WEEK_LIST_KEY, defaultCategories);
+  let frequentItems = getLS(FREQ_KEY, defaultFrequentItems);
+  let isStoreMode   = false;
+
+  let modalQty      = 1;
+  let currentMenuDayKey = null;
+
+  // ---------- Persist helpers ----------
+  function saveMenu()      { setLS(WEEK_MENU_KEY, weeklyMenu); }
+  function saveCategories(){ setLS(WEEK_LIST_KEY, categories); }
+  function saveFrequent()  { setLS(FREQ_KEY, frequentItems); }
+
+  // ---------- Weekly menu ----------
+  function renderWeeklyMenu() {
+    const container = $("#weeklyMenuList");
+    if (!container) return;
+    container.innerHTML = "";
+
+    DAYS.forEach(day => {
+      const row = document.createElement("div");
+      row.className = "weekly-row";
+
+      const label = document.createElement("div");
+      label.className = "weekly-day-label";
+      label.textContent = day.label;
+
+      const dish = document.createElement("div");
+      dish.className = "weekly-dish";
+      const text = weeklyMenu[day.key] || "";
+      if (!text) {
+        dish.textContent = "Ingen middag valgt ennå";
+        dish.classList.add("empty");
+      } else {
+        dish.textContent = text;
+      }
+
+      const btn = document.createElement("button");
+      btn.className = "weekly-add-btn";
+      btn.textContent = text ? "Endre" : "Legg til";
+      btn.addEventListener("click", () => openMenuModal(day.key, day.label));
+
+      row.appendChild(label);
+      row.appendChild(dish);
+      row.appendChild(btn);
+      container.appendChild(row);
+    });
+  }
+
+  function openMenuModal(dayKey, dayLabel) {
+    currentMenuDayKey = dayKey;
+    const overlay = $("#menuModalOverlay");
+    const title   = $("#menuModalTitle");
+    const input   = $("#menuTextInput");
+
+    if (title) title.textContent = `Middag på ${dayLabel}`;
+    if (input) {
+      input.value = weeklyMenu[dayKey] || "";
+      setTimeout(() => input.focus(), 20);
+    }
+    if (overlay) overlay.classList.add("open");
+  }
+
+  function closeMenuModal() {
+    const overlay = $("#menuModalOverlay");
+    if (overlay) overlay.classList.remove("open");
+    currentMenuDayKey = null;
+  }
+
+  // ---------- Frequent items ----------
+  function trackFrequentItem(name, category) {
+    const cleanName = String(name || "").trim();
+    if (!cleanName) return;
+
+    const existing = frequentItems.find(f => f.name.toLowerCase() === cleanName.toLowerCase());
+    if (existing) {
+      existing.timesUsed = (existing.timesUsed || 0) + 1;
+    } else {
+      frequentItems.push({
+        name: cleanName,
+        category: category || "Matvarer",
+        timesUsed: 1
+      });
+    }
+    saveFrequent();
+    renderFrequentItems();
+  }
+
+  function renderFrequentItems() {
+    const grid = $("#frequentGrid");
+    if (!grid) return;
+
+    const sorted = [...frequentItems].sort((a,b) => (b.timesUsed||0) - (a.timesUsed||0));
+    const top = sorted.slice(0, 10);
+
+    grid.innerHTML = "";
+    if (top.length === 0) {
+      grid.textContent = "Her dukker det opp varer dere bruker ofte, etter hvert som dere bygger handlelister.";
+      return;
+    }
+
+    top.forEach(item => {
+      const chip = document.createElement("button");
+      chip.className = "frequent-chip";
+      chip.type = "button";
+      chip.textContent = item.name;
+      chip.addEventListener("click", () => {
+        addItemToCategoryByName(item.name, item.category, 1);
+      });
+      grid.appendChild(chip);
+    });
+  }
+
+  // ---------- Handleliste / kategorier ----------
+  function findCategoryIndex(name) {
+    let idx = categories.findIndex(c => c.name === name);
+    if (idx === -1) {
+      categories.push({ name, open: true, items: [] });
+      idx = categories.length - 1;
+    }
+    return idx;
+  }
+
+  function addItemToCategoryByName(name, categoryName, quantity = 1) {
+    const catIdx = findCategoryIndex(categoryName || "Matvarer");
+    const cat = categories[catIdx];
+
+    cat.items.push({
+      name: String(name || "").trim(),
+      quantity: Math.max(1, Number(quantity) || 1),
+      checked: false
+    });
+
+    cat.open = true;
+    trackFrequentItem(name, categoryName);
+    saveCategories();
+    renderCategories();
+  }
+
+  function createItemCard(item, ci, ii) {
+    const card = document.createElement("div");
+    card.className = "item-card" + (item.checked ? " checked" : "");
+    card.dataset.categoryIndex = ci;
+    card.dataset.itemIndex = ii;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "item-checkbox";
+    checkbox.checked = !!item.checked;
+    checkbox.addEventListener("change", (e) => {
+      e.stopPropagation();
+      toggleItemChecked(ci, ii);
+    });
+
+    const details = document.createElement("div");
+    details.className = "item-details";
+
+    const nameEl = document.createElement("div");
+    nameEl.className = "item-name";
+    nameEl.textContent = item.name;
+
+    const stepper = document.createElement("div");
+    stepper.className = "stepper";
+    const decBtn = document.createElement("button");
+    decBtn.type = "button";
+    decBtn.className = "stepper-btn";
+    decBtn.textContent = "−";
+    decBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      updateQuantity(ci, ii, -1);
+    });
+    const valEl = document.createElement("span");
+    valEl.className = "stepper-value";
+    valEl.textContent = item.quantity;
+    const incBtn = document.createElement("button");
+    incBtn.type = "button";
+    incBtn.className = "stepper-btn";
+    incBtn.textContent = "+";
+    incBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      updateQuantity(ci, ii, 1);
+    });
+    stepper.appendChild(decBtn);
+    stepper.appendChild(valEl);
+    stepper.appendChild(incBtn);
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "item-delete-btn";
+    delBtn.innerHTML = "🗑";
+    delBtn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      deleteItem(ci, ii);
+    });
+
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.alignItems = "center";
+    right.style.gap = "6px";
+    right.appendChild(stepper);
+    right.appendChild(delBtn);
+
+    details.appendChild(nameEl);
+    details.appendChild(right);
+
+    card.appendChild(checkbox);
+    card.appendChild(details);
+
+    card.addEventListener("click", () => {
+      toggleItemChecked(ci, ii);
+    });
+
+    return card;
+  }
+
+  function renderCategories() {
+    const container = $("#categoriesContainer");
+    const purchasedContainer = $("#purchasedContainer");
+    const emptyText = $("#shoppingEmptyText");
+    if (!container) return;
+
+    container.innerHTML = "";
+    if (purchasedContainer) purchasedContainer.innerHTML = "";
+
+    let totalItems = 0;
+    let purchasedItemsFlat = [];
+
+    categories.forEach((cat, ci) => {
+      const card = document.createElement("div");
+      card.className = "category-card" + (cat.open ? " open" : "");
+      card.dataset.categoryIndex = ci;
+
+      const header = document.createElement("div");
+      header.className = "category-header";
+      const title = document.createElement("div");
+      title.className = "category-title";
+      title.textContent = cat.name;
+
+      const count = document.createElement("span");
+      count.className = "category-count";
+      const countVal = cat.items.reduce((sum, it) => sum + (it.quantity || 1), 0);
+      count.textContent = `(${countVal})`;
+
+      const chevron = document.createElement("span");
+      chevron.className = "category-chevron";
+      chevron.textContent = "▼";
+
+      title.appendChild(count);
+      header.appendChild(title);
+      header.appendChild(chevron);
+
+      header.addEventListener("click", () => toggleCategory(ci));
+
+      const content = document.createElement("div");
+      content.className = "category-content";
+
+      const inner = document.createElement("div");
+      inner.className = "category-inner";
+
+      // Quick-add rad
+      const quickRow = document.createElement("div");
+      quickRow.className = "category-quick-add";
+      const quickInput = document.createElement("input");
+      quickInput.className = "category-quick-input";
+      quickInput.placeholder = `Legg til vare i ${cat.name}`;
+      const quickBtn = document.createElement("button");
+      quickBtn.type = "button";
+      quickBtn.className = "category-quick-btn";
+      quickBtn.textContent = "Legg til";
+      quickBtn.addEventListener("click", () => {
+        const val = quickInput.value.trim();
+        if (!val) return;
+        addItemToCategoryByName(val, cat.name, 1);
+        quickInput.value = "";
+        quickInput.focus();
+      });
+      quickInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          quickBtn.click();
+        }
+      });
+      quickRow.appendChild(quickInput);
+      quickRow.appendChild(quickBtn);
+      inner.appendChild(quickRow);
+
+      // Varer
+      cat.items.forEach((item, ii) => {
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        totalItems += qty;
+
+        if (isStoreMode && item.checked) {
+          purchasedItemsFlat.push({ item, ci, ii, categoryName: cat.name });
+        } else {
+          inner.appendChild(createItemCard(item, ci, ii));
+        }
+      });
+
+      content.appendChild(inner);
+      card.appendChild(header);
+      card.appendChild(content);
+
+      container.appendChild(card);
+    });
+
+    // Kjøpt-liste i butikk-modus
+    if (isStoreMode && purchasedItemsFlat.length > 0 && purchasedContainer) {
+      const title = document.createElement("div");
+      title.className = "purchased-section-title";
+      title.textContent = `Kjøpt denne turen (${purchasedItemsFlat.length} ulike varer)`;
+      purchasedContainer.appendChild(title);
+
+      purchasedItemsFlat.forEach(p => {
+        purchasedContainer.appendChild(createItemCard(p.item, p.ci, p.ii));
+      });
+    }
+
+    // Tom-tekst
+    if (emptyText) {
+      if (totalItems === 0) {
+        emptyText.style.display = "block";
+      } else {
+        emptyText.style.display = "none";
+      }
+    }
+
+    updateFooter(totalItems);
+  }
+
+  // ---------- Mutators ----------
+  function toggleCategory(ci) {
+    categories[ci].open = !categories[ci].open;
+    saveCategories();
+    renderCategories();
+  }
+
+  function toggleItemChecked(ci, ii) {
+    const it = categories[ci].items[ii];
+    it.checked = !it.checked;
+    saveCategories();
+    renderCategories();
+  }
+
+  function updateQuantity(ci, ii, delta) {
+    const it = categories[ci].items[ii];
+    const newQty = Math.max(1, (Number(it.quantity) || 1) + delta);
+    it.quantity = newQty;
+    saveCategories();
+    renderCategories();
+  }
+
+  function deleteItem(ci, ii) {
+    categories[ci].items.splice(ii, 1);
+    saveCategories();
+    renderCategories();
+  }
+
+  function markAllChecked() {
+    categories.forEach(cat => {
+      cat.items.forEach(i => { i.checked = true; });
+    });
+    saveCategories();
+    renderCategories();
+  }
+
+  function clearChecked() {
+    categories.forEach(cat => {
+      cat.items = cat.items.filter(i => !i.checked);
+    });
+    saveCategories();
+    renderCategories();
+  }
+
+  // ---------- Footer ----------
+  function updateFooter(totalItems) {
+    const footerTotal = $("#footerTotal");
+    if (!footerTotal) return;
+    const label = currentConfig.total_label || defaultConfig.total_label;
+    footerTotal.textContent = `${label}: ${fmtInt(totalItems)}`;
+  }
+
+  // ---------- FAB / vare-modal ----------
+  function openItemModal() {
+    const overlay = $("#itemModalOverlay");
+    const nameInput = $("#itemNameInput");
+    modalQty = 1;
+    $("#modalQty").textContent = "1";
+    $("#itemCategorySelect").value = "Matvarer";
+    if (nameInput) {
+      nameInput.value = "";
+      setTimeout(() => nameInput.focus(), 20);
+    }
+    if (overlay) overlay.classList.add("open");
+  }
+  function closeItemModal() {
+    const overlay = $("#itemModalOverlay");
+    if (overlay) overlay.classList.remove("open");
+  }
+
+  // ---------- Inbox fra middagsplan ----------
   function getInboxItems() {
     try {
-      const arr = JSON.parse(localStorage.getItem(INBOX_KEY) || '[]');
+      const arr = JSON.parse(localStorage.getItem(INBOX_KEY) || "[]");
       return Array.isArray(arr) ? arr : [];
     } catch {
       return [];
     }
   }
 
-  // ---------- Default data ----------
-const defaultCategories = [
-  { name: "Matvarer",       open: true,  items: [] },
-  { name: "Snacks/drikke",  open: false, items: [] },
-  { name: "Husholdning",    open: false, items: [] },
-  { name: "Annet",          open: false, items: [] }
-];
-  // ---------- State ----------
-  let categories = get(WEEK_LIST_KEY, defaultCategories);
-  let modalQuantity = 1;
-  let spentSoFar = 0;
-  let isStoreMode = false;
+  function mergeInboxItems() {
+    const inbox = getInboxItems();
+    if (!Array.isArray(inbox) || inbox.length === 0) return 0;
 
-  // coach state
-  let coachCurrentStep = 0;
-  let coachActive = false;
-  let prevBodyOverflow = '';
-  const coachOverlay = document.getElementById('coachOverlay');
-  const coachHighlight = document.getElementById('coachHighlight');
-  const coachTooltip = document.getElementById('coachTooltip');
-  const coachTitleEl = document.getElementById('coachTitle');
-  const coachTextEl = document.getElementById('coachText');
-  const coachStepLabelEl = document.getElementById('coachStepLabel');
-  const coachSkipBtn = document.getElementById('coachSkipBtn');
-  const coachPrevBtn = document.getElementById('coachPrevBtn');
-  const coachNextBtn = document.getElementById('coachNextBtn');
+    let matIdx = findCategoryIndex("Matvarer");
+    const cat = categories[matIdx];
 
-  // ---------- DOM helpers ----------
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => document.querySelectorAll(sel);
+    const existing = new Set(
+      cat.items.map(i => String(i.name || "").trim().toLowerCase())
+    );
 
-
-  const modalPriceInput = document.getElementById('itemPrice');
-if (modalPriceInput) {
-  modalPriceInput.addEventListener('focus', (e) => {
-    // Hvis det står 0 eller er tomt → gjør feltet klart for skriving
-    if (!e.target.value || e.target.value === '0') {
-      e.target.value = '';
-    }
-  });
-}
-
-  // ---------- Init statiske tekster + budsjett ----------
-  $('#pageTitle').textContent = defaultConfig.page_title;
-  $('#pageSubtitle').textContent = defaultConfig.page_subtitle;
-  $('#budgetLabel').textContent = defaultConfig.budget_label;
-  $('#estimatedLabel').textContent = defaultConfig.estimated_label;
-  $('#markAllBtn').textContent = defaultConfig.mark_all_button;
-  $('#clearBtn').textContent = defaultConfig.clear_button;
-
-  const weeklyBudget = readWeeklyBudgetFor(WEEK_ISO);
-  $('#budgetAmount').textContent = `${fmt(weeklyBudget)} kr`;
-  spentSoFar = sumPurchasesLocal(WEEK_ISO);
-  $('#spentAmount').textContent = `${fmt(spentSoFar)} kr`;
-
-  // ---------- Item card ----------
-  function createItemCard(item, categoryIndex, itemIndex) {
-    const card = document.createElement('div');
-    card.className = `item-card ${item.checked ? 'checked' : ''}`;
-    card.dataset.categoryIndex = categoryIndex;
-    card.dataset.itemIndex = itemIndex;
-
-    let touchStartX = null;
-    card.addEventListener('touchstart', (e) => {
-      if (e.touches.length === 1) {
-        touchStartX = e.touches[0].clientX;
-      }
-    });
-    card.addEventListener('touchend', (e) => {
-      if (touchStartX === null) return;
-      const dx = e.changedTouches[0].clientX - touchStartX;
-      if (dx < -60) {
-        deleteItem(categoryIndex, itemIndex);
-      }
-      touchStartX = null;
+    let added = 0;
+    inbox.forEach(name => {
+      const clean = String(name || "").trim();
+      if (!clean) return;
+      const key = clean.toLowerCase();
+      if (existing.has(key)) return;
+      cat.items.push({ name: clean, quantity: 1, checked: false });
+      existing.add(key);
+      trackFrequentItem(clean, "Matvarer");
+      added++;
     });
 
-    card.addEventListener('click', (e) => {
-      if (e.target.closest('.item-checkbox') ||
-          e.target.closest('.stepper') ||
-          e.target.closest('.price-input') ||
-          e.target.closest('.item-menu-btn')) {
-        return;
-      }
-      toggleItemChecked(categoryIndex, itemIndex);
-    });
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'item-checkbox';
-    checkbox.checked = item.checked;
-    checkbox.setAttribute('aria-label', `Merk ${item.name} som kjøpt`);
-    checkbox.addEventListener('change', () => { toggleItemChecked(categoryIndex, itemIndex); });
-
-    const details = document.createElement('div');
-    details.className = 'item-details';
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 'item-name';
-    nameEl.textContent = item.name;
-
-    const controls = document.createElement('div');
-    controls.className = 'item-controls';
-
-    const stepper = document.createElement('div');
-    stepper.className = 'stepper';
-    stepper.innerHTML = `
-      <button class="stepper-btn" aria-label="Reduser antall">−</button>
-      <span class="stepper-value">${item.quantity}</span>
-      <button class="stepper-btn" aria-label="Øk antall">+</button>
-    `;
-    stepper.children[0].addEventListener('click', (ev) => { ev.stopPropagation(); updateQuantity(categoryIndex, itemIndex, -1); });
-    stepper.children[2].addEventListener('click', (ev) => { ev.stopPropagation(); updateQuantity(categoryIndex, itemIndex, 1); });
-
-    const price = document.createElement('input');
-    price.type = 'number';
-    price.className = 'price-input';
-    price.value = item.price;
-    price.min = '0';
-    price.step = '1';
-    price.setAttribute('aria-label', `Pris for ${item.name}`);
-    price.addEventListener('click', (ev) => ev.stopPropagation());
-    price.addEventListener('input', (e) => updatePrice(categoryIndex, itemIndex, e.target.value));
-
-    price.addEventListener('focus', (e) => {
-  // Hvis prisen er 0 → marker hele tallet, så det erstattes direkte
-  if (e.target.value === '0') {
-    e.target.select();
-  }
-});
-
-    const total = document.createElement('div');
-    total.className = 'item-total';
-    total.textContent = `${fmt(item.quantity * item.price)} kr`;
-
-    const menuBtn = document.createElement('button');
-    menuBtn.className = 'item-menu-btn';
-    menuBtn.textContent = '•••';
-    menuBtn.setAttribute('aria-label', 'Åpne meny');
-    menuBtn.setAttribute('aria-haspopup', 'true');
-
-    const menu = document.createElement('div');
-    menu.className = 'item-menu';
-    menu.innerHTML = `
-      <button class="menu-item">Rediger</button>
-      <button class="menu-item">Flytt til...</button>
-      <button class="menu-item delete">Slett</button>
-    `;
-    menu.children[0].addEventListener('click', () => { closeAllMenus(); });
-    menu.children[1].addEventListener('click', () => { closeAllMenus(); });
-    menu.children[2].addEventListener('click', () => { deleteItem(categoryIndex, itemIndex); closeAllMenus(); });
-
-    menuBtn.appendChild(menu);
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeAllMenus();
-      menu.classList.toggle('open');
-    });
-
-    controls.appendChild(stepper);
-    controls.appendChild(price);
-    controls.appendChild(total);
-
-    details.appendChild(nameEl);
-    details.appendChild(controls);
-
-    card.appendChild(checkbox);
-    card.appendChild(details);
-    card.appendChild(menuBtn);
-
-    return card;
+    setLS(INBOX_KEY, []);
+    if (added > 0) cat.open = true;
+    saveCategories();
+    return added;
   }
 
-  // ---------- Rendering ----------
-  function renderCategories() {
-    const container = $('#categoriesContainer');
-    const purchasedContainer = $('#purchasedContainer');
-    container.innerHTML = '';
-    if (purchasedContainer) purchasedContainer.innerHTML = '';
+  function initInboxButton() {
+    const inboxBtn = $("#inboxBtn");
+    const inboxCountSpan = $("#inboxCount");
+    if (!inboxBtn || !inboxCountSpan) return;
 
-    const purchasedItems = [];
-
-    categories.forEach((category, categoryIndex) => {
-      const card = document.createElement('div');
-      card.className = `category-card ${category.open ? 'open' : ''}`;
-      card.dataset.categoryIndex = categoryIndex;
-
-      const header = document.createElement('div');
-      header.className = 'category-header';
-      header.setAttribute('role', 'button');
-      header.setAttribute('tabindex', '0');
-      header.setAttribute('aria-expanded', String(category.open));
-      header.innerHTML = `
-        <div class="category-title">
-          ${category.name}
-          <span class="category-count">(${category.items.length})</span>
-        </div>
-        <span class="category-chevron">▼</span>
-      `;
-      header.addEventListener('click', () => toggleCategory(categoryIndex));
-      header.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCategory(categoryIndex); }
-      });
-
-      const content = document.createElement('div');
-      content.className = 'category-content';
-
-      const list = document.createElement('div');
-      list.className = 'category-items';
-
-      category.items.forEach((item, itemIndex) => {
-        if (item.checked) {
-          purchasedItems.push({ item, categoryIndex, itemIndex, categoryName: category.name });
-        }
-        if (!isStoreMode || !item.checked) {
-          list.appendChild(createItemCard(item, categoryIndex, itemIndex));
-        }
-      });
-
-      content.appendChild(list);
-      card.appendChild(header);
-      card.appendChild(content);
-
-      if (!isStoreMode || category.items.length > 0) {
-        container.appendChild(card);
-      }
-    });
-
-    if (isStoreMode && purchasedItems.length > 0 && purchasedContainer) {
-      const pCard = document.createElement('div');
-      pCard.className = 'category-card purchased-section open';
-
-      const pHeader = document.createElement('div');
-      pHeader.className = 'category-header';
-      pHeader.innerHTML = `
-        <div class="category-title">
-          Kjøpt denne turen
-          <span class="category-count">(${purchasedItems.length})</span>
-        </div>
-        <span class="category-chevron">▼</span>
-      `;
-
-      const pContent = document.createElement('div');
-      pContent.className = 'category-content';
-      pContent.style.maxHeight = '2000px';
-      pContent.style.opacity = '1';
-
-      const pList = document.createElement('div');
-      pList.className = 'category-items';
-
-      purchasedItems.forEach(p => {
-        pList.appendChild(createItemCard(p.item, p.categoryIndex, p.itemIndex));
-      });
-
-      pContent.appendChild(pList);
-      pCard.appendChild(pHeader);
-      pCard.appendChild(pContent);
-      purchasedContainer.appendChild(pCard);
-    }
-
-    updateTotals(false);
-  }
-
-  // ---------- Mutators ----------
-  function persist() { set(WEEK_LIST_KEY, categories); }
-
-  function toggleCategory(index) {
-    categories[index].open = !categories[index].open;
-    const card = document.querySelector(`.category-card[data-category-index="${index}"]`);
-    if (card) {
-      card.classList.toggle('open');
-      card.querySelector('.category-header')?.setAttribute('aria-expanded', String(categories[index].open));
-    }
-    persist();
-  }
-
-  function toggleItemChecked(ci, ii) {
-    const it = categories[ci].items[ii];
-    it.checked = !it.checked;
-
-    persist();
-    renderCategories();
-  }
-
-  function updateQuantity(ci, ii, delta) {
-    const it = categories[ci].items[ii];
-    it.quantity = Math.max(1, it.quantity + delta);
-    persist();
-    renderCategories();
-  }
-
-  function updatePrice(ci, ii, value) {
-    const it = categories[ci].items[ii];
-    it.price = parseFloat(value) || 0;
-    persist();
-    renderCategories();
-  }
-
-  function deleteItem(ci, ii) {
-    categories[ci].items.splice(ii, 1);
-    persist();
-    renderCategories();
-  }
-
-  // ---------- Totals + budsjett-hint ----------
-  function updateTotals(pulse = true) {
-    let total = 0;
-    categories.forEach(c => c.items.forEach(i => {
-      total += i.quantity * i.price;
-    }));
-
-    const estimatedSum = $('#estimatedSum');
-    const footerTotal = $('#footerTotal');
-    const remainingAfterEl = $('#remainingAfter');
-    const warningEl = $('#budgetWarning');
-
-    if (estimatedSum) {
-      estimatedSum.textContent = `${fmt(total)} kr`;
-      if (pulse) {
-        estimatedSum.classList.add('pulse');
-        setTimeout(()=>estimatedSum.classList.remove('pulse'), 400);
-      }
-    }
-
-    if (footerTotal) {
-      const label = currentConfig.total_label || defaultConfig.total_label;
-      footerTotal.textContent = `${label}: ${fmt(total)} kr`;
-    }
-
-    const remainingBefore = weeklyBudget - spentSoFar;
-    const remainingAfter = remainingBefore - total;
-
-    if (remainingAfterEl) {
-      remainingAfterEl.textContent = `${fmt(remainingAfter)} kr`;
-      if (pulse) {
-        remainingAfterEl.classList.add('pulse');
-        setTimeout(()=>remainingAfterEl.classList.remove('pulse'), 400);
-      }
-    }
-
-    if (!warningEl) return;
-
-    warningEl.classList.remove('ok', 'warn', 'over');
-
-    if (remainingBefore <= 0 && total > 0) {
-      warningEl.style.display = 'block';
-      warningEl.classList.add('over');
-      warningEl.textContent =
-        `Du er allerede over ukesbudsjettet med ${fmt(Math.abs(remainingBefore))} kr før denne handlelista. ` +
-        `Vurder å kutte ned på enkelte varer.`;
-    } else if (remainingAfter < 0) {
-      warningEl.style.display = 'block';
-      warningEl.classList.add('over');
-      warningEl.textContent =
-        `💡 Lista di vil ta dere ${fmt(Math.abs(remainingAfter))} kr over det som er igjen av ukesbudsjettet. ` +
-        `Se om du kan fjerne eller bytte ut noen varer.`;
-    } else if (remainingAfter <= remainingBefore * 0.1 && total > 0) {
-      warningEl.style.display = 'block';
-      warningEl.classList.add('warn');
-      warningEl.textContent =
-        `Du vil sitte igjen med ${fmt(remainingAfter)} kr etter denne handelen. ` +
-        `Det kan være lurt å være ekstra bevisst på snacks/drikke og impulskjøp.`;
-    } else if (total > 0) {
-      warningEl.style.display = 'block';
-      warningEl.classList.add('ok');
-      warningEl.textContent =
-        `Bra! Etter denne handlelista vil dere fortsatt ha ${fmt(remainingAfter)} kr igjen av ukesbudsjettet.`;
-    } else {
-      warningEl.style.display = 'none';
-      warningEl.textContent = '';
-    }
-  }
-
-  // ---------- Meny lukking ----------
-  function closeAllMenus() { document.querySelectorAll('.item-menu').forEach(m => m.classList.remove('open')); }
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.item-menu-btn')) closeAllMenus();
-  });
-
-  // ---------- FAB / Modal ----------
-  $('#fabBtn').addEventListener('click', () => {
-    $('#modalOverlay').classList.add('open');
-    $('#itemName').focus();
-  });
-  $('#modalOverlay').addEventListener('click', (e) => {
-    if (e.target === $('#modalOverlay')) closeModal();
-  });
-  $('#cancelBtn').addEventListener('click', closeModal);
-  function closeModal() {
-    $('#modalOverlay').classList.remove('open');
-    $('#addItemForm').reset();
-    modalQuantity = 1;
-    $('#modalQuantity').textContent = '1';
-  }
-  $('#modalDecrement').addEventListener('click', () => {
-    modalQuantity = Math.max(1, modalQuantity-1);
-    $('#modalQuantity').textContent = modalQuantity;
-  });
-  $('#modalIncrement').addEventListener('click', () => {
-    modalQuantity += 1;
-    $('#modalQuantity').textContent = modalQuantity;
-  });
-
-  $('#addItemForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = $('#itemName').value.trim();
-    const categoryName = $('#itemCategory').value;
-    const price = parseFloat($('#itemPrice').value) || 0;
-    if (!name) return;
-
-    const idx = categories.findIndex(c => c.name === categoryName);
-    if (idx === -1) return;
-
-    categories[idx].items.push({ name, quantity: modalQuantity, price, checked: false });
-    persist();
-    renderCategories();
-    closeModal();
-  });
-
-  // ---------- “Merk alle som kjøpt” ----------
-  $('#markAllBtn').addEventListener('click', () => {
-    categories.forEach((cat) => {
-      cat.items.forEach((it) => {
-        it.checked = true;
-      });
-    });
-    persist();
-    renderCategories();
-  });
-
-  // ---------- Tøm kjøpte ----------
-  $('#clearBtn').addEventListener('click', () => {
-    categories.forEach(c => {
-      c.items = c.items.filter(i => !i.checked);
-    });
-    persist();
-    renderCategories();
-  });
-
-  // ---------- Ferdig – registrer kjøp ----------
-  $('#doneBtn').addEventListener('click', () => {
-    let totalChecked = 0;
-    categories.forEach(c => c.items.forEach(i => {
-      if (i.checked) totalChecked += i.quantity * i.price;
-    }));
-    if (totalChecked <= 0) {
-      alert('Kryss av minst én vare før du registrerer kjøpet.');
+    const items = getInboxItems();
+    if (!items || items.length === 0) {
+      inboxBtn.style.display = "none";
       return;
     }
-    set(`shoppingRun_total_${WEEK_ISO}`, {
-      total: totalChecked,
-      weekISO: WEEK_ISO,
-      ts: Date.now()
+
+    inboxBtn.style.display = "inline-flex";
+    inboxCountSpan.textContent = items.length;
+
+    inboxBtn.addEventListener("click", () => {
+      const ok = confirm(`Legg til ${items.length} varer fra middagsplanen i handlelista?`);
+      if (!ok) return;
+      const added = mergeInboxItems();
+      renderCategories();
+      inboxBtn.style.display = "none";
+      if (added > 0) {
+        showToast(`La til ${added} varer fra middagsplanen ✅`);
+      }
     });
-    window.location.href = `add-purchase.html?from=shopping&week=${encodeURIComponent(WEEK_ISO)}`;
-  });
+  }
+
+  function showToast(text) {
+    const t = document.createElement("div");
+    t.textContent = text;
+    t.style.position = "fixed";
+    t.style.top = "12px";
+    t.style.left = "50%";
+    t.style.transform = "translateX(-50%)";
+    t.style.background = "#4caf50";
+    t.style.color = "#ffffff";
+    t.style.padding = "8px 12px";
+    t.style.borderRadius = "9999px";
+    t.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+    t.style.zIndex = "1000";
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2300);
+  }
+
+  // ---------- Butikk-modus ----------
+  const modeToggleBtn = $("#modeToggleBtn");
+  if (modeToggleBtn) {
+    modeToggleBtn.addEventListener("click", () => {
+      isStoreMode = !isStoreMode;
+      document.body.classList.toggle("store-mode", isStoreMode);
+      if (isStoreMode) {
+        modeToggleBtn.textContent = "Avslutt butikk-modus";
+        modeToggleBtn.classList.add("active");
+      } else {
+        modeToggleBtn.textContent = "Start butikk-modus 🛒";
+        modeToggleBtn.classList.remove("active");
+      }
+      renderCategories();
+    });
+  }
 
   // ---------- Tilbake-knapp ----------
-  $('#backBtn').addEventListener('click', () => {
-    const ref = document.referrer || '';
-    const cameFromApp = /(^|\/)app\.html(\?|#|$)/.test(ref);
-    if (cameFromApp) { history.back(); } else { location.href = 'app.html'; }
-  });
+  const backBtn = $("#backBtn");
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      const ref = document.referrer || "";
+      const cameFromApp = /(^|\/)app\.html(\?|#|$)/.test(ref);
+      if (cameFromApp) {
+        history.back();
+      } else {
+        window.location.href = "app.html";
+      }
+    });
+  }
 
-  // ---------- Canva element SDK (styling) ----------
-  async function onConfigChange(config) {
-    currentConfig = { ...currentConfig, ...config };
+  // ---------- Element SDK (tema / tekst) ----------
+  function onConfigChange(cfg) {
+    currentConfig = { ...currentConfig, ...cfg };
 
-    const customFont = currentConfig.font_family || defaultConfig.font_family;
+    const font = currentConfig.font_family || defaultConfig.font_family;
     const baseSize = currentConfig.font_size || defaultConfig.font_size;
-    const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    const bg = currentConfig.background_color || defaultConfig.background_color;
+    const txt = currentConfig.text_color || defaultConfig.text_color;
+    const secTxt = currentConfig.secondary_text_color || defaultConfig.secondary_text_color;
+    const primary = currentConfig.primary_color || defaultConfig.primary_color;
+    const surface = currentConfig.surface_color || defaultConfig.surface_color;
 
-    document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
-    document.body.style.background = `linear-gradient(135deg, ${currentConfig.background_color || defaultConfig.background_color} 0%, #f0f9f4 100%)`;
+    document.body.style.fontFamily = `${font}, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    document.body.style.background = `linear-gradient(135deg, ${bg} 0%, #f0f9f4 100%)`;
 
-    const pageTitle = $('#pageTitle');
-    if (pageTitle) {
-      pageTitle.textContent = currentConfig.page_title || defaultConfig.page_title;
-      pageTitle.style.fontSize = `${baseSize * 2}px`;
-      pageTitle.style.color = currentConfig.text_color || defaultConfig.text_color;
+    const title = $("#pageTitle");
+    const subtitle = $("#pageSubtitle");
+    if (title) {
+      title.textContent = currentConfig.page_title || defaultConfig.page_title;
+      title.style.fontSize = `${baseSize * 2}px`;
+      title.style.color = txt;
+    }
+    if (subtitle) {
+      subtitle.textContent = currentConfig.page_subtitle || defaultConfig.page_subtitle;
+      subtitle.style.fontSize = `${baseSize}px`;
+      subtitle.style.color = secTxt;
     }
 
-    const pageSubtitle = $('#pageSubtitle');
-    if (pageSubtitle) {
-      pageSubtitle.textContent = currentConfig.page_subtitle || defaultConfig.page_subtitle;
-      pageSubtitle.style.fontSize = `${baseSize}px`;
-      pageSubtitle.style.color = currentConfig.secondary_text_color || defaultConfig.secondary_text_color;
-    }
+    // Overflater / primærfarge
+    $$(".category-card, .modal").forEach(el => {
+      el.style.background = surface;
+    });
+    $$(".fab, .weekly-add-btn, .category-quick-btn, .stepper-btn, .footer-btn.mark-all, .btn-primary").forEach(el => {
+      el.style.background = primary;
+      el.style.color = "#ffffff";
+    });
 
-    $('#budgetLabel').textContent = currentConfig.budget_label || defaultConfig.budget_label;
-    $('#estimatedLabel').textContent = currentConfig.estimated_label || defaultConfig.estimated_label;
-    $('#markAllBtn').textContent = currentConfig.mark_all_button || defaultConfig.mark_all_button;
-    $('#clearBtn').textContent = currentConfig.clear_button || defaultConfig.clear_button;
-
-    const footerTotal = $('#footerTotal');
+    const footerTotal = $("#footerTotal");
     if (footerTotal) {
-      const totalNumber = footerTotal.textContent.replace(/[^\d,.-]/g,'').replace(',','.');
-      footerTotal.textContent = `${currentConfig.total_label || defaultConfig.total_label}: ${fmt(parseFloat(totalNumber)||0)} kr`;
+      const totalLabel = currentConfig.total_label || defaultConfig.total_label;
+      const currentNum = footerTotal.textContent.replace(/\D+/g, "");
+      const n = parseInt(currentNum || "0", 10);
+      footerTotal.textContent = `${totalLabel}: ${fmtInt(n)}`;
     }
-
-    $$('.btn-primary, .fab, .stepper-btn').forEach(el => {
-      el.style.background = currentConfig.primary_color || defaultConfig.primary_color;
-    });
-    $$('.budget-card, .category-card, .modal').forEach(el => {
-      el.style.background = currentConfig.surface_color || defaultConfig.surface_color;
-    });
   }
 
   if (window.elementSdk) {
@@ -1041,332 +1318,82 @@ if (modalPriceInput) {
       mapToCapabilities: (config) => ({
         recolorables: [
           { get: () => config.background_color || defaultConfig.background_color, set: v => window.elementSdk.setConfig({ background_color: v }) },
-          { get: () => config.surface_color || defaultConfig.surface_color, set: v => window.elementSdk.setConfig({ surface_color: v }) },
-          { get: () => config.text_color || defaultConfig.text_color, set: v => window.elementSdk.setConfig({ text_color: v }) },
-          { get: () => config.primary_color || defaultConfig.primary_color, set: v => window.elementSdk.setConfig({ primary_color: v }) },
+          { get: () => config.surface_color    || defaultConfig.surface_color,    set: v => window.elementSdk.setConfig({ surface_color: v }) },
+          { get: () => config.text_color       || defaultConfig.text_color,       set: v => window.elementSdk.setConfig({ text_color: v }) },
+          { get: () => config.primary_color    || defaultConfig.primary_color,    set: v => window.elementSdk.setConfig({ primary_color: v }) },
           { get: () => config.secondary_text_color || defaultConfig.secondary_text_color, set: v => window.elementSdk.setConfig({ secondary_text_color: v }) },
         ],
         borderables: [],
-        fontEditable: { get: () => config.font_family || defaultConfig.font_family, set: v => window.elementSdk.setConfig({ font_family: v }) },
-        fontSizeable: { get: () => config.font_size || defaultConfig.font_size, set: v => window.elementSdk.setConfig({ font_size: v }) },
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: v  => window.elementSdk.setConfig({ font_family: v })
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: v  => window.elementSdk.setConfig({ font_size: v })
+        }
       }),
       mapToEditPanelValues: (config) => new Map([
         ["page_title", config.page_title || defaultConfig.page_title],
         ["page_subtitle", config.page_subtitle || defaultConfig.page_subtitle],
-        ["budget_label", config.budget_label || defaultConfig.budget_label],
-        ["estimated_label", config.estimated_label || defaultConfig.estimated_label],
-        ["total_label", config.total_label || defaultConfig.total_label],
-        ["mark_all_button", config.mark_all_button || defaultConfig.mark_all_button],
-        ["clear_button", config.clear_button || defaultConfig.clear_button],
+        ["total_label", config.total_label || defaultConfig.total_label]
       ])
     });
   }
 
-  // ---------- Inbox merge (fra middag.html) ----------
-  function showToast(text) {
-    const t = document.createElement('div');
-    t.textContent = text;
-    t.style.position = 'fixed';
-    t.style.top = '12px';
-    t.style.left = '50%';
-    t.style.transform = 'translateX(-50%)';
-    t.style.background = '#4caf50';
-    t.style.color = '#fff';
-    t.style.padding = '10px 14px';
-    t.style.borderRadius = '12px';
-    t.style.boxShadow = '0 4px 12px rgba(0,0,0,.12)';
-    t.style.zIndex = '1000';
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
-  }
+  // ---------- Event-listeners for modaler og footer ----------
+  // FAB
+  $("#fabBtn")?.addEventListener("click", openItemModal);
 
-  function mergeInboxItems() {
-    let inbox = [];
-    try { inbox = JSON.parse(localStorage.getItem(INBOX_KEY)) || []; } catch {}
-
-    if (!Array.isArray(inbox) || inbox.length === 0) return 0;
-
-    let matIdx = categories.findIndex(c => c.name === 'Matvarer');
-    if (matIdx === -1) {
-      categories.push({ name: 'Matvarer', open: true, items: [] });
-      matIdx = categories.length - 1;
-    }
-
-    const existing = new Set(
-      categories.flatMap(c => c.items).map(i => String(i.name).trim().toLowerCase())
-    );
-
-    let added = 0;
-    inbox.forEach(name => {
-      const clean = String(name || '').trim();
-      if (!clean) return;
-      const key = clean.toLowerCase();
-      if (existing.has(key)) return;
-      categories[matIdx].items.push({
-        name: clean,
-        quantity: 1,
-        price: 0,
-        checked: false
-      });
-      existing.add(key);
-      added++;
-    });
-
-    try { localStorage.setItem(INBOX_KEY, JSON.stringify([])); } catch {}
-
-    if (added > 0) categories[matIdx].open = true;
-
-    persist();
-    return added;
-  }
-
-  function initInbox() {
-    const inboxBtn = $('#inboxBtn');
-    const inboxCountSpan = $('#inboxCount');
-    const items = getInboxItems();
-    const params = new URLSearchParams(location.search);
-    const addedFrom = params.get('added') || 'oppskrift';
-
-    if (!inboxBtn || !inboxCountSpan) return;
-    if (items.length === 0) {
-      inboxBtn.style.display = 'none';
-      return;
-    }
-
-    inboxBtn.style.display = 'inline-flex';
-    inboxCountSpan.textContent = items.length;
-
-    inboxBtn.addEventListener('click', () => {
-      const confirmed = confirm(`Legg til ${items.length} varer fra ${addedFrom}?`);
-      if (!confirmed) return;
-
-      const mergedCount = mergeInboxItems();
-      renderCategories();
-      if (mergedCount > 0) {
-        showToast(`La til ${mergedCount} varer fra “${addedFrom}”`);
-        const matCard = Array.from(document.querySelectorAll('.category-card'))
-          .find(card => card.querySelector('.category-title')?.textContent?.includes('Matvarer'));
-        if (matCard) matCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        inboxBtn.style.display = 'none';
-      }
-    });
-  }
-
-  // ---------- Butikk-modus ----------
-  const modeToggleBtn = $('#modeToggleBtn');
-  const doneBtn = $('#doneBtn');
-
-  if (modeToggleBtn) {
-    modeToggleBtn.addEventListener('click', () => {
-      isStoreMode = !isStoreMode;
-      document.body.classList.toggle('store-mode', isStoreMode);
-      if (isStoreMode) {
-        modeToggleBtn.textContent = 'Avslutt butikk-modus';
-        modeToggleBtn.classList.add('active');
-        if (doneBtn) doneBtn.style.display = 'inline-flex';
-      } else {
-        modeToggleBtn.textContent = 'Start butikk-modus 🛒';
-        modeToggleBtn.classList.remove('active');
-        if (doneBtn) doneBtn.style.display = 'none';
-      }
-      renderCategories();
-    });
-  }
-
-  // ---------- Coach steps (guide-bobler) ----------
-  const coachSteps = [
-    {
-      id: 'addItem',
-      selector: '#fabBtn',
-      title: 'Legg til ny vare',
-      text: 'Trykk på denne grønne knappen når dere kommer på noe nytt dere trenger å kjøpe.',
-      ensure: () => {
-        // Vi vil være i planleggingsmodus
-        if (isStoreMode) {
-          isStoreMode = false;
-          document.body.classList.remove('store-mode');
-          if (modeToggleBtn) {
-            modeToggleBtn.textContent = 'Start butikk-modus 🛒';
-            modeToggleBtn.classList.remove('active');
-          }
-          if (doneBtn) doneBtn.style.display = 'none';
-          renderCategories();
-        }
-        window.scrollTo({ top: 0, behavior: 'auto' });
-      }
-    },
-    {
-      id: 'storeMode',
-      selector: '#modeToggleBtn',
-      title: 'Start butikk-modus',
-      text: 'Når dere er i butikken, trykker dere her for å gjøre det enklere å krysse av varene etter hvert som dere finner dem.',
-      ensure: () => {
-        if (isStoreMode) {
-          isStoreMode = false;
-          document.body.classList.remove('store-mode');
-          if (modeToggleBtn) {
-            modeToggleBtn.textContent = 'Start butikk-modus 🛒';
-            modeToggleBtn.classList.remove('active');
-          }
-          if (doneBtn) doneBtn.style.display = 'none';
-          renderCategories();
-        }
-      }
-    },
-    {
-      id: 'finish',
-      selector: '#doneBtn',
-      title: 'Ferdig med handlingen',
-      text: 'Når dere er ferdige i butikken og har krysset av det dere har kjøpt, trykker dere her for å registrere kjøpet og oppdatere budsjettet.',
-      ensure: () => {
-        // Sørg for at butikk-modus er på, slik at knappen vises
-        if (!isStoreMode) {
-          isStoreMode = true;
-          document.body.classList.add('store-mode');
-          if (modeToggleBtn) {
-            modeToggleBtn.textContent = 'Avslutt butikk-modus';
-            modeToggleBtn.classList.add('active');
-          }
-          if (doneBtn) doneBtn.style.display = 'inline-flex';
-          renderCategories();
-        }
-      }
-    }
-  ];
-
-  function positionCoachForElement(el) {
-    if (!el || !coachHighlight || !coachTooltip) return;
-
-    const rect = el.getBoundingClientRect();
-    const padding = 8;
-
-    const left = rect.left - padding;
-    const top = rect.top - padding;
-    const width = rect.width + padding * 2;
-    const height = rect.height + padding * 2;
-
-    coachHighlight.style.left = `${left}px`;
-    coachHighlight.style.top = `${top}px`;
-    coachHighlight.style.width = `${width}px`;
-    coachHighlight.style.height = `${height}px`;
-
-    coachTooltip.style.left = '50%';
-    coachTooltip.style.transform = 'translateX(-50%)';
-
-    // Vi må vite høyden på tooltip for å plassere den over/under feltet
-    requestAnimationFrame(() => {
-      const ttRect = coachTooltip.getBoundingClientRect();
-      const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      const placeAbove = rect.top > viewportH / 2;
-
-      let ttTop;
-      if (placeAbove) {
-        ttTop = Math.max(16, rect.top - ttRect.height - 16);
-      } else {
-        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
-      }
-      coachTooltip.style.top = `${ttTop}px`;
-    });
-  }
-
-  function goToCoachStep(index) {
-    if (!coachOverlay) return;
-    if (index < 0 || index >= coachSteps.length) {
-      endCoachTour();
-      return;
-    }
-    coachCurrentStep = index;
-    const step = coachSteps[coachCurrentStep];
-
-    if (step.ensure) step.ensure();
-
-    const target = document.querySelector(step.selector);
-    if (!target) {
-      // Hopp videre hvis elementet ikke finnes
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-      return;
-    }
-
-    coachTitleEl.textContent = step.title;
-    coachTextEl.textContent = step.text;
-    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
-
-    coachPrevBtn.disabled = coachCurrentStep === 0;
-    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
-
-    positionCoachForElement(target);
-  }
-
-  function startCoachTour() {
-    if (!coachOverlay) return;
-    coachActive = true;
-    coachOverlay.style.display = 'block';
-    prevBodyOverflow = document.body.style.overflow || '';
-    document.body.style.overflow = 'hidden';
-    goToCoachStep(0);
-  }
-
-  function endCoachTour() {
-    coachActive = false;
-    if (coachOverlay) coachOverlay.style.display = 'none';
-    document.body.style.overflow = prevBodyOverflow || '';
-    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
-  }
-
-  function shouldStartCoachTour() {
-    try {
-      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
-    } catch {
-      return true;
-    }
-  }
-
-  // coach-knapper
-  if (coachSkipBtn) {
-    coachSkipBtn.addEventListener('click', () => {
-      endCoachTour();
-    });
-  }
-  if (coachPrevBtn) {
-    coachPrevBtn.addEventListener('click', () => {
-      if (coachCurrentStep > 0) {
-        goToCoachStep(coachCurrentStep - 1);
-      }
-    });
-  }
-  if (coachNextBtn) {
-    coachNextBtn.addEventListener('click', () => {
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-    });
-  }
-
-  window.addEventListener('resize', () => {
-    if (!coachActive) return;
-    const step = coachSteps[coachCurrentStep];
-    if (!step) return;
-    const target = document.querySelector(step.selector);
-    if (target) {
-      positionCoachForElement(target);
-    }
+  // Vare-modal
+  $("#itemCancelBtn")?.addEventListener("click", closeItemModal);
+  $("#itemModalOverlay")?.addEventListener("click", (e) => {
+    if (e.target === $("#itemModalOverlay")) closeItemModal();
+  });
+  $("#modalDecBtn")?.addEventListener("click", () => {
+    modalQty = Math.max(1, modalQty - 1);
+    $("#modalQty").textContent = String(modalQty);
+  });
+  $("#modalIncBtn")?.addEventListener("click", () => {
+    modalQty += 1;
+    $("#modalQty").textContent = String(modalQty);
+  });
+  $("#addItemForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = $("#itemNameInput").value.trim();
+    const cat  = $("#itemCategorySelect").value;
+    if (!name) return;
+    addItemToCategoryByName(name, cat, modalQty);
+    closeItemModal();
   });
 
-  // ---------- Første render ----------
-  renderCategories();
-  initInbox();
+  // Middags-modal
+  $("#menuCancelBtn")?.addEventListener("click", closeMenuModal);
+  $("#menuModalOverlay")?.addEventListener("click", (e) => {
+    if (e.target === $("#menuModalOverlay")) closeMenuModal();
+  });
+  $("#weeklyMenuForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!currentMenuDayKey) {
+      closeMenuModal();
+      return;
+    }
+    const txt = $("#menuTextInput").value.trim();
+    weeklyMenu[currentMenuDayKey] = txt;
+    saveMenu();
+    renderWeeklyMenu();
+    closeMenuModal();
+  });
 
-  if (shouldStartCoachTour()) {
-    setTimeout(() => {
-      startCoachTour();
-    }, 600);
-  }
+  // Footer-knapper
+  $("#markAllBtn")?.addEventListener("click", markAllChecked);
+  $("#clearBtn")?.addEventListener("click", clearChecked);
+
+  // ---------- Init ----------
+  renderWeeklyMenu();
+  renderFrequentItems();
+  renderCategories();
+  initInboxButton();
 </script>
 </body>
 </html>
