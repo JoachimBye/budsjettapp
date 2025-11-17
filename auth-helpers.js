@@ -16,10 +16,21 @@ const GLOBAL_KEYS_TO_CLEAR = [
   'householdCount',
   'activeWeekISO',
   'budget_total',
+  'purchase_categories_v1',
+  'purchase_stores_v1',
+  'frequentItems',
 ];
 
 const GLOBAL_KEY_PREFIXES = [
   'weeklyBudget_',
+  'purchases_',
+  'shoppingList_',
+  'shoppingList_inbox_',
+  'weeklyMenu_',
+  'purchase_categories_cache_v2',
+  'purchase_stores_cache_v2',
+  'shopping_list_cache_v2',
+  'weekly_menu_cache_v1',
 ];
 
 /**

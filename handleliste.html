@@ -11,8 +11,11 @@
 
   <!-- (valgfritt) Tailwind, men vi bruker mest egen CSS -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth-helpers.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
+  <script src="/js/services/shopping-list-service.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -646,11 +649,17 @@
   };
   let currentConfig = { ...defaultConfig };
 
+  // ---------- Supabase ----------
+  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
   // ---------- Utils ----------
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
   const fmtInt = (n) => Number(n || 0).toLocaleString("no-NO");
   const dateUtils = window.dateUtils || {};
+  const shoppingListService = window.shoppingListService || null;
 
   function getLS(key, fallback) {
     try {
@@ -752,10 +761,12 @@
   }
 
   // ---------- Nøkler ----------
-  const WEEK_ISO = dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10);
-  const WEEK_MENU_KEY   = `weeklyMenu_${WEEK_ISO}`;
+  const ACTIVE_WEEK_ISO = dateUtils.getActiveWeekISO
+    ? dateUtils.getActiveWeekISO()
+    : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10));
+  const WEEK_MENU_KEY   = `weeklyMenu_${ACTIVE_WEEK_ISO}`;
   const FREQ_KEY        = `frequentItems`;
-  const INBOX_KEY       = `shoppingList_inbox_${WEEK_ISO}`;
+  const INBOX_KEY       = `shoppingList_inbox_${ACTIVE_WEEK_ISO}`;
 
   // ---------- State ----------
   const DAYS = [
@@ -800,20 +811,102 @@
     "annet": "📦 Annet"
   };
 
-  let weeklyMenu    = getLS(WEEK_MENU_KEY, defaultMenu);
+  let weeklyMenu    = { ...defaultMenu };
   let frequentItems = getLS(FREQ_KEY, defaultFrequentItems);
   let isStoreMode   = false;
   let allCategories = [];
   let visibleCategories = [];
   refreshCategorySettings();
-  let shoppingItems = loadShoppingListForWeek(WEEK_ISO);
+  let shoppingItems = [];
 
   let modalQty      = 1;
   let currentMenuDayKey = null;
 
+  function applyShoppingItems(list) {
+    if (!Array.isArray(list)) {
+      shoppingItems = [];
+      saveShoppingItems();
+      return;
+    }
+
+    shoppingItems = list
+      .map((item) => {
+        if (!item || typeof item !== "object") return null;
+        const cleanName = String(item.name || "").trim();
+        if (!cleanName) return null;
+        const resolvedCategory = resolveCategoryName(item.category);
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        return {
+          id: item.id || createItemId(),
+          name: cleanName,
+          category: resolvedCategory,
+          quantity: qty,
+          checked: item.checked === true,
+        };
+      })
+      .filter(Boolean);
+
+    saveShoppingItems();
+  }
+
+  async function loadShoppingItemsData() {
+    if (shoppingListService?.loadItemsForWeek) {
+      try {
+        const remote = await shoppingListService.loadItemsForWeek(supa, ACTIVE_WEEK_ISO);
+        if (Array.isArray(remote)) {
+          applyShoppingItems(remote);
+          return;
+        }
+      } catch (err) {
+        console.error("Kunne ikke hente handleliste fra Supabase", err);
+      }
+    }
+    applyShoppingItems(loadShoppingListForWeek(ACTIVE_WEEK_ISO));
+  }
+
+  async function loadWeeklyMenuData() {
+    if (shoppingListService?.loadWeeklyMenu) {
+      try {
+        const remote = await shoppingListService.loadWeeklyMenu(supa, ACTIVE_WEEK_ISO);
+        if (remote && typeof remote === "object") {
+          weeklyMenu = { ...defaultMenu, ...remote };
+          saveMenuLocal();
+          return;
+        }
+      } catch (err) {
+        console.error("Kunne ikke hente middagsplan fra Supabase", err);
+      }
+    }
+    weeklyMenu = getLS(WEEK_MENU_KEY, defaultMenu);
+  }
+
+  async function saveMenuEntry(dayKey, dishName) {
+    const trimmed = String(dishName || "").trim();
+    weeklyMenu[dayKey] = trimmed;
+
+    if (shoppingListService?.saveDishForDay) {
+      try {
+        const updated = await shoppingListService.saveDishForDay(supa, {
+          weekISO: ACTIVE_WEEK_ISO,
+          dayKey,
+          dishName: trimmed,
+        });
+        if (updated && typeof updated === "object") {
+          weeklyMenu = { ...defaultMenu, ...updated };
+          saveMenuLocal();
+          return;
+        }
+      } catch (err) {
+        console.error("Kunne ikke lagre middagsplan", err);
+      }
+    }
+
+    saveMenuLocal();
+  }
+
   // ---------- Persist helpers ----------
-  function saveMenu()      { setLS(WEEK_MENU_KEY, weeklyMenu); }
-  function saveShoppingItems(){ saveShoppingListForWeek(WEEK_ISO, shoppingItems); }
+  function saveMenuLocal()      { setLS(WEEK_MENU_KEY, weeklyMenu); }
+  function saveShoppingItems(){ saveShoppingListForWeek(ACTIVE_WEEK_ISO, shoppingItems); }
   function saveFrequent()  { setLS(FREQ_KEY, frequentItems); }
 
   function cloneCategoryList(list) {
@@ -1016,22 +1109,47 @@
   }
 
   // ---------- Handleliste / kategorier ----------
-  function addItemToCategoryByName(name, categoryName, quantity = 1) {
+  async function addItemToCategoryByName(name, categoryName, quantity = 1) {
     const cleanName = String(name || "").trim();
     if (!cleanName) return;
     const resolvedCategory = resolveCategoryName(categoryName || getDefaultCategoryName());
+    const qty = Math.max(1, Number(quantity) || 1);
 
-    shoppingItems.push({
-      id: createItemId(),
-      name: cleanName,
-      category: resolvedCategory,
-      quantity: Math.max(1, Number(quantity) || 1),
-      checked: false
-    });
-
-    trackFrequentItem(cleanName, resolvedCategory);
-    saveShoppingItems();
-    renderCategories();
+    try {
+      if (shoppingListService?.addItem) {
+        const updated = await shoppingListService.addItem(supa, {
+          weekISO: ACTIVE_WEEK_ISO,
+          name: cleanName,
+          category: resolvedCategory,
+          quantity: qty
+        });
+        applyShoppingItems(updated);
+      } else {
+        shoppingItems.push({
+          id: createItemId(),
+          name: cleanName,
+          category: resolvedCategory,
+          quantity: qty,
+          checked: false
+        });
+        applyShoppingItems(shoppingItems);
+      }
+      trackFrequentItem(cleanName, resolvedCategory);
+      renderCategories();
+    } catch (err) {
+      console.error("Kunne ikke lagre vare til Supabase", err);
+      showToast("Kunne ikke lagre vare i skyen – lagret lokalt.", "error");
+      shoppingItems.push({
+        id: createItemId(),
+        name: cleanName,
+        category: resolvedCategory,
+        quantity: qty,
+        checked: false
+      });
+      applyShoppingItems(shoppingItems);
+      trackFrequentItem(cleanName, resolvedCategory);
+      renderCategories();
+    }
   }
 
   function createItemCard(item, options = {}) {
@@ -1238,24 +1356,74 @@ function renderCategories() {
 
   // ---------- Mutators ----------
 
-  function toggleItemChecked(itemId) {
+  async function toggleItemChecked(itemId) {
     const idx = shoppingItems.findIndex(item => item.id === itemId);
     if (idx === -1) return;
-    shoppingItems[idx].checked = !shoppingItems[idx].checked;
+    const nextValue = !shoppingItems[idx].checked;
+
+    if (shoppingListService?.toggleItemChecked) {
+      try {
+        const updated = await shoppingListService.toggleItemChecked(
+          supa,
+          itemId,
+          nextValue,
+          ACTIVE_WEEK_ISO
+        );
+        applyShoppingItems(updated);
+        renderCategories();
+        return;
+      } catch (err) {
+        console.error("Kunne ikke oppdatere vare-status", err);
+        showToast("Kunne ikke lagre endring, prøver lokalt.", "error");
+      }
+    }
+
+    shoppingItems[idx].checked = nextValue;
     saveShoppingItems();
     renderCategories();
   }
 
-  function updateQuantity(itemId, delta) {
+  async function updateQuantity(itemId, delta) {
     const idx = shoppingItems.findIndex(item => item.id === itemId);
     if (idx === -1) return;
     const current = Math.max(1, Number(shoppingItems[idx].quantity) || 1);
-    shoppingItems[idx].quantity = Math.max(1, current + delta);
+    const nextValue = Math.max(1, current + delta);
+
+    if (shoppingListService?.updateItemQuantity) {
+      try {
+        const updated = await shoppingListService.updateItemQuantity(
+          supa,
+          itemId,
+          nextValue,
+          ACTIVE_WEEK_ISO
+        );
+        applyShoppingItems(updated);
+        renderCategories();
+        return;
+      } catch (err) {
+        console.error("Kunne ikke oppdatere antall", err);
+        showToast("Kunne ikke lagre antall, prøver lokalt.", "error");
+      }
+    }
+
+    shoppingItems[idx].quantity = nextValue;
     saveShoppingItems();
     renderCategories();
   }
 
-  function deleteItem(itemId) {
+  async function deleteItem(itemId) {
+    if (shoppingListService?.deleteItem) {
+      try {
+        const updated = await shoppingListService.deleteItem(supa, itemId, ACTIVE_WEEK_ISO);
+        applyShoppingItems(updated);
+        renderCategories();
+        return;
+      } catch (err) {
+        console.error("Kunne ikke slette vare", err);
+        showToast("Kunne ikke slette i skyen, fjernet lokalt.", "error");
+      }
+    }
+
     const next = shoppingItems.filter(item => item.id !== itemId);
     if (next.length === shoppingItems.length) return;
     shoppingItems = next;
@@ -1263,7 +1431,19 @@ function renderCategories() {
     renderCategories();
   }
 
-  function markAllChecked() {
+  async function markAllChecked() {
+    if (shoppingListService?.markAllChecked) {
+      try {
+        const updated = await shoppingListService.markAllChecked(supa, ACTIVE_WEEK_ISO);
+        applyShoppingItems(updated);
+        renderCategories();
+        return;
+      } catch (err) {
+        console.error("Kunne ikke merke alle som kjøpt", err);
+        showToast("Kunne ikke oppdatere alle varer.", "error");
+      }
+    }
+
     shoppingItems.forEach(item => {
       item.checked = true;
     });
@@ -1271,7 +1451,19 @@ function renderCategories() {
     renderCategories();
   }
 
-  function clearChecked() {
+  async function clearChecked() {
+    if (shoppingListService?.clearChecked) {
+      try {
+        const updated = await shoppingListService.clearChecked(supa, ACTIVE_WEEK_ISO);
+        applyShoppingItems(updated);
+        renderCategories();
+        return;
+      } catch (err) {
+        console.error("Kunne ikke tømme kjøpte", err);
+        showToast("Kunne ikke tømme kjøpte varer.", "error");
+      }
+    }
+
     shoppingItems = shoppingItems.filter(item => !item.checked);
     saveShoppingItems();
     renderCategories();
@@ -1323,7 +1515,7 @@ function renderCategories() {
     }
   }
 
-  function mergeInboxItems() {
+  async function mergeInboxItems() {
     const inbox = getInboxItems();
     if (!Array.isArray(inbox) || inbox.length === 0) return 0;
 
@@ -1335,27 +1527,17 @@ function renderCategories() {
     );
 
     let added = 0;
-    inbox.forEach(name => {
+    for (const name of inbox) {
       const clean = String(name || "").trim();
-      if (!clean) return;
+      if (!clean) continue;
       const key = clean.toLowerCase();
-      if (existing.has(key)) return;
-      shoppingItems.push({
-        id: createItemId(),
-        name: clean,
-        category: targetCategory,
-        quantity: 1,
-        checked: false
-      });
+      if (existing.has(key)) continue;
+      await addItemToCategoryByName(clean, targetCategory, 1);
       existing.add(key);
-      trackFrequentItem(clean, targetCategory);
       added++;
-    });
+    }
 
     setLS(INBOX_KEY, []);
-    if (added > 0) {
-      saveShoppingItems();
-    }
     return added;
   }
 
@@ -1373,10 +1555,10 @@ function renderCategories() {
     inboxBtn.style.display = "inline-flex";
     inboxCountSpan.textContent = items.length;
 
-    inboxBtn.addEventListener("click", () => {
+    inboxBtn.addEventListener("click", async () => {
       const ok = confirm(`Legg til ${items.length} varer fra middagsplanen i handlelista?`);
       if (!ok) return;
-      const added = mergeInboxItems();
+      const added = await mergeInboxItems();
       renderCategories();
       inboxBtn.style.display = "none";
       if (added > 0) {
@@ -1385,14 +1567,14 @@ function renderCategories() {
     });
   }
 
-  function showToast(text) {
+  function showToast(text, type = "success") {
     const t = document.createElement("div");
     t.textContent = text;
     t.style.position = "fixed";
     t.style.top = "12px";
     t.style.left = "50%";
     t.style.transform = "translateX(-50%)";
-    t.style.background = "#4caf50";
+    t.style.background = type === "error" ? "#dc2626" : "#4caf50";
     t.style.color = "#ffffff";
     t.style.padding = "8px 12px";
     t.style.borderRadius = "9999px";
@@ -1535,12 +1717,12 @@ if (modeToggleBtn) {
     modalQty += 1;
     $("#modalQty").textContent = String(modalQty);
   });
-  $("#addItemForm")?.addEventListener("submit", (e) => {
+  $("#addItemForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = $("#itemNameInput").value.trim();
     const cat  = $("#itemCategorySelect").value;
     if (!name) return;
-    addItemToCategoryByName(name, cat, modalQty);
+    await addItemToCategoryByName(name, cat, modalQty);
     closeItemModal();
   });
 
@@ -1549,15 +1731,14 @@ if (modeToggleBtn) {
   $("#menuModalOverlay")?.addEventListener("click", (e) => {
     if (e.target === $("#menuModalOverlay")) closeMenuModal();
   });
-  $("#weeklyMenuForm")?.addEventListener("submit", (e) => {
+  $("#weeklyMenuForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!currentMenuDayKey) {
       closeMenuModal();
       return;
     }
     const txt = $("#menuTextInput").value.trim();
-    weeklyMenu[currentMenuDayKey] = txt;
-    saveMenu();
+    await saveMenuEntry(currentMenuDayKey, txt);
     renderWeeklyMenu();
     closeMenuModal();
   });
@@ -1567,10 +1748,35 @@ if (modeToggleBtn) {
   $("#clearBtn")?.addEventListener("click", clearChecked);
 
   // ---------- Init ----------
-  renderWeeklyMenu();
-  renderFrequentItems();
-  renderCategories();
-  initInboxButton();
+  async function init() {
+    if (window.authHelpers?.protectPage) {
+      await window.authHelpers.protectPage(supa);
+      if (window.location.pathname !== '/handleliste.html') {
+        return;
+      }
+    }
+
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    }
+
+    if (categoryService?.loadCategorySettings) {
+      try {
+        await categoryService.loadCategorySettings(supa);
+      } catch (err) {
+        console.warn("Kunne ikke laste kategorier fra Supabase", err);
+      }
+    }
+
+    await loadWeeklyMenuData();
+    await loadShoppingItemsData();
+    renderWeeklyMenu();
+    renderFrequentItems();
+    renderCategories();
+    initInboxButton();
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
