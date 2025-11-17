@@ -20,6 +20,8 @@
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
+  <script src="/js/ui/toast.js"></script>
+  <script src="/js/ui/coach.js"></script>
 
   <style>
     body{
@@ -401,6 +403,13 @@
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const showToast = (message, type = 'info') => {
+    if (window.toast?.show) {
+      window.toast.show(message, { type });
+    } else {
+      console[type === 'error' ? 'error' : 'log'](message);
+    }
+  };
 
   // ===== Element/tema konfig ============================================
   const defaultConfig = {
@@ -427,6 +436,8 @@
     spent: 0,
     remaining: 0
   };
+  let isSummaryLoading = false;
+  let summaryLoadError = null;
   const dateUtils = window.dateUtils || {};
   const budgetService = window.budgetService || null;
   const budgetUtils = window.budgetUtils || {};
@@ -479,32 +490,46 @@
         ? dateUtils.getActiveWeekISO()
         : new Date().toISOString().slice(0, 10));
 
-    let summary = null;
-    if (budgetService?.loadWeekSummary) {
-      summary = await budgetService.loadWeekSummary(supa, iso);
+    isSummaryLoading = true;
+    summaryLoadError = null;
+    updateBudgetDisplay();
+
+    try {
+      let summary = null;
+      if (budgetService?.loadWeekSummary) {
+        summary = await budgetService.loadWeekSummary(supa, iso);
+      }
+
+      if (summary) {
+        state.activeWeekISO = summary.weekISO;
+        state.budget = summary.budget;
+        state.spent = summary.spent;
+        state.remaining = summary.remaining;
+        return;
+      }
+
+      const fallbackBudget = budgetService?.readWeeklyBudgetLocal
+        ? budgetService.readWeeklyBudgetLocal(iso)
+        : 3000;
+      const localPurchases = readJSON(`purchases_${iso}`, []);
+      const fallbackSpent = budgetUtils.safeSumPurchases
+        ? budgetUtils.safeSumPurchases(localPurchases)
+        : 0;
+
+      state.activeWeekISO = iso;
+      state.budget = fallbackBudget;
+      state.spent = fallbackSpent;
+      state.remaining = state.budget - state.spent;
+      summaryLoadError = 'Kunne ikke hente ukedata – viser lagret informasjon.';
+      showToast('Kunne ikke hente ukedata, viser cache.', 'error');
+    } catch (err) {
+      console.error('loadWeekData', err);
+      summaryLoadError = 'Kunne ikke hente ukedata.';
+      showToast('Kunne ikke hente ukedata.', 'error');
+    } finally {
+      isSummaryLoading = false;
+      updateBudgetDisplay();
     }
-
-    if (summary) {
-      state.activeWeekISO = summary.weekISO;
-      state.budget = summary.budget;
-      state.spent = summary.spent;
-      state.remaining = summary.remaining;
-      return;
-    }
-
-    // Fallback dersom tjenesten ikke er tilgjengelig
-    const fallbackBudget = budgetService?.readWeeklyBudgetLocal
-      ? budgetService.readWeeklyBudgetLocal(iso)
-      : 3000;
-    const localPurchases = readJSON(`purchases_${iso}`, []);
-    const fallbackSpent = budgetUtils.safeSumPurchases
-      ? budgetUtils.safeSumPurchases(localPurchases)
-      : 0;
-
-    state.activeWeekISO = iso;
-    state.budget = fallbackBudget;
-    state.spent = fallbackSpent;
-    state.remaining = state.budget - state.spent;
   }
 
   // ---------- Oppdater UI ----------------------------------------------
@@ -515,6 +540,28 @@ function updateBudgetDisplay() {
   const circleProgress   = document.getElementById('circleProgress');
   const statusMsg        = document.getElementById('statusMessage');
   const mealBtn          = document.getElementById('mealPlanBtn');
+
+  if (isSummaryLoading) {
+    if (remainingElement) {
+      remainingElement.textContent = '...';
+      remainingElement.style.color = '#5a7a6d';
+    }
+    if (remainingText) {
+      remainingText.textContent = 'Henter ukedata…';
+      remainingText.style.color = '#5a7a6d';
+    }
+    if (spentSummaryEl) {
+      spentSummaryEl.textContent = 'Henter data…';
+    }
+    if (circleProgress) {
+      circleProgress.style.setProperty('--ring-color', '#d1d5db');
+      circleProgress.style.setProperty('--ring-deg', '0deg');
+    }
+    if (statusMsg) {
+      statusMsg.textContent = 'Henter ukedata…';
+    }
+    return;
+  }
 
   const total = state.budget;
   const spent = state.spent;
@@ -590,7 +637,11 @@ function updateBudgetDisplay() {
       : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
   }
 
-  statusMsg.textContent = status;
+  if (summaryLoadError) {
+    statusMsg.textContent = summaryLoadError;
+  } else {
+    statusMsg.textContent = status;
+  }
 
   // Liten “pulse” når tallene oppdateres
   if (remainingElement) {
@@ -696,20 +747,7 @@ function updateBudgetDisplay() {
 
   // ---------- Coach overlay (intro på hovedsiden) -----------------------
   const COACH_SEEN_KEY = 'app_coach_seen_v1';
-
-  let coachActive = false;
-  let coachCurrentStep = 0;
-  let prevBodyOverflow = '';
-
-  let coachOverlay;
-  let coachHighlight;
-  let coachTooltip;
-  let coachTitleEl;
-  let coachTextEl;
-  let coachStepLabelEl;
-  let coachSkipBtn;
-  let coachPrevBtn;
-  let coachNextBtn;
+  let coachInstance = null;
 
   const coachSteps = [
     {
@@ -774,152 +812,25 @@ function updateBudgetDisplay() {
     }
   ];
 
-  function positionCoachForElement(el) {
-    if (!el || !coachHighlight || !coachTooltip) return;
-
-    const rect = el.getBoundingClientRect();
-    const padding = 8;
-
-    const left   = rect.left - padding;
-    const top    = rect.top  - padding;
-    const width  = rect.width  + padding * 2;
-    const height = rect.height + padding * 2;
-
-    coachHighlight.style.left   = `${left}px`;
-    coachHighlight.style.top    = `${top}px`;
-    coachHighlight.style.width  = `${width}px`;
-    coachHighlight.style.height = `${height}px`;
-    coachHighlight.style.opacity = 1;
-
-    coachTooltip.style.left = '50%';
-    coachTooltip.style.transform = 'translateX(-50%)';
-
-    requestAnimationFrame(() => {
-      const ttRect = coachTooltip.getBoundingClientRect();
-      const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      const placeAbove = rect.top > viewportH / 2;
-
-      let ttTop;
-      if (placeAbove) {
-        ttTop = Math.max(16, rect.top - ttRect.height - 16);
-      } else {
-        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
-      }
-      coachTooltip.style.top = `${ttTop}px`;
-      coachTooltip.style.opacity = 1;
+  function setupCoach() {
+    if (!window.coach) return;
+    coachInstance = window.coach.create({
+      steps: coachSteps,
+      storageKey: COACH_SEEN_KEY,
     });
-  }
-
-  function goToCoachStep(index) {
-    if (!coachOverlay) return;
-
-    if (index < 0 || index >= coachSteps.length) {
-      endCoachTour();
-      return;
-    }
-
-    coachCurrentStep = index;
-    const step = coachSteps[coachCurrentStep];
-    const target = document.querySelector(step.selector);
-
-    if (!target) {
-      // Hopper videre hvis elementet mangler
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-      return;
-    }
-
-    if (coachTooltip) coachTooltip.style.opacity = 0;
-    if (coachHighlight) coachHighlight.style.opacity = 0;
-
-    coachTitleEl.textContent = step.title;
-    coachTextEl.textContent  = step.text;
-    coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
-
-    coachPrevBtn.disabled = coachCurrentStep === 0;
-    coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
-
-    // Scroll elementet inn midt på skjermen
-    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-
-    // Etter litt tid → posisjoner highlight + tooltip
-    setTimeout(() => {
-      positionCoachForElement(target);
-    }, 350);
   }
 
   function startCoachTour() {
-    if (!coachOverlay) return;
-    coachActive = true;
-    coachOverlay.style.display = 'block';
-    prevBodyOverflow = document.body.style.overflow || '';
-    document.body.style.overflow = 'hidden';
-    goToCoachStep(0);
+    coachInstance?.start();
   }
 
   function endCoachTour() {
-    coachActive = false;
-    if (coachOverlay) coachOverlay.style.display = 'none';
-    document.body.style.overflow = prevBodyOverflow || '';
-    try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
+    coachInstance?.stop();
   }
 
   function shouldStartCoachTour() {
-    try {
-      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
-    } catch {
-      return true;
-    }
-  }
-
-  function initCoach() {
-    coachOverlay     = document.getElementById('coachOverlay');
-    coachHighlight   = document.getElementById('coachHighlight');
-    coachTooltip     = document.getElementById('coachTooltip');
-    coachTitleEl     = document.getElementById('coachTitle');
-    coachTextEl      = document.getElementById('coachText');
-    coachStepLabelEl = document.getElementById('coachStepLabel');
-    coachSkipBtn     = document.getElementById('coachSkipBtn');
-    coachPrevBtn     = document.getElementById('coachPrevBtn');
-    coachNextBtn     = document.getElementById('coachNextBtn');
-
-    if (!coachOverlay || !coachTooltip) return;
-
-    if (coachSkipBtn) {
-      coachSkipBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        endCoachTour();
-      });
-    }
-    if (coachPrevBtn) {
-      coachPrevBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (coachCurrentStep > 0) {
-          goToCoachStep(coachCurrentStep - 1);
-        }
-      });
-    }
-    if (coachNextBtn) {
-      coachNextBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (coachCurrentStep < coachSteps.length - 1) {
-          goToCoachStep(coachCurrentStep + 1);
-        } else {
-          endCoachTour();
-        }
-      });
-    }
-
-    window.addEventListener('resize', () => {
-      if (!coachActive) return;
-      const step = coachSteps[coachCurrentStep];
-      if (!step) return;
-      const target = document.querySelector(step.selector);
-      if (target) positionCoachForElement(target);
-    });
+    if (!coachInstance) return false;
+    return !coachInstance.hasSeen();
   }
 
   // ---------- Navigasjon ------------------------------------------------
@@ -985,7 +896,7 @@ function updateBudgetDisplay() {
     }
 
     // Coach overlay
-    initCoach();
+    setupCoach();
     if (shouldStartCoachTour()) {
       setTimeout(() => {
         startCoachTour();

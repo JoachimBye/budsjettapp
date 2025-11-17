@@ -13,6 +13,7 @@
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/ui/toast.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/shopping-list-service.js"></script>
@@ -116,6 +117,18 @@
       font-size: 14px;
       color: #5a7a6d;
       margin-bottom: 12px;
+    }
+
+    .loading-text,
+    .error-text {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #5a7a6d;
+    }
+
+    .error-text {
+      color: #dc2626;
     }
 
     /* Ukens middager */
@@ -660,6 +673,13 @@
   const fmtInt = (n) => Number(n || 0).toLocaleString("no-NO");
   const dateUtils = window.dateUtils || {};
   const shoppingListService = window.shoppingListService || null;
+  const showToast = (message, type = "info") => {
+    if (window.toast?.show) {
+      window.toast.show(message, { type });
+    } else {
+      console[type === "error" ? "error" : "log"](message);
+    }
+  };
 
   function getLS(key, fallback) {
     try {
@@ -821,6 +841,28 @@
 
   let modalQty      = 1;
   let currentMenuDayKey = null;
+  let currentHouseholdId = null;
+  let shoppingRealtimeChannel = null;
+  let menuRealtimeChannel = null;
+  let isShoppingLoading = true;
+  let shoppingLoadError = null;
+  let isMenuLoading = true;
+  let menuLoadError = null;
+  let isShoppingReloadScheduled = false;
+  let isMenuReloadScheduled = false;
+
+  async function ensureHouseholdId() {
+    if (currentHouseholdId) return currentHouseholdId;
+    if (!shoppingListService?.getHouseholdId) return null;
+    try {
+      currentHouseholdId = await shoppingListService.getHouseholdId(supa);
+      return currentHouseholdId;
+    } catch (err) {
+      console.error("Kunne ikke hente husstand fra Supabase", err);
+      showToast("Kunne ikke hente husstand. Last siden på nytt.", "error");
+      return null;
+    }
+  }
 
   function applyShoppingItems(list) {
     if (!Array.isArray(list)) {
@@ -849,35 +891,81 @@
     saveShoppingItems();
   }
 
-  async function loadShoppingItemsData() {
-    if (shoppingListService?.loadItemsForWeek) {
-      try {
+  async function loadShoppingItemsData(options = {}) {
+    const silent = options.silent === true;
+    if (!silent) {
+      isShoppingLoading = true;
+      shoppingLoadError = null;
+      renderCategories();
+    }
+
+    try {
+      await ensureHouseholdId();
+      if (shoppingListService?.loadItemsForWeek) {
         const remote = await shoppingListService.loadItemsForWeek(supa, ACTIVE_WEEK_ISO);
         if (Array.isArray(remote)) {
           applyShoppingItems(remote);
+          if (!silent) {
+            isShoppingLoading = false;
+            renderCategories();
+          } else {
+            renderCategories();
+          }
           return;
         }
-      } catch (err) {
-        console.error("Kunne ikke hente handleliste fra Supabase", err);
       }
+      shoppingLoadError = "Fant ingen handleliste i skyen – viser lagrede data.";
+      applyShoppingItems(loadShoppingListForWeek(ACTIVE_WEEK_ISO));
+    } catch (err) {
+      console.error("Kunne ikke hente handleliste", err);
+      shoppingLoadError = "Kunne ikke hente handleliste – viser cache.";
+      applyShoppingItems(loadShoppingListForWeek(ACTIVE_WEEK_ISO));
+      showToast("Kunne ikke hente handleliste, viser lagrede data.", "error");
+    } finally {
+      if (!silent) {
+        isShoppingLoading = false;
+      }
+      renderCategories();
     }
-    applyShoppingItems(loadShoppingListForWeek(ACTIVE_WEEK_ISO));
   }
 
-  async function loadWeeklyMenuData() {
-    if (shoppingListService?.loadWeeklyMenu) {
-      try {
+  async function loadWeeklyMenuData(options = {}) {
+    const silent = options.silent === true;
+    if (!silent) {
+      isMenuLoading = true;
+      menuLoadError = null;
+      renderWeeklyMenu();
+    }
+
+    try {
+      await ensureHouseholdId();
+      if (shoppingListService?.loadWeeklyMenu) {
         const remote = await shoppingListService.loadWeeklyMenu(supa, ACTIVE_WEEK_ISO);
         if (remote && typeof remote === "object") {
           weeklyMenu = { ...defaultMenu, ...remote };
           saveMenuLocal();
+          if (!silent) {
+            isMenuLoading = false;
+            renderWeeklyMenu();
+          } else {
+            renderWeeklyMenu();
+          }
           return;
         }
-      } catch (err) {
-        console.error("Kunne ikke hente middagsplan fra Supabase", err);
       }
+      weeklyMenu = getLS(WEEK_MENU_KEY, defaultMenu);
+      menuLoadError = "Fant ingen meny i skyen – viser lokale data.";
+    } catch (err) {
+      console.error("Kunne ikke hente middagsplan", err);
+      weeklyMenu = getLS(WEEK_MENU_KEY, defaultMenu);
+      menuLoadError = "Kunne ikke hente middagsplan – viser cache.";
+      showToast("Kunne ikke hente middagsplan, viser lagrede data.", "error");
+    } finally {
+      if (!silent) {
+        isMenuLoading = false;
+      }
+      renderWeeklyMenu();
     }
-    weeklyMenu = getLS(WEEK_MENU_KEY, defaultMenu);
   }
 
   async function saveMenuEntry(dayKey, dishName) {
@@ -902,6 +990,68 @@
     }
 
     saveMenuLocal();
+  }
+
+  function scheduleShoppingReload() {
+    if (isShoppingReloadScheduled) return;
+    isShoppingReloadScheduled = true;
+    setTimeout(async () => {
+      await loadShoppingItemsData({ silent: true });
+      isShoppingReloadScheduled = false;
+    }, 200);
+  }
+
+  function scheduleMenuReload() {
+    if (isMenuReloadScheduled) return;
+    isMenuReloadScheduled = true;
+    setTimeout(async () => {
+      await loadWeeklyMenuData({ silent: true });
+      isMenuReloadScheduled = false;
+    }, 200);
+  }
+
+  function cleanupRealtimeChannels() {
+    if (shoppingRealtimeChannel) {
+      supa.removeChannel(shoppingRealtimeChannel);
+      shoppingRealtimeChannel = null;
+    }
+    if (menuRealtimeChannel) {
+      supa.removeChannel(menuRealtimeChannel);
+      menuRealtimeChannel = null;
+    }
+  }
+
+  async function setupRealtimeChannels() {
+    const householdId = await ensureHouseholdId();
+    if (!householdId || typeof supa.channel !== "function") return;
+
+    cleanupRealtimeChannels();
+
+    shoppingRealtimeChannel = supa
+      .channel(`shopping_list_${householdId}_${ACTIVE_WEEK_ISO}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shopping_list_items', filter: `household_id=eq.${householdId}` },
+        (payload) => {
+          const week = (payload.new?.week_start || payload.old?.week_start);
+          if (week !== ACTIVE_WEEK_ISO) return;
+          scheduleShoppingReload();
+        }
+      )
+      .subscribe();
+
+    menuRealtimeChannel = supa
+      .channel(`weekly_menu_${householdId}_${ACTIVE_WEEK_ISO}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'weekly_menu', filter: `household_id=eq.${householdId}` },
+        (payload) => {
+          const week = (payload.new?.week_start || payload.old?.week_start);
+          if (week !== ACTIVE_WEEK_ISO) return;
+          scheduleMenuReload();
+        }
+      )
+      .subscribe();
   }
 
   // ---------- Persist helpers ----------
@@ -1012,6 +1162,22 @@
     const container = $("#weeklyMenuList");
     if (!container) return;
     container.innerHTML = "";
+
+    if (isMenuLoading) {
+      const loading = document.createElement("div");
+      loading.className = "loading-text";
+      loading.textContent = "Henter ukens middager…";
+      container.appendChild(loading);
+      return;
+    }
+
+    if (menuLoadError && Object.values(weeklyMenu).every((dish) => !dish)) {
+      const err = document.createElement("div");
+      err.className = "error-text";
+      err.textContent = menuLoadError;
+      container.appendChild(err);
+      return;
+    }
 
     DAYS.forEach(day => {
       const row = document.createElement("div");
@@ -1243,6 +1409,24 @@ function renderCategories() {
 
   container.innerHTML = "";
   if (purchasedContainer) purchasedContainer.innerHTML = "";
+
+  if (isShoppingLoading) {
+    const loading = document.createElement("div");
+    loading.className = "loading-text";
+    loading.textContent = "Henter handleliste…";
+    container.appendChild(loading);
+    if (emptyText) emptyText.style.display = "none";
+    return;
+  }
+
+  if (shoppingLoadError && shoppingItems.length === 0) {
+    const err = document.createElement("div");
+    err.className = "error-text";
+    err.textContent = shoppingLoadError;
+    container.appendChild(err);
+    if (emptyText) emptyText.style.display = "block";
+    return;
+  }
 
   const categoriesToShow = getCategoriesForRendering();
   const knownCategoryNames = new Set(categoriesToShow.map(cat => cat.name));
@@ -1562,26 +1746,9 @@ function renderCategories() {
       renderCategories();
       inboxBtn.style.display = "none";
       if (added > 0) {
-        showToast(`La til ${added} varer fra middagsplanen ✅`);
+        showToast(`La til ${added} varer fra middagsplanen ✅`, "success");
       }
     });
-  }
-
-  function showToast(text, type = "success") {
-    const t = document.createElement("div");
-    t.textContent = text;
-    t.style.position = "fixed";
-    t.style.top = "12px";
-    t.style.left = "50%";
-    t.style.transform = "translateX(-50%)";
-    t.style.background = type === "error" ? "#dc2626" : "#4caf50";
-    t.style.color = "#ffffff";
-    t.style.padding = "8px 12px";
-    t.style.borderRadius = "9999px";
-    t.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
-    t.style.zIndex = "1000";
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2300);
   }
 
   // ---------- Butikk-modus ----------
@@ -1768,15 +1935,15 @@ if (modeToggleBtn) {
       }
     }
 
-    await loadWeeklyMenuData();
-    await loadShoppingItemsData();
-    renderWeeklyMenu();
+    await ensureHouseholdId();
+    await Promise.all([loadWeeklyMenuData(), loadShoppingItemsData()]);
     renderFrequentItems();
-    renderCategories();
     initInboxButton();
+    await setupRealtimeChannels();
   }
 
   document.addEventListener("DOMContentLoaded", init);
+  window.addEventListener('beforeunload', cleanupRealtimeChannels);
 </script>
 </body>
 </html>

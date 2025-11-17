@@ -14,6 +14,7 @@
   <script src="/auth-helpers.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/store-service.js"></script>
+  <script src="/js/ui/toast.js"></script>
 
   <style>
     body {
@@ -713,7 +714,11 @@
     });
   }
 
-  function showToast(message, type) {
+  function showToast(message, type = 'info') {
+    if (window.toast?.show) {
+      window.toast.show(message, { type });
+      return;
+    }
     const el = document.createElement('div');
     el.style.cssText = `
       position: fixed;

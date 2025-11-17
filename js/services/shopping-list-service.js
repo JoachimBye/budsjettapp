@@ -200,6 +200,18 @@
     return { session, householdId, weekISO: ensureWeekISO(weekISO) };
   };
 
+  async function getHouseholdId(supa) {
+    const session = await fetchSession(supa);
+    if (!session) {
+      throw new Error('Ikke innlogget');
+    }
+    const householdId = await fetchHouseholdId(supa, session);
+    if (!householdId) {
+      throw new Error('Fant ikke husstand');
+    }
+    return householdId;
+  }
+
   async function loadItemsForWeek(supa, weekISO) {
     const ctx = await ensureHouseholdContext(supa, weekISO);
 
@@ -389,6 +401,7 @@
   }
 
   global.shoppingListService = {
+    getHouseholdId,
     loadItemsForWeek,
     addItem,
     updateItemQuantity,

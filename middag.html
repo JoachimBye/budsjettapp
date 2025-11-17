@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Middagsanbefaling</title>
   <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth-helpers.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
+  <script src="/js/services/budget-service.js"></script>
+  <script src="/js/ui/toast.js"></script>
   <style>
     /* ------ Base ------ */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -301,6 +305,17 @@
   </div>
 
   <script>
+    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
+    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const showToast = (message, type = 'info') => {
+      if (window.toast?.show) {
+        window.toast.show(message, { type });
+      } else {
+        console[type === 'error' ? 'error' : 'log'](message);
+      }
+    };
+
     /* =========================
        Konfig / theming (Element SDK)
        ========================= */
@@ -443,6 +458,8 @@
         : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10))),
       currentRecipe: null,
     };
+    let isBudgetLoading = false;
+    let budgetLoadError = null;
 
     /* =========================
        Budsjett / purchases
@@ -450,12 +467,17 @@
     async function loadBudgetData() {
       const weekISO = state.activeWeekISO;
       let summary = null;
+      isBudgetLoading = true;
+      budgetLoadError = null;
+      updateBudgetDisplay();
 
       if (window.budgetService?.loadWeekSummary) {
         try {
           summary = await window.budgetService.loadWeekSummary(supa, weekISO);
         } catch (err) {
           console.warn('Kunne ikke hente budsjett fra budgetService, faller tilbake til cache.', err);
+          budgetLoadError = 'Kunne ikke hente budsjett – viser cache.';
+          showToast('Kunne ikke hente budsjett, viser cache.', 'error');
         }
       }
 
@@ -466,6 +488,7 @@
           ? summary.remaining
           : Math.max(0, total - used);
         state.budget = { total, used, remaining: remainingValue };
+        isBudgetLoading = false;
         updateBudgetDisplay();
         return;
       }
@@ -497,6 +520,7 @@
 
       const remaining = Math.max(0, total - used);
       state.budget = { total, used, remaining };
+      isBudgetLoading = false;
       updateBudgetDisplay();
     }
 
@@ -506,6 +530,12 @@
       const progressRing = document.getElementById('progressRing');
       const progressText = document.getElementById('progressText');
       const tipCard = document.getElementById('tipCard');
+
+      if (isBudgetLoading) {
+        budgetAmount.textContent = '...';
+        document.getElementById('budgetHint')?.classList.remove('show');
+        return;
+      }
 
       budgetAmount.textContent = `${formatKr(remaining)} kr`;
 
@@ -519,7 +549,12 @@
       if (pct <= 25) { showTip = true; tip = 'Tips: Velg vegetar/gryter for å presse prisen ned resten av uka.'; }
       else if (pct <= 50) { showTip = true; tip = 'Tips: Planlegg 1–2 billige middager (≤ 40 kr/pers) for å holde budsjettet.'; }
       document.getElementById('tipText').textContent = tip;
-      tipCard.style.display = showTip ? 'flex' : 'none';
+      if (budgetLoadError) {
+        tipCard.style.display = 'flex';
+        document.getElementById('tipText').textContent = budgetLoadError;
+      } else {
+        tipCard.style.display = showTip ? 'flex' : 'none';
+      }
     }
 
     /* =========================
@@ -713,14 +748,6 @@
       state.currentRecipe = null;
     }
 
-    function showToast(text) {
-      const t = document.createElement('div');
-      t.className = 'toast';
-      t.textContent = text;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 2000);
-    }
-
     // Legg valgte (krysset av) ingredienser i INBOX for aktiv uke – samme nøkkel som handleliste.html forventer
     function addCurrentRecipeToShoppingList() {
       const recipe = state.currentRecipe;
@@ -743,7 +770,7 @@
         .filter(Boolean);
 
       if (!chosen.length) {
-        showToast('Ingen ingredienser valgt.');
+        showToast('Ingen ingredienser valgt.', 'error');
         return;
       }
 
@@ -767,7 +794,10 @@
       btn.disabled = true;
       setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1200);
 
-      showToast(added > 0 ? `La til ${added} varer i handleliste` : 'Ingen nye varer lagt til');
+      showToast(
+        added > 0 ? `La til ${added} varer i handleliste` : 'Ingen nye varer lagt til',
+        added > 0 ? 'success' : 'info'
+      );
     }
 
     /* =========================

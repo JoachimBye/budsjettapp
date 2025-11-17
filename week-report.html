@@ -7,6 +7,8 @@
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
+  <script src="/js/ui/toast.js"></script>
+  <script src="/js/ui/coach.js"></script>
   <style>
     body {
       box-sizing: border-box;
@@ -191,6 +193,17 @@
       font-weight: 700;
       color: #1e293b;
       margin-bottom: 24px;
+    }
+    .loading-text,
+    .error-text {
+      text-align: center;
+      padding: 20px;
+      font-size: 1rem;
+      color: #64748b;
+      width: 100%;
+    }
+    .error-text {
+      color: #dc2626;
     }
     #categoriesGrid {
       display: grid;
@@ -518,23 +531,17 @@
   const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const showToast = (message, type = 'info') => {
+    if (window.toast?.show) {
+      window.toast.show(message, { type });
+    } else {
+      console[type === 'error' ? 'error' : 'log'](message);
+    }
+  };
 
   // ---------- Intro / coach overlay ----------
   const COACH_SEEN_KEY = 'weekReport_coach_seen_v1';
-
-  let coachActive = false;
-  let coachCurrentStep = 0;
-  let prevBodyOverflow = '';
-
-  const coachOverlay     = document.getElementById('coachOverlay');
-  const coachHighlight   = document.getElementById('coachHighlight');
-  const coachTooltip     = document.getElementById('coachTooltip');
-  const coachTitleEl     = document.getElementById('coachTitle');
-  const coachTextEl      = document.getElementById('coachText');
-  const coachStepLabelEl = document.getElementById('coachStepLabel');
-  const coachSkipBtn     = document.getElementById('coachSkipBtn');
-  const coachPrevBtn     = document.getElementById('coachPrevBtn');
-  const coachNextBtn     = document.getElementById('coachNextBtn');
+  let coachInstance = null;
 
   const coachSteps = [
     {
@@ -569,140 +576,26 @@
     },
   ];
 
-  function positionCoachForElement(el) {
-    if (!el || !coachHighlight || !coachTooltip) return;
-
-    const rect = el.getBoundingClientRect();
-    const padding = 8;
-
-    const left   = rect.left - padding;
-    const top    = rect.top  - padding;
-    const width  = rect.width  + padding * 2;
-    const height = rect.height + padding * 2;
-
-    coachHighlight.style.left   = `${left}px`;
-    coachHighlight.style.top    = `${top}px`;
-    coachHighlight.style.width  = `${width}px`;
-    coachHighlight.style.height = `${height}px`;
-    coachHighlight.style.opacity = 1;
-
-    coachTooltip.style.left = '50%';
-    coachTooltip.style.transform = 'translateX(-50%)';
-
-    requestAnimationFrame(() => {
-      const ttRect = coachTooltip.getBoundingClientRect();
-      const viewportH = window.innerHeight || document.documentElement.clientHeight;
-      const placeAbove = rect.top > viewportH / 2;
-
-      let ttTop;
-      if (placeAbove) {
-        ttTop = Math.max(16, rect.top - ttRect.height - 16);
-      } else {
-        ttTop = Math.min(viewportH - ttRect.height - 16, rect.bottom + 16);
-      }
-      coachTooltip.style.top = `${ttTop}px`;
-      coachTooltip.style.opacity = 1;
+  function setupCoach() {
+    if (!window.coach) return;
+    coachInstance = window.coach.create({
+      steps: coachSteps,
+      storageKey: COACH_SEEN_KEY,
     });
   }
-
-  function goToCoachStep(index) {
-    if (!coachOverlay) return;
-  if (index < 0 || index >= coachSteps.length) {
-    endCoachTour();
-    return;
-  }
-  coachCurrentStep = index;
-  const step = coachSteps[coachCurrentStep];
-  const target = document.querySelector(step.selector);
-
-  if (!target) {
-    if (coachCurrentStep < coachSteps.length - 1) {
-      goToCoachStep(coachCurrentStep + 1);
-    } else {
-      endCoachTour();
-    }
-    return;
-  }
-
-  if (coachTooltip) coachTooltip.style.opacity = 0;
-  if (coachHighlight) coachHighlight.style.opacity = 0;
-
-  coachTitleEl.textContent = step.title;
-  coachTextEl.textContent  = step.text;
-  coachStepLabelEl.textContent = `Steg ${coachCurrentStep + 1} av ${coachSteps.length}`;
-
-  coachPrevBtn.disabled = coachCurrentStep === 0;
-  coachNextBtn.textContent = coachCurrentStep === coachSteps.length - 1 ? 'Ferdig' : 'Neste';
-
-  // 1) Scroll elementet inn i view (midt på skjermen)
-  target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-
-  // 2) Etter litt tid (når scroll er ferdig) → posisjoner highlight og tooltip
-  setTimeout(() => {
-    positionCoachForElement(target);
-  }, 350);
-}
-
 
   function startCoachTour() {
-    if (!coachOverlay) return;
-  coachActive = true;
-  coachOverlay.style.display = 'block';
-  // Ikke lås scrolling lenger
-  goToCoachStep(0);
-}
-
+    coachInstance?.start();
+  }
 
   function endCoachTour() {
-      coachActive = false;
-  if (coachOverlay) coachOverlay.style.display = 'none';
-  try { localStorage.setItem(COACH_SEEN_KEY, '1'); } catch {}
-}
-
+    coachInstance?.stop();
+  }
 
   function shouldStartCoachTour() {
-    try {
-      return localStorage.getItem(COACH_SEEN_KEY) !== '1';
-    } catch {
-      return true;
-    }
+    if (!coachInstance) return false;
+    return !coachInstance.hasSeen();
   }
-
-  if (coachSkipBtn) {
-    coachSkipBtn.addEventListener('click', () => {
-      endCoachTour();
-    });
-  }
-  if (coachPrevBtn) {
-    coachPrevBtn.addEventListener('click', () => {
-      if (coachCurrentStep > 0) goToCoachStep(coachCurrentStep - 1);
-    });
-  }
-  if (coachNextBtn) {
-    coachNextBtn.addEventListener('click', () => {
-      if (coachCurrentStep < coachSteps.length - 1) {
-        goToCoachStep(coachCurrentStep + 1);
-      } else {
-        endCoachTour();
-      }
-    });
-  }
-
-  window.addEventListener('resize', () => {
-    if (!coachActive) return;
-    const step = coachSteps[coachCurrentStep];
-    if (!step) return;
-    const target = document.querySelector(step.selector);
-    if (target) positionCoachForElement(target);
-  });
-
-  window.addEventListener('scroll', () => {
-  if (!coachActive) return;
-  const step = coachSteps[coachCurrentStep];
-  if (!step) return;
-  const target = document.querySelector(step.selector);
-  if (target) positionCoachForElement(target);
-});
 
   // ---------- State ----------
   const dateUtils = window.dateUtils || {};
@@ -717,6 +610,8 @@
     pct: 0,
     byCategory: {}
   };
+  let isReportLoading = false;
+  let reportLoadError = null;
 
   // ---------- Utils ----------
   function formatAmount(n) {
@@ -755,17 +650,23 @@
       : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10));
     state.weekISO = weekISO;
 
-    let totalBudget = 0;
-    let purchases = [];
+    isReportLoading = true;
+    reportLoadError = null;
 
     let summary = null;
     if (budgetService?.loadWeekSummary) {
-      summary = await budgetService.loadWeekSummary(supa, weekISO, {
-        selectPurchases: 'amount, category',
-      });
+      try {
+        summary = await budgetService.loadWeekSummary(supa, weekISO, {
+          selectPurchases: 'amount, category',
+        });
+      } catch (err) {
+        console.error('loadWeekData', err);
+        reportLoadError = 'Kunne ikke hente ukesrapport – viser cache.';
+        showToast('Kunne ikke hente ukesrapport, viser cache.', 'error');
+      }
     }
 
-    totalBudget = summary?.budget
+    const totalBudget = summary?.budget
       ?? (budgetService?.readWeeklyBudgetLocal
         ? budgetService.readWeeklyBudgetLocal(weekISO)
         : (() => {
@@ -775,7 +676,7 @@
             return (!Number.isNaN(globalBudget) && globalBudget > 0) ? globalBudget : 3000;
           })());
 
-    purchases = summary?.purchases ?? safeGet(`purchases_${weekISO}`, []);
+    const purchases = summary?.purchases ?? safeGet(`purchases_${weekISO}`, []);
 
     const spent = summary?.spent
       ?? (budgetUtils.safeSumPurchases
@@ -800,6 +701,8 @@
     localStorage.setItem('activeWeekISO', weekISO);
     localStorage.setItem(`weeklyBudget_${weekISO}`, String(totalBudget));
     localStorage.setItem('weeklyBudget', String(totalBudget));
+
+    isReportLoading = false;
   }
 
   // ---------- Render: header ----------
@@ -821,13 +724,35 @@
     const pct = Math.max(0, Math.round(pctRaw));
     const overAmount = Math.max(0, spent - budget);
 
-    document.getElementById('nrBudget').textContent = `${formatAmount(budget)} kr`;
-    document.getElementById('nrSpent').textContent = `${formatAmount(spent)} kr`;
-
+    const budgetEl = document.getElementById('nrBudget');
+    const spentEl = document.getElementById('nrSpent');
     const diffLabelEl = document.getElementById('nrDiffLabel');
     const diffValueEl = document.getElementById('nrDiffValue');
-    diffValueEl.classList.remove('positive', 'negative');
+    const thermoFill = document.getElementById('thermoFill');
+    const thermoText = document.getElementById('thermoPercentText');
+    const statusEmoji = document.getElementById('statusEmoji');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusSubtitle = document.getElementById('statusSubtitle');
 
+    if (isReportLoading) {
+      budgetEl.textContent = '...';
+      spentEl.textContent = '...';
+      diffLabelEl.textContent = 'Laster';
+      diffValueEl.textContent = '...';
+      diffValueEl.classList.remove('positive', 'negative');
+      thermoFill.style.width = '0%';
+      thermoFill.classList.remove('yellow', 'red');
+      thermoText.textContent = 'Henter data…';
+      statusEmoji.textContent = '⏳';
+      statusTitle.textContent = 'Henter ukesrapport…';
+      statusSubtitle.textContent = 'Vent litt mens vi finner tallene.';
+      return;
+    }
+
+    budgetEl.textContent = `${formatAmount(budget)} kr`;
+    spentEl.textContent = `${formatAmount(spent)} kr`;
+
+    diffValueEl.classList.remove('positive', 'negative');
     if (spent === 0) {
       diffLabelEl.textContent = 'Igjen';
       diffValueEl.textContent = `${formatAmount(budget)} kr`;
@@ -842,26 +767,18 @@
       diffValueEl.classList.add('negative');
     }
 
-    const thermoFill = document.getElementById('thermoFill');
     thermoFill.classList.remove('yellow', 'red');
     const width = Math.max(0, Math.min(100, pct));
     thermoFill.style.width = `${width}%`;
-    document.getElementById('thermoPercentText').textContent =
-      `Brukt ${Math.min(pct, 200)} % av budsjettet`;
-
-    if (spent === 0) {
-      // rolig uke
-    } else if (pct <= 90) {
-      // grønn
-    } else if (pct <= 110) {
-      thermoFill.classList.add('yellow');
-    } else {
-      thermoFill.classList.add('red');
+    thermoText.textContent =
+      budget > 0 ? `Brukt ${Math.min(pct, 200)} % av budsjettet` : 'Sett et budsjett i Innstillinger';
+    if (spent !== 0) {
+      if (pct > 110) {
+        thermoFill.classList.add('red');
+      } else if (pct > 90) {
+        thermoFill.classList.add('yellow');
+      }
     }
-
-    const statusEmoji = document.getElementById('statusEmoji');
-    const statusTitle = document.getElementById('statusTitle');
-    const statusSubtitle = document.getElementById('statusSubtitle');
 
     if (spent === 0) {
       statusEmoji.textContent = '🕒';
@@ -884,6 +801,12 @@
       statusSubtitle.textContent =
         `Budsjettet sprakk med ${formatAmount(overAmount)} kr. Ingen krise – vi ser på hvor pengene gikk.`;
     }
+
+    if (reportLoadError) {
+      statusEmoji.textContent = 'ℹ️';
+      statusTitle.textContent = 'Viser lagrede tall';
+      statusSubtitle.textContent = reportLoadError;
+    }
   }
 
   // ---------- Render: kategorier ----------
@@ -891,17 +814,24 @@
     const grid = document.getElementById('categoriesGrid');
     grid.innerHTML = '';
 
+    if (isReportLoading) {
+      const loading = document.createElement('div');
+      loading.className = 'loading-text';
+      loading.textContent = 'Henter kategorier…';
+      grid.appendChild(loading);
+      return;
+    }
+
     const entries = Object.entries(state.byCategory).sort((a, b) => b[1] - a[1]);
     const total = Math.max(1, state.spent);
 
     if (entries.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'insight-item';
-      empty.innerHTML = `
-        <div class="insight-icon">ℹ️</div>
-        <div class="insight-text">Ingen registrerte kjøp denne uken ennå.</div>
-      `;
-      grid.appendChild(empty);
+      const info = document.createElement('div');
+      info.className = reportLoadError ? 'error-text' : 'loading-text';
+      info.textContent = reportLoadError
+        ? reportLoadError
+        : 'Ingen registrerte kjøp denne uken ennå.';
+      grid.appendChild(info);
       return;
     }
 
@@ -938,9 +868,18 @@
     const list = document.getElementById('insightsList');
     list.innerHTML = '';
 
+    if (isReportLoading) {
+      addInsight('⏳', 'Henter observasjoner…');
+      return;
+    }
+
     const budget = state.totalBudget;
     const spent = state.spent;
     const saved = state.saved;
+
+    if (reportLoadError) {
+      addInsight('ℹ️', reportLoadError);
+    }
 
     if (spent === 0) {
       addInsight('🕒', 'Ingen registrerte kjøp enda – husk å legge inn handlebeløp når dere har vært i butikken.');
@@ -993,7 +932,12 @@
       if (window.location.pathname !== '/week-report.html') return;
     }
 
-    await loadWeekData();
+    setupCoach();
+    const loadPromise = loadWeekData();
+    renderOverview();
+    renderCategories();
+    renderInsights();
+    await loadPromise;
     renderHeader();
     renderOverview();
     renderCategories();
