@@ -447,8 +447,30 @@
     /* =========================
        Budsjett / purchases
        ========================= */
-    function loadBudgetData() {
+    async function loadBudgetData() {
       const weekISO = state.activeWeekISO;
+      let summary = null;
+
+      if (window.budgetService?.loadWeekSummary) {
+        try {
+          summary = await window.budgetService.loadWeekSummary(supa, weekISO);
+        } catch (err) {
+          console.warn('Kunne ikke hente budsjett fra budgetService, faller tilbake til cache.', err);
+        }
+      }
+
+      if (summary) {
+        const total = Number(summary.budget) || 0;
+        const used = Number(summary.spent) || 0;
+        const remainingValue = Number.isFinite(summary.remaining)
+          ? summary.remaining
+          : Math.max(0, total - used);
+        state.budget = { total, used, remaining: remainingValue };
+        updateBudgetDisplay();
+        return;
+      }
+
+      // Fallback til eksisterende localStorage-logikk om service ikke er tilgjengelig
       const weeklyBudgetKey = `weeklyBudget_${weekISO}`;
       const purchasesKey = `purchases_${weekISO}`;
 

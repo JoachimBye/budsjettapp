@@ -334,18 +334,47 @@
       try {
         const { data: { session } } = await supa.auth.getSession();
         if (session) {
-          await supa
-            .from('household_budgets')
-            .upsert(
-              [{ user_id: session.user.id, week_start: mondayISO, amount: budgetInt }],
-              { onConflict: 'user_id,week_start' }
-            );
+          let householdId = null;
 
-          // (valgfritt) lagre default på members om kolonnen finnes
-          await supa
-            .from('members')
-            .update({ default_weekly_budget: budgetInt })
-            .eq('user_id', session.user.id);
+          // Forsøk RPC først (best for RLS-oppsettet)
+          if (typeof supa.rpc === 'function') {
+            try {
+              const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
+              if (!rpcError && rpcData) {
+                householdId = rpcData;
+              }
+            } catch (rpcErr) {
+              console.warn('get_my_household_id feilet i onboarding2 – faller tilbake til members', rpcErr);
+            }
+          }
+
+          if (!householdId) {
+            const { data: member, error: memberErr } = await supa
+              .from('members')
+              .select('household_id')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
+            if (!memberErr && member?.household_id) {
+              householdId = member.household_id;
+            }
+          }
+
+          if (householdId) {
+            await supa
+              .from('household_budgets')
+              .upsert(
+                [{ household_id: householdId, week_start: mondayISO, amount: budgetInt }],
+                { onConflict: 'household_id,week_start' }
+              );
+
+            await supa
+              .from('households')
+              .update({ default_weekly_budget: budgetInt })
+              .eq('id', householdId);
+          } else {
+            console.warn('Fant ikke household_id under onboarding2, hopper over DB-lagring.');
+          }
         }
       } catch (_) { /* ignorer DB-feil, localStorage holder */ }
 

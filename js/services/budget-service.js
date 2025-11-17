@@ -62,13 +62,71 @@
     }
   };
 
-  const fetchBudgetForWeek = async (supa, session, weekISO) => {
+  let cachedHouseholdContext = { userId: null, householdId: null };
+
+  const cacheHouseholdId = (session, householdId) => {
+    if (!session?.user?.id || !householdId) return;
+    cachedHouseholdContext = {
+      userId: session.user.id,
+      householdId,
+    };
+  };
+
+  const getCachedHouseholdId = (session) => {
+    if (!session?.user?.id) return null;
+    if (cachedHouseholdContext.userId === session.user.id) {
+      return cachedHouseholdContext.householdId || null;
+    }
+    return null;
+  };
+
+  const fetchHouseholdId = async (supa, session) => {
     if (!supa || !session) return null;
+    const cached = getCachedHouseholdId(session);
+    if (cached) return cached;
+
+    // Prøv å hente via RPC hvis funksjonen er tilgjengelig
+    try {
+      if (typeof supa.rpc === 'function') {
+        const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
+        if (!rpcError && rpcData) {
+          cacheHouseholdId(session, rpcData);
+          return rpcData;
+        }
+      }
+    } catch (rpcErr) {
+      console.warn('fetchHouseholdId RPC feilet, prøver members-tabellen.', rpcErr);
+    }
+
+    try {
+      const { data: member, error } = await supa
+        .from('members')
+        .select('household_id')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Klarte ikke å hente household_id fra members', error);
+        return null;
+      }
+
+      if (member?.household_id) {
+        cacheHouseholdId(session, member.household_id);
+        return member.household_id;
+      }
+    } catch (err) {
+      console.warn('Klarte ikke hente household_id fra members', err);
+    }
+    return null;
+  };
+
+  const fetchBudgetForWeek = async (supa, householdId, weekISO) => {
+    if (!supa || !householdId) return null;
     try {
       const { data: budgetRow, error } = await supa
         .from('household_budgets')
         .select('amount')
-        .eq('user_id', session.user.id)
+        .eq('household_id', householdId)
         .eq('week_start', weekISO)
         .maybeSingle();
 
@@ -76,20 +134,10 @@
         return budgetRow.amount;
       }
 
-      const { data: member, error: memberErr } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (memberErr || !member?.household_id) {
-        return null;
-      }
-
       const { data: household, error: householdErr } = await supa
         .from('households')
         .select('default_weekly_budget')
-        .eq('id', member.household_id)
+        .eq('id', householdId)
         .maybeSingle();
 
       if (!householdErr && typeof household?.default_weekly_budget === 'number') {
@@ -101,12 +149,18 @@
     return null;
   };
 
-  const fetchPurchasesForWeek = async (supa, weekISO, selectColumns = 'amount, category') => {
-    if (!supa) return null;
+  const fetchPurchasesForWeek = async (
+    supa,
+    householdId,
+    weekISO,
+    selectColumns = 'amount, category'
+  ) => {
+    if (!supa || !householdId) return null;
     try {
       const { data, error } = await supa
         .from('purchases')
         .select(selectColumns)
+        .eq('household_id', householdId)
         .eq('week_start', weekISO);
 
       if (error) {
@@ -138,21 +192,25 @@
     }
 
     if (session && options.skipRemote !== true) {
-      const remoteBudget = await fetchBudgetForWeek(supa, session, activeISO);
-      if (typeof remoteBudget === 'number' && remoteBudget > 0) {
-        budget = remoteBudget;
-        persistWeeklyBudget(activeISO, remoteBudget);
-      }
+      const householdId = await fetchHouseholdId(supa, session);
+      if (householdId) {
+        const remoteBudget = await fetchBudgetForWeek(supa, householdId, activeISO);
+        if (typeof remoteBudget === 'number' && remoteBudget > 0) {
+          budget = remoteBudget;
+          persistWeeklyBudget(activeISO, remoteBudget);
+        }
 
-      if (options.includePurchases !== false) {
-        const remotePurchases = await fetchPurchasesForWeek(
-          supa,
-          activeISO,
-          options.selectPurchases || 'amount, category'
-        );
-        if (Array.isArray(remotePurchases)) {
-          purchases = remotePurchases;
-          persistPurchases(activeISO, purchases);
+        if (options.includePurchases !== false) {
+          const remotePurchases = await fetchPurchasesForWeek(
+            supa,
+            householdId,
+            activeISO,
+            options.selectPurchases || 'amount, category'
+          );
+          if (Array.isArray(remotePurchases)) {
+            purchases = remotePurchases;
+            persistPurchases(activeISO, purchases);
+          }
         }
       }
     }

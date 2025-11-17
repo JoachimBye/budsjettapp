@@ -132,8 +132,38 @@
           || (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0,10));
         const amount = parseInt((localStorage.getItem('weeklyBudget')||'').replace(/\s|kr/g,''),10);
         if (session && week && !Number.isNaN(amount)) {
-          await supa.from('household_budgets')
-            .upsert({ user_id: session.user.id, week_start: week, amount });
+          let householdId = null;
+
+          if (typeof supa.rpc === 'function') {
+            try {
+              const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
+              if (!rpcError && rpcData) {
+                householdId = rpcData;
+              }
+            } catch (rpcErr) {
+              console.warn('ensureWeekBudget RPC feilet, prøver members-tabellen', rpcErr);
+            }
+          }
+
+          if (!householdId) {
+            const { data: member, error: memberErr } = await supa
+              .from('members')
+              .select('household_id')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
+            if (!memberErr && member?.household_id) {
+              householdId = member.household_id;
+            }
+          }
+
+          if (householdId) {
+            await supa.from('household_budgets')
+              .upsert(
+                { household_id: householdId, week_start: week, amount },
+                { onConflict: 'household_id,week_start' }
+              );
+          }
         }
         localStorage.setItem('activeWeekISO', week);
       }catch(_){/* ignorer */}
