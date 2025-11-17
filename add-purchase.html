@@ -650,27 +650,35 @@ function initCoach() {
   ];
   const OTHER_STORE_VALUE = 'Annet';
 
-  function getActiveCategories() {
-    if (categoryService?.getActiveCategories) {
-      const fromSettings = categoryService.getActiveCategories();
-      if (Array.isArray(fromSettings) && fromSettings.length > 0) {
-        return fromSettings;
+  async function fetchActiveCategories() {
+    if (categoryService?.loadCategorySettings) {
+      try {
+        const list = await categoryService.loadCategorySettings(supa);
+        if (Array.isArray(list)) {
+          return list.filter((cat) => cat.enabled !== false);
+        }
+      } catch (err) {
+        console.error('Kunne ikke hente kategorier fra Supabase', err);
       }
     }
-    return FALLBACK_CATEGORY_LIST.filter(cat => cat.enabled !== false);
+    return FALLBACK_CATEGORY_LIST.filter((cat) => cat.enabled !== false);
   }
 
-  function getActiveStores() {
-    if (storeService?.getActiveStores) {
-      const fromSettings = storeService.getActiveStores();
-      if (Array.isArray(fromSettings) && fromSettings.length > 0) {
-        return fromSettings;
+  async function fetchActiveStores() {
+    if (storeService?.loadStoreSettings) {
+      try {
+        const list = await storeService.loadStoreSettings(supa);
+        if (Array.isArray(list)) {
+          return list.filter((store) => store.enabled !== false);
+        }
+      } catch (err) {
+        console.error('Kunne ikke hente butikker fra Supabase', err);
       }
     }
-    return FALLBACK_STORE_LIST.filter(store => store.enabled !== false);
+    return FALLBACK_STORE_LIST.filter((store) => store.enabled !== false);
   }
 
-  function initCategorySelect() {
+  async function initCategorySelect() {
     const select = document.getElementById('categoryInput');
     if (!select) return;
 
@@ -679,7 +687,7 @@ function initCoach() {
     select.innerHTML = '';
     if (placeholder) select.appendChild(placeholder);
 
-    const categories = getActiveCategories();
+    const categories = await fetchActiveCategories();
 
     if (categories.length === 0) {
       const opt = document.createElement('option');
@@ -702,7 +710,7 @@ function initCoach() {
     });
   }
 
-  function initStoreSelect() {
+  async function initStoreSelect() {
     const select = document.getElementById('storeInput');
     if (!select) return;
 
@@ -717,7 +725,7 @@ function initCoach() {
     placeholder.selected = true;
     select.appendChild(placeholder);
 
-    const stores = getActiveStores();
+    const stores = await fetchActiveStores();
 
     if (stores.length === 0) {
       const info = document.createElement('option');
@@ -1095,9 +1103,9 @@ function initCoach() {
     const dateInput = document.getElementById('dateInput');
     dateInput.value = isoToday();
 
-    // Bygg kategori- og butikklister basert på settings.html
-    initCategorySelect();
-    initStoreSelect();
+    // Bygg kategori- og butikklister basert på Supabase
+    await initCategorySelect();
+    await initStoreSelect();
 
     // Last budsjett/spent for denne datoen
     await loadWeekDataFor(parseLocalDate(dateInput.value));
