@@ -781,9 +781,33 @@
   }
 
   // ---------- Nøkler ----------
-  const ACTIVE_WEEK_ISO = dateUtils.getActiveWeekISO
-    ? dateUtils.getActiveWeekISO()
-    : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10));
+  const ACTIVE_WEEK_ISO = (() => {
+    if (dateUtils.getOrInitActiveWeekISO) {
+      return dateUtils.getOrInitActiveWeekISO();
+    }
+
+    const storedISO = dateUtils.getActiveWeekISO ? dateUtils.getActiveWeekISO() : null;
+    const computeMonday = () => {
+      if (dateUtils.mondayISO) return dateUtils.mondayISO();
+      const today = new Date();
+      const day = (today.getDay() + 6) % 7;
+      today.setDate(today.getDate() - day);
+      today.setHours(12, 0, 0, 0);
+      return today.toISOString().slice(0, 10);
+    };
+    const currentMonday = computeMonday();
+
+    if (!storedISO || storedISO < currentMonday) {
+      if (dateUtils.setActiveWeekISO) {
+        dateUtils.setActiveWeekISO(currentMonday);
+      } else {
+        localStorage.setItem('activeWeekISO', currentMonday);
+      }
+      return currentMonday;
+    }
+
+    return storedISO;
+  })();
   const WEEK_MENU_KEY   = `weeklyMenu_${ACTIVE_WEEK_ISO}`;
   const FREQ_KEY        = `frequentItems`;
   const INBOX_KEY       = `shoppingList_inbox_${ACTIVE_WEEK_ISO}`;

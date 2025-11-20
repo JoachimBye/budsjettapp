@@ -59,6 +59,23 @@
     }
   }
 
+  function getOrInitActiveWeekISO() {
+    const storedISO = getActiveWeekISO();
+    const currentMonday = mondayISO();
+    let activeISO = storedISO;
+
+    if (!storedISO || storedISO < currentMonday) {
+      activeISO = currentMonday;
+      if (typeof setActiveWeekISO === 'function') {
+        setActiveWeekISO(activeISO);
+      } else {
+        localStorage.setItem('activeWeekISO', activeISO);
+      }
+    }
+
+    return activeISO || currentMonday;
+  }
+
   function resolveWeekISOForDate(date) {
     return localStorage.getItem('activeWeekISO') || mondayISO(date || new Date());
   }
@@ -84,6 +101,7 @@
     isoWeekNumber,
     formatRangeNoNO,
     getActiveWeekISO,
+    getOrInitActiveWeekISO,
     setActiveWeekISO,
     resolveWeekISOForDate,
     getISOWeekFromISODate,

@@ -123,30 +123,56 @@
   const fetchBudgetForWeek = async (supa, householdId, weekISO) => {
     if (!supa || !householdId) return null;
     try {
-      const { data: budgetRow, error } = await supa
+      const { data: budgetRow, error: budgetError } = await supa
         .from('household_budgets')
         .select('amount')
         .eq('household_id', householdId)
         .eq('week_start', weekISO)
         .maybeSingle();
 
-      if (!error && budgetRow && typeof budgetRow.amount === 'number') {
+      if (budgetError) {
+        console.warn('Klarte ikke hente budsjett fra household_budgets', budgetError);
+        return null;
+      }
+
+      if (budgetRow && typeof budgetRow.amount === 'number') {
         return budgetRow.amount;
       }
 
+      let defaultAmount = DEFAULT_WEEKLY_BUDGET;
       const { data: household, error: householdErr } = await supa
         .from('households')
         .select('default_weekly_budget')
         .eq('id', householdId)
         .maybeSingle();
 
-      if (!householdErr && typeof household?.default_weekly_budget === 'number') {
-        return household.default_weekly_budget;
+      if (householdErr) {
+        console.warn('Klarte ikke hente default_weekly_budget fra households', householdErr);
+      } else if (typeof household?.default_weekly_budget === 'number') {
+        defaultAmount = household.default_weekly_budget;
       }
+
+      const { error: upsertError } = await supa
+        .from('household_budgets')
+        .upsert(
+          {
+            household_id: householdId,
+            week_start: weekISO,
+            amount: defaultAmount,
+          },
+          { onConflict: 'household_id,week_start' }
+        );
+
+      if (upsertError) {
+        console.warn('Klarte ikke opprette budsjett for uke', upsertError);
+        return null;
+      }
+
+      return defaultAmount;
     } catch (err) {
-      console.warn('Klarte ikke hente budsjett fra Supabase', err);
+      console.warn('Klarte ikke hente/lagre budsjett fra Supabase', err);
+      return null;
     }
-    return null;
   };
 
   const fetchPurchasesForWeek = async (

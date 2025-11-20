@@ -443,12 +443,39 @@
   const budgetUtils = window.budgetUtils || {};
 
   // ---------- Uke-hjelpere ----------------------------------------------
+  function resolveActiveWeekISO() {
+    if (dateUtils.getOrInitActiveWeekISO) {
+      return dateUtils.getOrInitActiveWeekISO();
+    }
+
+    const storedISO = dateUtils.getActiveWeekISO ? dateUtils.getActiveWeekISO() : null;
+    const computeMonday = () => {
+      if (dateUtils.mondayISO) return dateUtils.mondayISO();
+      const today = new Date();
+      const day = (today.getDay() + 6) % 7;
+      today.setDate(today.getDate() - day);
+      today.setHours(12, 0, 0, 0);
+      return today.toISOString().slice(0, 10);
+    };
+    const currentMonday = computeMonday();
+
+    if (!storedISO || storedISO < currentMonday) {
+      const activeISO = currentMonday;
+      if (dateUtils.setActiveWeekISO) {
+        dateUtils.setActiveWeekISO(activeISO);
+      } else {
+        localStorage.setItem('activeWeekISO', activeISO);
+      }
+      return activeISO;
+    }
+
+    return storedISO;
+  }
+
   function getActiveMondayDate(){
     const iso =
       state.activeWeekISO ||
-      (dateUtils.getActiveWeekISO
-        ? dateUtils.getActiveWeekISO()
-        : new Date().toISOString().slice(0, 10));
+      resolveActiveWeekISO();
     const [y, m, d] = iso.split('-').map(Number);
     return new Date(y, m - 1, d, 12, 0, 0, 0);
   }
@@ -486,9 +513,7 @@
   async function loadWeekData() {
     const iso =
       state.activeWeekISO ||
-      (dateUtils.getActiveWeekISO
-        ? dateUtils.getActiveWeekISO()
-        : new Date().toISOString().slice(0, 10));
+      resolveActiveWeekISO();
 
     isSummaryLoading = true;
     summaryLoadError = null;
@@ -878,9 +903,7 @@ function updateBudgetDisplay() {
     }
 
     // Sett uke og last data
-    state.activeWeekISO = dateUtils.getActiveWeekISO
-      ? dateUtils.getActiveWeekISO()
-      : (state.activeWeekISO || new Date().toISOString().slice(0, 10));
+    state.activeWeekISO = resolveActiveWeekISO();
     await loadWeekData();
     setWeekHeader();
     updateBudgetDisplay();
@@ -909,9 +932,7 @@ function updateBudgetDisplay() {
   // Når man kommer tilbake via tilbakeknappen (BFCache), refreshe tall
   window.addEventListener('pageshow', async (event) => {
     if (event.persisted) {
-      state.activeWeekISO = dateUtils.getActiveWeekISO
-        ? dateUtils.getActiveWeekISO()
-        : state.activeWeekISO;
+      state.activeWeekISO = resolveActiveWeekISO();
       await loadWeekData();
       setWeekHeader();
       updateBudgetDisplay();
