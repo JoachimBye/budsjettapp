@@ -762,19 +762,16 @@ function shouldStartCoachTour() {
     overlay.classList.add('show');
     successMessage.classList.add('show');
     setTimeout(() => {
-      overlay.classList.remove('show');
-      successMessage.classList.remove('show');
-      // Flytt redirect hit slik at brukeren faktisk rekker å se meldingen
       window.location.href = 'app.html';
-    }, 900);
+    }, 800);
   }
 
   // ---------- Lagring til Supabase + localStorage fallback ----------
   async function handleSubmit(e){
     e.preventDefault();
 
-    const saveButton = document.getElementById('saveButton');
-    const saveLabel  = document.getElementById('saveButtonText');
+    const saveBtn = document.getElementById('saveButton');
+    const saveTxt  = document.getElementById('saveButtonText');
 
     const storeSel   = document.getElementById('storeInput').value;
     const otherStore = document.getElementById('otherStoreInput').value.trim();
@@ -791,39 +788,54 @@ function shouldStartCoachTour() {
     // Vi lagrer hele kroner i DB (integer)
     const amountInt = Math.round(amountFloat);
 
-    const originalLabel = saveLabel.textContent;
-    saveButton.classList.add('saving');
-    saveLabel.textContent = 'Lagrer...';
+    const originalLabel = saveTxt.textContent;
+    saveBtn.classList.add('saving');
+    saveTxt.textContent = 'Lagrer...';
 
     try {
       const { data: { session } } = await supa.auth.getSession();
-      if (!session) {
-        showToast('Du er ikke innlogget', 'error');
-        window.location.href = '/innlogging.html';
-        return;
+      if (!session) throw new Error('Ikke innlogget');
+
+      let householdId = null;
+      const { data: rpcId, error: rpcErr } = await supa.rpc('get_my_household_id');
+      if (!rpcErr && rpcId) {
+        householdId = rpcId;
+      } else if (rpcErr) {
+        console.error('Feil fra get_my_household_id i add-purchase:', rpcErr);
       }
 
-      // Finn medlem/husstand for brukeren
-      const { data: member, error: memberError } = await supa
+      const { data: member, error: memErr } = await supa
         .from('members')
         .select('id, household_id')
         .eq('user_id', session.user.id)
         .maybeSingle();
 
-      if (memberError || !member) {
-        console.error(memberError);
-        showToast('Fant ikke husstand for brukeren (members-rad mangler).', 'error');
-        return;
+      if (memErr) {
+        console.error('Feil ved lesing fra members:', memErr);
+      }
+      if (!member) {
+        throw new Error('Fant ikke medlemsinfo for denne brukeren.');
       }
 
-      const date = parseLocalDate(dateISO);
-      const weekISO = resolveWeekISO(date);
+      if (!householdId && member.household_id) {
+        householdId = member.household_id;
+      }
+      if (!householdId) {
+        throw new Error('Klarte ikke identifisere husstand for kjøpet.');
+      }
+
+      const date = dateUtils.dateFromISOLocal
+        ? dateUtils.dateFromISOLocal(dateISO)
+        : new Date(dateISO);
+      const weekISO = dateUtils.resolveWeekISOForDate
+        ? dateUtils.resolveWeekISOForDate(date)
+        : dateISO;
       localStorage.setItem('activeWeekISO', weekISO);
 
-      const { error: insertError } = await supa
+      const { error: insErr } = await supa
         .from('purchases')
         .insert({
-          household_id: member.household_id,
+          household_id: householdId,
           member_id:    member.id,
           week_start:   weekISO,
           amount:       amountInt,
@@ -832,43 +844,30 @@ function shouldStartCoachTour() {
           category:     category
         });
 
-      if (insertError) {
-        console.error(insertError);
-        showToast('Kunne ikke lagre kjøpet.', 'error');
-        return;
+      if (insErr) {
+        console.error('Insert feil mot purchases:', insErr);
+        throw new Error('Lagring feilet i databasen.');
       }
 
-      // Oppdater localStorage-fallback slik at andre sider som bare leser local får med seg kjøpet
       try {
         const localKey = `purchases_${weekISO}`;
-        const raw = localStorage.getItem(localKey);
-        let list = [];
-        if (raw) {
-          try { list = JSON.parse(raw); } catch { list = []; }
-        }
-        if (!Array.isArray(list)) list = [];
-        list.push({
-          amount: amountInt,
-          store,
-          date: dateISO,
-          category
-        });
+        const list = JSON.parse(localStorage.getItem(localKey) || '[]');
+        list.push({ amount: amountInt, store, date: dateISO, category });
         localStorage.setItem(localKey, JSON.stringify(list));
       } catch (e) {
-        console.warn('Klarte ikke å oppdatere lokal purchases-cache', e);
+        console.warn('Klarte ikke oppdatere lokal purchases-cache:', e);
       }
 
-      // Oppdater internt "spent" for budsjett-hintet (i samme økt)
       state.currentSpent += amountInt;
 
       showSuccessMessage();
 
     } catch (err) {
       console.error(err);
-      showToast(err.message || 'Ukjent feil oppstod ved lagring.', 'error');
+      showToast(err.message || 'Kunne ikke lagre kjøpet.', 'error');
     } finally {
-      saveButton.classList.remove('saving');
-      saveLabel.textContent = originalLabel;
+      saveBtn.classList.remove('saving');
+      saveTxt.textContent = originalLabel;
     }
   }
 

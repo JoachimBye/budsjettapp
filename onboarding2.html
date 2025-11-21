@@ -299,11 +299,10 @@
 
   document.getElementById('continueButton').addEventListener('click', async () => {
     const button = document.getElementById('continueButton');
+    button.classList.add('loading');
     button.style.transform = 'scale(0.95)';
 
-    setTimeout(async () => {
-      button.style.transform = '';
-
+    try {
       // 1) Normaliser og lagre globalt budsjett
       const budgetInt = Math.max(
         minBudget,
@@ -312,82 +311,86 @@
           parseInt(String(currentBudget).replace(/\s|kr/g,''), 10) || 0
         )
       );
+      const mondayISO = dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10);
+
+      // 2) Lokal (optimistisk) lagring
       localStorage.setItem('weeklyBudget', String(budgetInt));
-
-      // 2) Finn ISO for aktiv uke (mandag 12:00) og sett som aktiv
-      const mondayISO = getMondayISO();
       localStorage.setItem('activeWeekISO', mondayISO);
-
-// 3) Lagre uke-spesifikt budsjett for aktiv uke
       localStorage.setItem(`weeklyBudget_${mondayISO}`, String(budgetInt));
 
-// 4) Nullstill ukedata KUN første gang appen settes opp
-// Hvis setupComplete ikke er true enda, betyr det at dette er "første uke"-oppsett.
+      // 3) Nullstill ukedata KUN første gang appen settes opp
       if (localStorage.getItem('setupComplete') !== 'true') {
         ['purchases_', 'shoppingList_'].forEach(prefix => {
-      localStorage.removeItem(`${prefix}${mondayISO}`);
-      }); 
-      localStorage.removeItem('budget_total');
+          localStorage.removeItem(`${prefix}${mondayISO}`);
+        });
+        localStorage.removeItem('budget_total');
       }
 
-      // 4) DB-lagring (hvis tabellen finnes og RLS er satt)
+      // 4) DB-lagring (hvis innlogget)
       try {
         const { data: { session } } = await supa.auth.getSession();
-        if (session) {
-          let householdId = null;
+        if (!session) {
+          // Bruker ikke innlogget – hopp videre med kun lokal lagring
+          return;
+        }
 
+        let householdId = null;
+        try {
+          const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
+          if (!rpcError && rpcData) {
+            householdId = rpcData;
+          }
+        } catch (e) {
+          console.warn('RPC get_my_household_id feilet i onboarding2', e);
+        }
+
+        if (!householdId) {
           const { data: member, error: memberErr } = await supa
             .from('members')
             .select('household_id')
             .eq('user_id', session.user.id)
             .maybeSingle();
 
-          if (memberErr) {
-            console.error('Feil ved henting av household_id fra members i onboarding2:', memberErr);
-          } else if (member?.household_id) {
+          if (!memberErr && member?.household_id) {
             householdId = member.household_id;
-          }
-
-          if (!householdId) {
-            const { data: rpcHouseholdId, error: rpcError } = await supa.rpc('get_my_household_id');
-            if (rpcError) {
-              console.error('get_my_household_id feilet i onboarding2:', rpcError);
-            } else if (rpcHouseholdId) {
-              householdId = rpcHouseholdId;
-            }
-          }
-
-          if (!householdId) {
-            console.warn('Fant ikke household_id under onboarding2 - budsjett ble kun lagret lokalt.');
-          } else {
-            const { error: upsertError } = await supa
-              .from('household_budgets')
-              .upsert(
-                [{ household_id: householdId, week_start: mondayISO, amount: budgetInt }],
-                { onConflict: 'household_id,week_start' }
-              );
-
-            if (upsertError) {
-              console.error('Feil ved lagring av weekly budget:', upsertError);
-            } else {
-              const { error: updateError } = await supa
-                .from('households')
-                .update({ default_weekly_budget: budgetInt })
-                .eq('id', householdId);
-
-              if (updateError) {
-                console.error('Feil ved oppdatering av default_weekly_budget:', updateError);
-              }
-            }
+          } else if (memberErr) {
+            console.error('Feil ved henting av household_id fra members i onboarding2:', memberErr);
           }
         }
-      } catch (dbErr) {
-        console.error('Uventet feil under lagring av budsjett i onboarding2:', dbErr);
-      }
 
-      // 5) Videre i onboarding
+        if (householdId) {
+          const { error: upsertError } = await supa
+            .from('household_budgets')
+            .upsert(
+              [{ household_id: householdId, week_start: mondayISO, amount: budgetInt }],
+              { onConflict: 'household_id,week_start' }
+            );
+
+          if (upsertError) {
+            console.error('Feil ved upsert til household_budgets i onboarding2:', upsertError);
+          }
+
+          const { error: hhError } = await supa
+            .from('households')
+            .update({ default_weekly_budget: budgetInt })
+            .eq('id', householdId);
+
+          if (hhError) {
+            console.error('Feil ved oppdatering av households.default_weekly_budget:', hhError);
+          }
+        } else {
+          console.error('Fant ingen household_id i onboarding2 – budsjett ble kun lagret lokalt.');
+        }
+      } catch (dbErr) {
+        console.error('Uventet feil under Supabase-lagring i onboarding2:', dbErr);
+      }
+    } catch (err) {
+      console.error('Feil under lagring av budsjett i onboarding2:', err);
+    } finally {
+      button.style.transform = '';
+      button.classList.remove('loading');
       location.href = 'onboarding3.html';
-    }, 150);
+    }
   });
 
   document.getElementById('backButton').addEventListener('click', () => {
