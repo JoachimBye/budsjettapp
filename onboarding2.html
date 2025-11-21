@@ -336,47 +336,54 @@
         if (session) {
           let householdId = null;
 
-          // Forsøk RPC først (best for RLS-oppsettet)
-          if (typeof supa.rpc === 'function') {
-            try {
-              const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
-              if (!rpcError && rpcData) {
-                householdId = rpcData;
-              }
-            } catch (rpcErr) {
-              console.warn('get_my_household_id feilet i onboarding2 – faller tilbake til members', rpcErr);
+          const { data: member, error: memberErr } = await supa
+            .from('members')
+            .select('household_id')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+
+          if (memberErr) {
+            console.error('Feil ved henting av household_id fra members i onboarding2:', memberErr);
+          } else if (member?.household_id) {
+            householdId = member.household_id;
+          }
+
+          if (!householdId) {
+            const { data: rpcHouseholdId, error: rpcError } = await supa.rpc('get_my_household_id');
+            if (rpcError) {
+              console.error('get_my_household_id feilet i onboarding2:', rpcError);
+            } else if (rpcHouseholdId) {
+              householdId = rpcHouseholdId;
             }
           }
 
           if (!householdId) {
-            const { data: member, error: memberErr } = await supa
-              .from('members')
-              .select('household_id')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-
-            if (!memberErr && member?.household_id) {
-              householdId = member.household_id;
-            }
-          }
-
-          if (householdId) {
-            await supa
+            console.warn('Fant ikke household_id under onboarding2 - budsjett ble kun lagret lokalt.');
+          } else {
+            const { error: upsertError } = await supa
               .from('household_budgets')
               .upsert(
                 [{ household_id: householdId, week_start: mondayISO, amount: budgetInt }],
                 { onConflict: 'household_id,week_start' }
               );
 
-            await supa
-              .from('households')
-              .update({ default_weekly_budget: budgetInt })
-              .eq('id', householdId);
-          } else {
-            console.warn('Fant ikke household_id under onboarding2, hopper over DB-lagring.');
+            if (upsertError) {
+              console.error('Feil ved lagring av weekly budget:', upsertError);
+            } else {
+              const { error: updateError } = await supa
+                .from('households')
+                .update({ default_weekly_budget: budgetInt })
+                .eq('id', householdId);
+
+              if (updateError) {
+                console.error('Feil ved oppdatering av default_weekly_budget:', updateError);
+              }
+            }
           }
         }
-      } catch (_) { /* ignorer DB-feil, localStorage holder */ }
+      } catch (dbErr) {
+        console.error('Uventet feil under lagring av budsjett i onboarding2:', dbErr);
+      }
 
       // 5) Videre i onboarding
       location.href = 'onboarding3.html';

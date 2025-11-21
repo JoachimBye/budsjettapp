@@ -272,8 +272,8 @@
     </form>
 
     <div class="login-link" id="login-link-row">
-      Har du allerede konto?
-      <a href="#login" id="loginAnchor">Logg inn</a>
+      <span id="loginLinkPrefix">Har du ikke konto?</span>
+      <a href="/index.html" id="loginAnchor" data-action="landing">Bli med i betaen</a>
     </div>
   </div>
 
@@ -361,11 +361,15 @@
 
     const state = {
       mode: 'register',   // 'register' | 'login'
-      step: 'email',      // 'email' | 'otp'
+      step: 'email',      // 'email' | 'otp' | 'magic-link'
       isLoading: false,
       lastEmail: null,
       error: null
     };
+    let inviteCodeFromUrl = null;
+
+    const hasPendingInvite = () => Boolean(localStorage.getItem('pending_invite'));
+    const isInviteFlow = () => state.mode === 'register' || hasPendingInvite() || Boolean(inviteCodeFromUrl);
 
     const ui = {
       elements: {
@@ -388,7 +392,8 @@
         successText: qs('#successText'),
         errorHint: qs('#errorHint'),
         loginLinkRow: qs('#login-link-row'),
-        loginAnchor: qs('#loginAnchor')
+        loginAnchor: qs('#loginAnchor'),
+        loginLinkPrefix: qs('#loginLinkPrefix')
       },
 
       render() {
@@ -401,6 +406,7 @@
         } = state;
 
         const el = this.elements;
+        const inviteFlow = isInviteFlow();
 
         // Feilmelding
         if (el.errorHint) {
@@ -414,13 +420,13 @@
           if (isLoading) {
             el.buttonText.textContent =
               step === 'email'
-                ? (mode === 'register' ? 'Sender kode...' : 'Sender kode...')
-                : (mode === 'register' ? 'Fullfører...' : 'Logger inn...');
+                ? (inviteFlow ? 'Sender magisk lenke...' : 'Sender kode...')
+                : (inviteFlow ? 'Sender magisk lenke...' : 'Logger inn...');
           } else {
             el.buttonText.textContent =
               step === 'email'
-                ? (mode === 'register' ? 'Bli med i betaen' : 'Send kode')
-                : (mode === 'register' ? 'Fullfør' : 'Logg inn');
+                ? (inviteFlow ? 'Send magisk lenke' : (mode === 'register' ? 'Bli med i betaen' : 'Send kode'))
+                : (inviteFlow ? 'Send magisk lenke på nytt' : (mode === 'register' ? 'Fullfør' : 'Logg inn'));
           }
         }
 
@@ -428,37 +434,52 @@
         if (el.emailGroup) {
           el.emailGroup.style.display = (step === 'email') ? 'block' : 'none';
         }
- if (el.inviteGroup) {
-  const showInvite = (step === 'email' && mode === 'register');
-  el.inviteGroup.style.display = showInvite ? 'block' : 'none';
+        if (el.inviteGroup) {
+          const showInvite = (step === 'email' && mode === 'register');
+          el.inviteGroup.style.display = showInvite ? 'block' : 'none';
 
-  if (el.inviteInput) {
-    if (showInvite) {
-      el.inviteInput.setAttribute('required', 'required');
-    } else {
-      el.inviteInput.removeAttribute('required');
-    }
-  }
-}
-        if (el.otpGroup) {
-          el.otpGroup.style.display = (step === 'otp') ? 'block' : 'none';
+          if (el.inviteInput) {
+            if (showInvite) {
+              el.inviteInput.setAttribute('required', 'required');
+            } else {
+              el.inviteInput.removeAttribute('required');
+            }
+          }
         }
-        if (el.loginLinkRow) {
-          el.loginLinkRow.style.display = (step === 'email') ? 'block' : 'none';
+        if (el.otpGroup) {
+          const showOtp = (step === 'otp' && !inviteFlow);
+          el.otpGroup.style.display = showOtp ? 'block' : 'none';
+        }
+        if (el.loginLinkRow && el.loginAnchor && el.loginLinkPrefix) {
+          if (step !== 'email') {
+            el.loginLinkRow.style.display = 'none';
+          } else if (mode === 'login') {
+            el.loginLinkRow.style.display = 'block';
+            el.loginLinkPrefix.textContent = 'Har du ikke konto?';
+            el.loginAnchor.textContent = 'Bli med i betaen';
+            el.loginAnchor.href = '/index.html';
+            el.loginAnchor.dataset.action = 'landing';
+          } else {
+            el.loginLinkRow.style.display = 'block';
+            el.loginLinkPrefix.textContent = 'Har du allerede konto?';
+            el.loginAnchor.textContent = 'Logg inn med kode';
+            el.loginAnchor.href = '#login';
+            el.loginAnchor.dataset.action = 'login';
+          }
         }
 
         // Tittel + undertekst
         if (step === 'email') {
           if (el.title) {
             el.title.textContent =
-              mode === 'register'
+              inviteFlow
                 ? 'Bli med i familie betaen'
                 : 'Logg inn';
           }
           if (el.subtitle) {
             el.subtitle.textContent =
-              mode === 'register'
-                ? 'Du er invitert til å teste vår nye budsjett app før alle andre.'
+              inviteFlow
+                ? 'Vi sender deg en magisk lenke på e-post. Klikk på den for å komme i gang.'
                 : 'Skriv e-posten din, så sender vi en 6-sifret kode.';
           }
           if (el.emailInput) {
@@ -474,7 +495,7 @@
           if (el.successBox) {
             el.successBox.classList.remove('show');
           }
-        } else {
+        } else if (step === 'otp') {
           // OTP-steg
           if (el.title) el.title.textContent = 'Sjekk e-posten din';
           if (el.subtitle) {
@@ -490,6 +511,19 @@
           if (el.successText && lastEmail) {
             el.successText.textContent =
               `Vi har sendt en kode til ${lastEmail}. Skriv den inn for å fullføre.`;
+          }
+        } else {
+          if (el.title) el.title.textContent = 'Sjekk e-posten din';
+          if (el.subtitle) {
+            el.subtitle.textContent =
+              lastEmail
+                ? `Vi har sendt en magisk lenke til ${lastEmail}. Klikk på lenken for å fortsette.`
+                : 'Vi har sendt deg en magisk lenke. Åpne den for å fortsette.';
+          }
+          if (el.successBox) el.successBox.classList.add('show');
+          if (el.successText && lastEmail) {
+            el.successText.textContent =
+              `Vi har sendt en magisk lenke til ${lastEmail}. Klikk på lenken for å fortsette.`;
           }
         }
 
@@ -540,25 +574,38 @@
           localStorage.setItem('pending_invite', inviteCode);
         }
 
-        const { error } = await supa.auth.signInWithOtp({
-          email,
-          options: {
-            emailRedirectTo: location.origin + '/index.html'
-          }
-        });
-        if (error) throw error;
+        const inviteFlow = isInviteFlow();
+        let otpError = null;
+
+        if (inviteFlow) {
+          const { error } = await supa.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: `${location.origin}/index.html`
+            }
+          });
+          otpError = error;
+        } else {
+          const { error } = await supa.auth.signInWithOtp({ email });
+          otpError = error;
+        }
+
+        if (otpError) {
+          console.error('signInWithOtp feilet:', otpError);
+          throw otpError;
+        }
 
         setState({
-          step: 'otp',
+          step: inviteFlow ? 'magic-link' : 'otp',
           lastEmail: email,
           isLoading: false,
           error: null
         });
       } catch (err) {
-        console.error(err);
+        console.error('Feil under signInWithOtp-håndtering:', err);
         setState({
           isLoading: false,
-          error: err.message || 'Kunne ikke sende engangskode. Prøv igjen.'
+          error: err.message || (isInviteFlow() ? 'Kunne ikke sende magisk lenke. Prøv igjen.' : 'Kunne ikke sende engangskode. Prøv igjen.')
         });
       }
     }
@@ -601,10 +648,10 @@
 
     function onFormSubmit(e) {
       e.preventDefault();
-      if (state.step === 'email') {
-        handleEmailSubmit();
-      } else {
+      if (state.step === 'otp') {
         handleOtpSubmit();
+      } else {
+        handleEmailSubmit();
       }
     }
 
@@ -626,6 +673,13 @@
       }
     }
 
+    function handleLoginLinkClick(e) {
+      const action = e.currentTarget?.dataset?.action;
+      if (action === 'login') {
+        switchToLoginMode(e);
+      }
+    }
+
     // ===== Init / bootstrap ==================================================
     document.addEventListener('DOMContentLoaded', async () => {
       // Auth-guard – kan sende oss til /app.html hvis vi allerede er logget inn
@@ -637,6 +691,7 @@
       // URL ?code=... -> forhåndsfyll invitasjonskode
       const url = new URL(location.href);
       const codeFromUrl = url.searchParams.get('code');
+      inviteCodeFromUrl = codeFromUrl;
       if (codeFromUrl && ui.elements.inviteInput) {
         ui.elements.inviteInput.value = codeFromUrl;
       }
@@ -654,9 +709,9 @@
         ui.elements.form.addEventListener('submit', onFormSubmit);
       }
 
-      // "Har du allerede konto? Logg inn"
+      // Nederste lenke (enten tilbake til landing eller til login-modus)
       if (ui.elements.loginAnchor) {
-        ui.elements.loginAnchor.addEventListener('click', switchToLoginMode);
+        ui.elements.loginAnchor.addEventListener('click', handleLoginLinkClick);
       }
     });
   </script>
