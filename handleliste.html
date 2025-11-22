@@ -269,13 +269,20 @@
       align-items: center;
       gap: 10px;
       border: 1px solid rgba(76,175,80,0.15);
-      transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+      transition: transform 0.2s ease, background 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
     }
     .item-card.checked {
-      background: #eeeeee;
-      opacity: 0.85;
+      background: #e8f5e9;
+      opacity: 0.92;
       text-decoration-line: line-through;
-      text-decoration-color: #9e9e9e;
+      text-decoration-color: #7aa187;
+      transform: scale(0.98);
+      animation: checkShake 0.25s ease-out;
+    }
+    @keyframes checkShake {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(0.97); }
+      100% { transform: scale(0.98); }
     }
     .item-checkbox {
       width: 22px;
@@ -575,7 +582,7 @@
     <section class="section" id="shoppingSection">
       <h2 class="section-title">Handleliste</h2>
       <p class="section-subtitle" id="shoppingEmptyText">
-        Handlelisten er tom. Start med å legge til en middag eller en fast vare.
+        Handlelisten er tom akkurat nå. Legg til det dere trenger før dere drar på butikken 🛒
       </p>
       <div id="categoriesContainer"></div>
 

@@ -860,6 +860,16 @@ function shouldStartCoachTour() {
 
       state.currentSpent += amountInt;
 
+      const successMessages = [
+        'Kjøpet er i boks! ✅',
+        'Registrert! 💸',
+        'Ka-ching! Lagret. 🧾',
+        'Nice! Budsjettet er oppdatert. 📊'
+      ];
+      const msg = successMessages[Math.floor(Math.random() * successMessages.length)];
+      showToast(msg, 'success');
+      const successTextEl = document.getElementById('successText');
+      if (successTextEl) successTextEl.textContent = msg;
       showSuccessMessage();
 
     } catch (err) {

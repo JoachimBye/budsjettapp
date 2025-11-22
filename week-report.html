@@ -9,6 +9,7 @@
   <script src="/js/services/budget-service.js"></script>
   <script src="/js/ui/toast.js"></script>
   <script src="/js/ui/coach.js"></script>
+  <script src="/js/ui/animate.js"></script>
   <style>
     body {
       box-sizing: border-box;
@@ -612,6 +613,7 @@
   };
   let isReportLoading = false;
   let reportLoadError = null;
+  let lastOverview = { budget: 0, spent: 0, diff: 0, pct: 0 };
 
   // ---------- Utils ----------
   function formatAmount(n) {
@@ -775,29 +777,57 @@
       return;
     }
 
-    budgetEl.textContent = `${formatAmount(budget)} kr`;
-    spentEl.textContent = `${formatAmount(spent)} kr`;
+    const prevBudget = lastOverview.budget || 0;
+    const prevSpent = lastOverview.spent || 0;
+    const prevDiff = lastOverview.diff || 0;
+    const prevPct = lastOverview.pct || 0;
+    const pctForText = Math.min(pct, 200);
+    const diffDisplay = spent === 0
+      ? budget
+      : (spent <= budget ? saved : overAmount);
 
+    if (window.uiAnimate?.animateValue) {
+      window.uiAnimate.animateValue(budgetEl, prevBudget, budget, 700, (v) => `${formatAmount(v)} kr`);
+      window.uiAnimate.animateValue(spentEl, prevSpent, spent, 700, (v) => `${formatAmount(v)} kr`);
+    } else {
+      budgetEl.textContent = `${formatAmount(budget)} kr`;
+      spentEl.textContent = `${formatAmount(spent)} kr`;
+    }
     diffValueEl.classList.remove('positive', 'negative');
     if (spent === 0) {
       diffLabelEl.textContent = 'Igjen';
-      diffValueEl.textContent = `${formatAmount(budget)} kr`;
       diffValueEl.classList.add('positive');
     } else if (spent <= budget) {
       diffLabelEl.textContent = 'Igjen';
-      diffValueEl.textContent = `${formatAmount(saved)} kr`;
       diffValueEl.classList.add('positive');
     } else {
       diffLabelEl.textContent = 'Over';
-      diffValueEl.textContent = `${formatAmount(overAmount)} kr`;
       diffValueEl.classList.add('negative');
+    }
+    if (window.uiAnimate?.animateValue) {
+      window.uiAnimate.animateValue(diffValueEl, prevDiff, diffDisplay, 700, (v) => `${formatAmount(v)} kr`);
+    } else {
+      diffValueEl.textContent = `${formatAmount(diffDisplay)} kr`;
     }
 
     thermoFill.classList.remove('yellow', 'red');
     const width = Math.max(0, Math.min(100, pct));
     thermoFill.style.width = `${width}%`;
-    thermoText.textContent =
-      budget > 0 ? `Brukt ${Math.min(pct, 200)} % av budsjettet` : 'Sett et budsjett i Innstillinger';
+    if (budget > 0) {
+      if (window.uiAnimate?.animateValue) {
+        window.uiAnimate.animateValue(
+          thermoText,
+          prevPct,
+          pctForText,
+          700,
+          (v) => `Brukt ${Math.min(v, 200)} % av budsjettet`
+        );
+      } else {
+        thermoText.textContent = `Brukt ${pctForText} % av budsjettet`;
+      }
+    } else {
+      thermoText.textContent = 'Sett et budsjett i Innstillinger';
+    }
     if (spent !== 0) {
       if (pct > 110) {
         thermoFill.classList.add('red');
@@ -833,6 +863,13 @@
       statusTitle.textContent = 'Viser lagrede tall';
       statusSubtitle.textContent = reportLoadError;
     }
+
+    lastOverview = {
+      budget,
+      spent,
+      diff: diffDisplay,
+      pct: pctForText,
+    };
   }
 
   // ---------- Render: kategorier ----------
@@ -856,7 +893,7 @@
       info.className = reportLoadError ? 'error-text' : 'loading-text';
       info.textContent = reportLoadError
         ? reportLoadError
-        : 'Ingen registrerte kjøp denne uken ennå.';
+        : 'Ingen registrerte kjøp denne uken. Enten har dere vært supersparsommelige – eller så har dere glemt å registrere 😅';
       grid.appendChild(info);
       return;
     }

@@ -22,6 +22,7 @@
   <script src="/js/services/budget-service.js"></script>
   <script src="/js/ui/toast.js"></script>
   <script src="/js/ui/coach.js"></script>
+  <script src="/js/ui/animate.js"></script>
 
   <style>
     body{
@@ -116,6 +117,28 @@
       text-align:center;
       z-index:10;
       max-width:80%;
+    }
+    .progress-ring{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      transform:rotate(-90deg);
+    }
+    .progress-ring circle{
+      fill:none;
+      stroke-width:14;
+    }
+    .progress-ring .progress-ring-bg{
+      stroke:rgba(255,255,255,0.8);
+    }
+    .progress-ring .progress-ring-progress{
+      stroke:var(--ring-color,#4caf50);
+      stroke-linecap:round;
+      stroke-dasharray:0 999;
+      stroke-dashoffset:0;
+      transition:stroke 0.2s ease;
+      filter:drop-shadow(0 4px 10px rgba(76,175,80,0.25));
     }
 
 
@@ -344,6 +367,10 @@
       <div class="budget-circle">
         <div class="circle-bg">
           <div class="circle-progress" id="circleProgress"></div>
+          <svg class="progress-ring" viewBox="0 0 160 160" aria-hidden="true">
+            <circle class="progress-ring-bg" cx="80" cy="80" r="70"></circle>
+            <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70"></circle>
+          </svg>
         </div>
         <div class="circle-content">
           <div class="remaining-amount" id="remainingAmount">0kr</div>
@@ -352,6 +379,7 @@
         </div>
       </div>
     </div>
+    <div id="paceIndicator" class="text-sm text-gray-600 mt-2"></div>
 
     <!-- Primær handling -->
     <button class="primary-cta" id="addPurchaseBtn">
@@ -381,6 +409,13 @@
     <div class="status-bar">
       <p class="status-message" id="statusMessage">Bra kontroll så langt 💪</p>
     </div>
+
+    <section class="mt-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-2">Siste kjøp</h2>
+      <div id="recentActivity" class="space-y-1 text-sm text-gray-700">
+        <!-- fylles av JS -->
+      </div>
+    </section>
   </main>
 
   <!-- Coach overlay: forklarer alt på siden -->
@@ -434,10 +469,13 @@
     activeWeekISO: '',
     budget: 0,
     spent: 0,
-    remaining: 0
+    remaining: 0,
+    lastSpent: 0,
+    lastRemaining: 0
   };
   let isSummaryLoading = false;
   let summaryLoadError = null;
+  let cachedHouseholdId = null;
   const dateUtils = window.dateUtils || {};
   const budgetService = window.budgetService || null;
   const budgetUtils = window.budgetUtils || {};
@@ -498,6 +536,14 @@
 
   // ---------- Local fallback for budsjett/kjøp --------------------------
   function formatAmount(n){ return (Number(n)||0).toLocaleString('no-NO'); }
+  function escapeHTML(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   function readJSON(key, fallback) {
     try {
@@ -557,6 +603,103 @@
     }
   }
 
+  async function resolveHouseholdId() {
+    if (cachedHouseholdId) return cachedHouseholdId;
+    try {
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) return null;
+
+      if (typeof supa.rpc === 'function') {
+        const { data: rpcId, error: rpcErr } = await supa.rpc('get_my_household_id');
+        if (!rpcErr && rpcId) {
+          cachedHouseholdId = rpcId;
+          return rpcId;
+        }
+      }
+
+      const { data: member, error: memErr } = await supa
+        .from('members')
+        .select('household_id')
+        .eq('user_id', session.user.id)
+        .maybeSingle();
+
+      if (memErr) {
+        console.warn('Kunne ikke hente household_id', memErr);
+        return null;
+      }
+
+      if (member?.household_id) {
+        cachedHouseholdId = member.household_id;
+        return member.household_id;
+      }
+    } catch (err) {
+      console.warn('resolveHouseholdId feilet', err);
+    }
+    return null;
+  }
+
+  async function loadRecentActivity() {
+    const activityContainer = document.getElementById('recentActivity');
+    if (!activityContainer) return;
+    const weekISO = state.activeWeekISO || resolveActiveWeekISO();
+    activityContainer.innerHTML = '<div class="text-sm text-gray-500">Henter siste kjøp…</div>';
+
+    let rows = [];
+    const householdId = await resolveHouseholdId();
+    if (householdId) {
+      try {
+        const { data, error } = await supa
+          .from('purchases')
+          .select('*')
+          .eq('household_id', householdId)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (!error && Array.isArray(data)) {
+          rows = data;
+        } else if (error) {
+          console.warn('Kunne ikke hente siste kjøp', error);
+        }
+      } catch (err) {
+        console.warn('loadRecentActivity feilet', err);
+      }
+    }
+
+    if (!rows || rows.length === 0) {
+      const localPurchases = readJSON(`purchases_${weekISO}`, []);
+      if (Array.isArray(localPurchases) && localPurchases.length > 0) {
+        rows = localPurchases.slice(-3).reverse();
+      }
+    }
+
+    if (!rows || rows.length === 0) {
+      activityContainer.innerHTML = '<div class="text-sm text-gray-500">Ingen registrerte kjøp ennå denne uka.</div>';
+      return;
+    }
+
+    activityContainer.innerHTML = rows.map((p) => {
+      const amountText = `${formatAmount(p.amount || p.sum || 0)} kr`;
+      const whenRaw = p.purchased_at || p.date || p.created_at || p.week_start;
+      let dateText = '';
+      if (whenRaw) {
+        try {
+          dateText = dateUtils.formatShortDate
+            ? dateUtils.formatShortDate(whenRaw)
+            : new Date(whenRaw).toLocaleDateString('no-NO');
+        } catch {
+          dateText = '';
+        }
+      }
+      const store = p.store || 'Butikk';
+      return `
+        <div class="flex justify-between text-sm text-gray-700 py-1">
+          <span>${escapeHTML(store)}</span>
+          <span>${amountText}${dateText ? ` · ${escapeHTML(dateText)}` : ''}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
   // ---------- Oppdater UI ----------------------------------------------
 function updateBudgetDisplay() {
   const remainingElement = document.getElementById('remainingAmount');
@@ -565,6 +708,14 @@ function updateBudgetDisplay() {
   const circleProgress   = document.getElementById('circleProgress');
   const statusMsg        = document.getElementById('statusMessage');
   const mealBtn          = document.getElementById('mealPlanBtn');
+  const paceEl           = document.getElementById('paceIndicator');
+  const progressRing     = document.getElementById('budgetProgressRing');
+
+  const ringRadius = progressRing?.r?.baseVal?.value || 70;
+  const circumference = 2 * Math.PI * ringRadius;
+  if (progressRing) {
+    progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
+  }
 
   if (isSummaryLoading) {
     if (remainingElement) {
@@ -582,8 +733,16 @@ function updateBudgetDisplay() {
       circleProgress.style.setProperty('--ring-color', '#d1d5db');
       circleProgress.style.setProperty('--ring-deg', '0deg');
     }
+    if (progressRing) {
+      progressRing.style.stroke = '#d1d5db';
+      progressRing.style.strokeDashoffset = circumference;
+      progressRing.dataset.lastOffset = `${circumference}`;
+    }
     if (statusMsg) {
       statusMsg.textContent = 'Henter ukedata…';
+    }
+    if (paceEl) {
+      paceEl.textContent = '';
     }
     return;
   }
@@ -592,35 +751,51 @@ function updateBudgetDisplay() {
   const spent = state.spent;
   const remainingRaw = total > 0 ? (total - spent) : 0;
   state.remaining = remainingRaw;
+  const formatKr = (v) => `${formatAmount(Math.max(0, v))} kr`;
+  const prevSpent = state.lastSpent ?? 0;
+  const prevRemaining = state.lastRemaining ?? 0;
+  const remainingDisplay = remainingRaw < 0 ? Math.abs(remainingRaw) : remainingRaw;
+  const prevRemainingDisplay = prevRemaining < 0 ? Math.abs(prevRemaining) : Math.max(prevRemaining, 0);
+  state.lastSpent = spent;
+  state.lastRemaining = remainingRaw;
 
   // Oppdater "Brukt X av Y"
   if (spentSummaryEl) {
-    spentSummaryEl.textContent = `Brukt ${formatAmount(spent)} kr av ${formatAmount(total)} kr`;
+    const summaryFormatter = (v) => `Brukt ${formatAmount(v)} kr av ${formatAmount(total)} kr`;
+    if (window.uiAnimate?.animateValue) {
+      window.uiAnimate.animateValue(spentSummaryEl, prevSpent, spent, 800, summaryFormatter);
+    } else {
+      spentSummaryEl.textContent = summaryFormatter(spent);
+    }
   }
 
   // Reset tekstfarger til "normal" hver gang
-  remainingElement.style.color = '#2d5f4d';
-  remainingText.style.color    = '#2d5f4d';
-  remainingElement.classList.remove('warn','over');
-  remainingText.classList.remove('warn','over');
+  if (remainingElement) {
+    remainingElement.style.color = '#2d5f4d';
+    remainingElement.classList.remove('warn','over');
+  }
+  if (remainingText) {
+    remainingText.style.color    = '#2d5f4d';
+    remainingText.classList.remove('warn','over');
+  }
 
   let color  = '#4caf50';   // ring-farge
   let ringDeg = 0;
   let status = 'Bra kontroll så langt 💪';
+  const pct = total > 0 ? Math.min((spent / total) * 100, 150) : 0;
+  const ratio = total > 0 ? (spent / total) : 0;
 
   if (total > 0) {
-    const ratio = spent / total;
-    ringDeg = Math.min(360, Math.max(0, ratio * 360));
+    ringDeg = Math.min(360, Math.max(0, pct * 3.6));
 
     if (ratio >= 1.0) {
       // OVER budsjett – full rød ring, hvit tekst for maks kontrast
       color = '#d32f2f';
       ringDeg = 360;
 
-      remainingElement.classList.add('over');
-      remainingText.classList.add('over');
-      remainingElement.textContent = `${formatAmount(Math.abs(remainingRaw))} kr`;
-      remainingText.textContent    = 'overskredet';
+      remainingElement?.classList.add('over');
+      remainingText?.classList.add('over');
+      if (remainingText) remainingText.textContent = 'overskredet';
 
       status = 'Over budsjett – kutt kostnader 💸';
 
@@ -628,33 +803,60 @@ function updateBudgetDisplay() {
       // NÆR budsjett – gul ring, mørk gul/brun tekst
       color = '#f9a825';
 
-      remainingElement.classList.add('warn');
-      remainingText.classList.add('warn');
-      remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-      remainingText.textContent    = 'igjen denne uka';
+      remainingElement?.classList.add('warn');
+      remainingText?.classList.add('warn');
+      if (remainingText) remainingText.textContent = 'igjen denne uka';
 
       status = 'Nær budsjett – vurder billigere valg ⚠️';
 
     } else {
       // God kontroll – grønn ring, mørk tekst
       color = '#4caf50';
-      remainingElement.textContent = `${formatAmount(remainingRaw)} kr`;
-      remainingText.textContent    = 'igjen denne uka';
+      if (remainingText) remainingText.textContent = 'igjen denne uka';
       status = 'Bra kontroll så langt 💪';
     }
   } else {
     // Ikke satt budsjett
     color = '#4caf50';
     ringDeg = 0;
-    remainingElement.style.color = '#2d5f4d';
-    remainingText.style.color    = '#5a7a6d';
-    remainingElement.textContent = `0 kr`;
-    remainingText.textContent    = 'sett ukesbudsjett i innstillinger';
+    if (remainingElement) remainingElement.style.color = '#2d5f4d';
+    if (remainingText) {
+      remainingText.style.color    = '#5a7a6d';
+      remainingText.textContent    = 'sett ukesbudsjett i innstillinger';
+    }
     status = 'Sett et ukesbudsjett for å komme i gang 🙂';
   }
 
-  circleProgress.style.setProperty('--ring-color', color);
-  circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
+  if (remainingElement) {
+    if (window.uiAnimate?.animateValue) {
+      window.uiAnimate.animateValue(
+        remainingElement,
+        prevRemainingDisplay,
+        remainingDisplay,
+        800,
+        (v) => `${formatAmount(v)} kr`
+      );
+    } else {
+      remainingElement.textContent = formatKr(remainingDisplay);
+    }
+  }
+
+  if (circleProgress) {
+    circleProgress.style.setProperty('--ring-color', color);
+    circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
+  }
+
+  if (progressRing) {
+    const offsetTo = circumference * (1 - Math.min(pct, 100) / 100);
+    const offsetFrom = Number(progressRing.dataset.lastOffset) || circumference;
+    progressRing.dataset.lastOffset = `${offsetTo}`;
+    progressRing.style.stroke = color;
+    if (window.uiAnimate?.animateStrokeDashoffset) {
+      window.uiAnimate.animateStrokeDashoffset(progressRing, offsetFrom, offsetTo, 1000);
+    } else {
+      progressRing.style.strokeDashoffset = offsetTo;
+    }
+  }
 
   if (mealBtn) {
     mealBtn.textContent = (state.remaining < 0)
@@ -666,6 +868,26 @@ function updateBudgetDisplay() {
     statusMsg.textContent = summaryLoadError;
   } else {
     statusMsg.textContent = status;
+  }
+
+  if (paceEl) {
+    if (total > 0) {
+      const today = new Date();
+      const dayIndex = (today.getDay() + 6) % 7; // 0 = mandag
+      const weekProgress = (dayIndex + 1) / 7;
+      const budgetRatio = spent / total;
+
+      let text = '👍 Dere følger budsjettet ganske bra.';
+      if (budgetRatio > weekProgress + 0.15) {
+        text = '🔥 Forbruket er litt høyt for denne ukedagen – ta en rolig dag?';
+      } else if (budgetRatio < weekProgress - 0.1) {
+        text = '🐢 Dere ligger godt an denne uka – super kontroll!';
+      }
+
+      paceEl.textContent = text;
+    } else {
+      paceEl.textContent = '';
+    }
   }
 
   // Liten “pulse” når tallene oppdateres
@@ -907,6 +1129,7 @@ function updateBudgetDisplay() {
     await loadWeekData();
     setWeekHeader();
     updateBudgetDisplay();
+    await loadRecentActivity();
 
     // Element SDK init
     if (window.elementSdk) {
@@ -936,6 +1159,7 @@ function updateBudgetDisplay() {
       await loadWeekData();
       setWeekHeader();
       updateBudgetDisplay();
+      await loadRecentActivity();
     }
   });
 </script>
