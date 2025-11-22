@@ -866,7 +866,7 @@ function shouldStartCoachTour() {
         : dateISO;
       localStorage.setItem('activeWeekISO', weekISO);
 
-      const { error: insErr } = await supa
+      const { data: newPurchase, error: insErr } = await supa
         .from('purchases')
         .insert({
           household_id: householdId,
@@ -876,11 +876,16 @@ function shouldStartCoachTour() {
           store:        store,
           description:  '',
           category:     category
-        });
+        })
+        .select('id')
+        .single();
 
       if (insErr) {
         console.error('Insert feil mot purchases:', insErr);
         throw new Error('Lagring feilet i databasen.');
+      }
+      if (!newPurchase?.id) {
+        console.warn('Supabase returnerte ingen id for nytt kjøp');
       }
 
       rememberLastCategory(store, category);
@@ -888,10 +893,16 @@ function shouldStartCoachTour() {
       try {
         const localKey = `purchases_${weekISO}`;
         const list = JSON.parse(localStorage.getItem(localKey) || '[]');
-        list.push({ amount: amountInt, store, date: dateISO, category });
+        list.push({
+          id: newPurchase?.id,
+          amount: amountInt,
+          store,
+          date: dateISO,
+          category
+        });
         localStorage.setItem(localKey, JSON.stringify(list));
       } catch (e) {
-        console.warn('Klarte ikke oppdatere lokal purchases-cache:', e);
+        console.warn('Klarte ikke oppdatere localStorage for purchases', e);
       }
 
       state.currentSpent += amountInt;

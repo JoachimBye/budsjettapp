@@ -138,7 +138,7 @@
     supa,
     householdId,
     weekISO,
-    selectColumns = 'amount, category'
+    selectColumns = 'id, amount, category, store, purchased_at'
   ) => {
     const normalizedWeek = ensureWeekISO(weekISO);
     if (!supa || !householdId) {
@@ -251,7 +251,7 @@
                 supa,
                 householdId,
                 activeISO,
-                options.selectPurchases || 'amount, category'
+                options.selectPurchases || 'id, amount, category, store, purchased_at'
               );
               if (Array.isArray(remotePurchases) && remotePurchases.length) {
                 purchases = remotePurchases;
