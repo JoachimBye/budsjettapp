@@ -748,12 +748,26 @@
       return;
     }
 
+    const weekISO = state.activeWeekISO || resolveActiveWeekISO();
+    if (budgetService?.removePurchaseFromLocalCache) {
+      try {
+        budgetService.removePurchaseFromLocalCache(purchaseId, weekISO);
+      } catch (err) {
+        console.warn('Klarte ikke fjerne kjøp fra lokal cache', err);
+      }
+    } else {
+      console.warn('removePurchaseFromLocalCache mangler på budgetService');
+    }
+
     try {
       if (typeof loadWeekData === 'function') {
         await loadWeekData();
       }
       if (typeof loadRecentActivity === 'function') {
         await loadRecentActivity();
+      }
+      if (typeof updateBudgetDisplay === 'function') {
+        updateBudgetDisplay();
       }
     } catch (e) {
       console.warn('Feil ved reloading etter sletting', e);

@@ -1111,6 +1111,32 @@
       return;
     }
 
+    const weekISO = state.weekISO || resolveActiveWeekISO();
+    if (budgetService?.removePurchaseFromLocalCache) {
+      try {
+        budgetService.removePurchaseFromLocalCache(purchaseId, weekISO);
+      } catch (err) {
+        console.warn('Klarte ikke fjerne kjøp fra lokal cache', err);
+      }
+    } else {
+      console.warn('removePurchaseFromLocalCache mangler på budgetService');
+    }
+
+    if (Array.isArray(state.purchases)) {
+      state.purchases = state.purchases.filter((p) => String(p?.id) !== String(purchaseId));
+      const recalculatedSpent = budgetUtils.safeSumPurchases
+        ? budgetUtils.safeSumPurchases(state.purchases)
+        : state.purchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+      state.spent = recalculatedSpent;
+      state.saved = Math.max(0, state.totalBudget - recalculatedSpent);
+      state.pct = state.totalBudget > 0 ? Math.round((recalculatedSpent / state.totalBudget) * 100) : 0;
+    }
+
+    renderOverview();
+    renderCategories();
+    renderPurchases();
+    renderInsights();
+
     try {
       await loadWeekData();
       renderHeader();

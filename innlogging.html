@@ -501,8 +501,8 @@
           if (el.subtitle) {
             el.subtitle.textContent =
               lastEmail
-                ? `Vi har sendt en 6-sifret kode til ${lastEmail}.`
-                : 'Vi har sendt deg en 6-sifret kode.';
+                ? `Skriv inn koden fra e-posten til ${lastEmail}.`
+                : 'Skriv inn koden fra e-posten nedenfor.';
           }
           if (el.otpInput) {
             if (!isLoading) el.otpInput.focus();

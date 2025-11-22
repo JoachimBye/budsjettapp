@@ -86,9 +86,15 @@
         return;
       }
       currentStep = index;
-      const step = steps[currentStep];
-      const target = document.querySelector(step.selector);
+      const step = steps[currentStep] || {};
+      let target = null;
+      try {
+        target = step.selector ? document.querySelector(step.selector) : null;
+      } catch (err) {
+        console.warn('coach: ugyldig selector i steg', step, err);
+      }
       if (!target) {
+        console.warn('coach: fant ikke element for steg', step?.id || currentStep, step?.selector);
         goToStep(currentStep + 1);
         return;
       }
@@ -101,8 +107,19 @@
         nextBtn.textContent = currentStep === steps.length - 1 ? 'Ferdig' : 'Neste';
       }
 
+      const hadHiddenOverflow = document.body.style.overflow === 'hidden';
+      if (hadHiddenOverflow) {
+        document.body.style.overflow = previousOverflow || '';
+      }
+
       target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      setTimeout(() => positionFor(target), 300);
+      setTimeout(() => {
+        if (!active) return;
+        positionFor(target);
+        if (hadHiddenOverflow) {
+          document.body.style.overflow = 'hidden';
+        }
+      }, 350);
     }
 
     function start(startIndex = 0) {

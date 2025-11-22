@@ -164,6 +164,18 @@
     }
   };
 
+  function removePurchaseFromLocalCache(purchaseId, weekISO) {
+    if (!purchaseId) return;
+    const normalizedWeek = ensureWeekISO(weekISO);
+    try {
+      const list = readLocalPurchases(normalizedWeek);
+      const filtered = list.filter((item) => String(item?.id) !== String(purchaseId));
+      persistPurchases(normalizedWeek, filtered);
+    } catch (err) {
+      console.warn('removePurchaseFromLocalCache feilet', err);
+    }
+  }
+
   async function deletePurchaseById(supa, purchaseId) {
     if (!supa || !purchaseId) {
       console.warn('deletePurchaseById: mangler supa eller purchaseId');
@@ -288,5 +300,6 @@
     fetchWeeklySummary,
     fetchPurchasesForWeek,
     deletePurchaseById,
+    removePurchaseFromLocalCache,
   });
 })(window);
