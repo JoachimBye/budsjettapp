@@ -96,7 +96,7 @@
       width:100%;
       height:100%;
       border-radius:50%;
-      background:#e8f5f0;
+      background:#ffffff;
       position:relative;
       overflow:hidden;
     }
@@ -107,7 +107,7 @@
       top:0;left:0;
       width:100%;height:100%;
       border-radius:50%;
-      background:conic-gradient(var(--ring-color) 0deg, var(--ring-color) var(--ring-deg), transparent var(--ring-deg));
+      background:none;
       transition:background .6s ease-out;
     }
     .circle-content{
@@ -137,10 +137,12 @@
       stroke-width:14;
     }
     .progress-ring .progress-ring-bg{
-      stroke:rgba(255,255,255,0.8);
+      fill:none;
+      stroke:#e0f2f1;
     }
     .progress-ring .progress-ring-progress{
-      stroke:var(--ring-color,#4caf50);
+      fill:none;
+      stroke:#4caf50;
       stroke-linecap:round;
       transition:stroke-dashoffset 1.2s cubic-bezier(0.2,0.8,0.2,1), stroke 0.4s ease;
       transform-origin:center;
@@ -374,8 +376,8 @@
         <div class="circle-bg">
           <div class="circle-progress" id="circleProgress"></div>
           <svg class="progress-ring" viewBox="0 0 160 160" aria-hidden="true">
-            <circle class="progress-ring-bg" cx="80" cy="80" r="70"></circle>
-            <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70"></circle>
+            <circle class="progress-ring-bg" cx="80" cy="80" r="70" fill="none"></circle>
+            <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70" fill="none"></circle>
           </svg>
         </div>
         <div class="circle-content budget-pop">
