@@ -262,32 +262,58 @@
       ]);
     }
 
+    const startButton = document.getElementById('startButton');
+
     // Navigasjon – nå med per-bruker setupComplete / onboarding_done
-    document.getElementById('startButton').addEventListener('click', async () => {
-      const b=document.getElementById('startButton');
-      b.style.transform='scale(0.95)';
+    startButton.addEventListener('click', async () => {
+      const b = startButton;
+      b.style.transform = 'scale(0.95)';
 
       if (!localStorage.getItem('first_launch_ts')) {
         localStorage.setItem('first_launch_ts', String(Date.now()));
       }
 
+      const fallbackSetupKey = 'setupComplete';
+      const fallbackOnboardingKey = 'onboarding_done';
+
       // Hent session og sett per-bruker flagg
       try {
-        const { data: { session } } = await supa.auth.getSession();
-        if (session) {
-          const setupKey = lsKey('setupComplete', session);
-          const onboardingKey = lsKey('onboarding_done', session);
-          localStorage.setItem(setupKey, 'true');  // Gullflagget
-          localStorage.setItem(onboardingKey, '1');
+        if (!supa || !supa.auth) {
+          localStorage.setItem(fallbackSetupKey, 'true');
+          localStorage.setItem(fallbackOnboardingKey, '1');
+        } else {
+          const { data: { session } } = await supa.auth.getSession();
+          if (session) {
+            const setupKey = lsKey('setupComplete', session);
+            const onboardingKey = lsKey('onboarding_done', session);
+
+            // Marker bruker som klar for appen før vi redirecter
+            localStorage.setItem(setupKey, 'true');
+            localStorage.setItem(onboardingKey, '1');
+
+            try {
+              await supa
+                .from('members')
+                .update({ onboarding_done: true })
+                .eq('user_id', session.user.id);
+            } catch (dbErr) {
+              console.warn('Kunne ikke oppdatere onboarding_done i DB', dbErr);
+            }
+          } else {
+            localStorage.setItem(fallbackSetupKey, 'true');
+            localStorage.setItem(fallbackOnboardingKey, '1');
+          }
         }
       } catch (e) {
         console.warn('Klarte ikke å sette per-bruker-flagg ved start uke 1', e);
+        localStorage.setItem(fallbackSetupKey, 'true');
+        localStorage.setItem(fallbackOnboardingKey, '1');
       }
 
-      setTimeout(()=>{
-        b.style.transform='';
-        location.href='app.html';
-      },150);
+      setTimeout(() => {
+        b.style.transform = '';
+        location.href = 'app.html';
+      }, 150);
     });
 
     document.getElementById('backButton').addEventListener('click',()=>{

@@ -141,6 +141,7 @@ async function protectPage(supa) {
     '/onboarding1.html',
     '/onboarding2.html',
     '/onboarding3.html',
+    '/takk.html', // regnes som del av onboarding-flyten
   ];
   if (!onboardingPaths.includes(currentPath)) {
     // Innlogget, ikke ferdig med onboarding, men på feil side → send til start
