@@ -193,6 +193,13 @@
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
       border: 1px solid #e2e8f0;
     }
+    .purchases-section {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
     .section-title {
       font-size: 1.8rem;
       font-weight: 700;
@@ -209,6 +216,52 @@
     }
     .error-text {
       color: #dc2626;
+    }
+    .purchases-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .purchase-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .purchase-row:last-child {
+      border-bottom: none;
+    }
+    .purchase-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .purchase-store {
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .purchase-meta {
+      color: #64748b;
+      font-size: 0.95rem;
+    }
+    .purchase-delete-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 18px;
+      opacity: 0.7;
+      padding: 4px;
+      line-height: 1;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .purchase-delete-btn:hover {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    .purchase-delete-btn:focus-visible {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
     }
     #categoriesGrid {
       display: grid;
@@ -503,6 +556,12 @@
       <div id="categoriesGrid"></div>
     </section>
 
+    <!-- Purchases Section -->
+    <section class="purchases-section">
+      <h2 class="section-title">Kjøp denne uken</h2>
+      <div id="purchasesList" class="purchases-list"></div>
+    </section>
+
     <!-- Insights Section -->
     <section class="insights-section">
       <h2 class="section-title">Dette la vi merke til</h2>
@@ -612,7 +671,8 @@
     spent: 0,
     saved: 0,
     pct: 0,
-    byCategory: {}
+    byCategory: {},
+    purchases: []
   };
   let isReportLoading = false;
   let reportLoadError = null;
@@ -670,7 +730,7 @@
     if (budgetService?.loadWeekSummary) {
       try {
         summary = await budgetService.loadWeekSummary(supa, weekISO, {
-          selectPurchases: 'amount, category',
+          selectPurchases: 'id, amount, category, store, purchased_at, created_at, week_start',
         });
       } catch (err) {
         console.error('loadWeekData', err);
@@ -707,6 +767,7 @@
     state.saved = saved;
     state.pct = pct;
     state.byCategory = byCategory;
+    state.purchases = Array.isArray(purchases) ? purchases : [];
 
     localStorage.setItem('budget_total', String(totalBudget));
     localStorage.setItem('activeWeekISO', weekISO);
@@ -899,6 +960,85 @@
     });
   }
 
+  // ---------- Render: kjøp ----------
+  function renderPurchases() {
+    const listEl = document.getElementById('purchasesList');
+    if (!listEl) return;
+    listEl.innerHTML = '';
+
+    if (isReportLoading) {
+      const loading = document.createElement('div');
+      loading.className = 'loading-text';
+      loading.textContent = 'Henter kjøp…';
+      listEl.appendChild(loading);
+      return;
+    }
+
+    const purchases = Array.isArray(state.purchases) ? state.purchases.slice() : [];
+    if (purchases.length === 0) {
+      const info = document.createElement('div');
+      info.className = reportLoadError ? 'error-text' : 'loading-text';
+      info.textContent = reportLoadError
+        ? reportLoadError
+        : 'Ingen registrerte kjøp denne uken.';
+      listEl.appendChild(info);
+      return;
+    }
+
+    const timeFor = (p) => {
+      const raw = p.purchased_at || p.created_at || p.week_start || p.date;
+      const ts = raw ? new Date(raw).getTime() : 0;
+      return Number.isFinite(ts) ? ts : 0;
+    };
+
+    purchases
+      .sort((a, b) => timeFor(b) - timeFor(a))
+      .forEach((p) => {
+        const row = document.createElement('div');
+        row.className = 'purchase-row';
+
+        const main = document.createElement('div');
+        main.className = 'purchase-main';
+
+        const storeEl = document.createElement('div');
+        storeEl.className = 'purchase-store';
+        storeEl.textContent = p.store || 'Butikk';
+
+        const amountText = `${formatAmount(p.amount || p.sum || 0)} kr`;
+        const whenRaw = p.purchased_at || p.created_at || p.week_start || p.date;
+        let dateText = '';
+        if (whenRaw) {
+          try {
+            dateText = dateUtils.formatShortDate
+              ? dateUtils.formatShortDate(whenRaw)
+              : new Date(whenRaw).toLocaleDateString('no-NO');
+          } catch {
+            dateText = '';
+          }
+        }
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'purchase-meta';
+        metaEl.textContent = `${amountText}${dateText ? ` · ${dateText}` : ''}`;
+
+        main.appendChild(storeEl);
+        main.appendChild(metaEl);
+        row.appendChild(main);
+
+        if (p.id) {
+          const btn = document.createElement('button');
+          btn.className = 'purchase-delete-btn';
+          btn.type = 'button';
+          btn.setAttribute('aria-label', 'Slett kjøp');
+          btn.textContent = '🗑';
+          btn.addEventListener('click', () => handleDeletePurchaseInReport(p.id));
+          row.appendChild(btn);
+        }
+
+        listEl.appendChild(row);
+      });
+  }
+
   // ---------- Render: innsikter ----------
   function addInsight(icon, text) {
     const li = document.createElement('div');
@@ -951,6 +1091,40 @@
     }
   }
 
+  // ---------- Sletting av kjøp ----------
+  async function handleDeletePurchaseInReport(purchaseId) {
+    if (!purchaseId) return;
+
+    const confirmed = window.confirm('Vil du slette dette kjøpet?');
+    if (!confirmed) return;
+
+    if (!budgetService?.deletePurchaseById) {
+      console.warn('deletePurchaseById mangler på budgetService');
+      return;
+    }
+
+    const { error } = await budgetService.deletePurchaseById(supa, purchaseId);
+
+    if (error) {
+      console.error('Kunne ikke slette kjøpet', error);
+      showToast('Kunne ikke slette kjøpet. Prøv igjen.', 'error');
+      return;
+    }
+
+    try {
+      await loadWeekData();
+      renderHeader();
+      renderOverview();
+      renderCategories();
+      renderPurchases();
+      renderInsights();
+    } catch (err) {
+      console.warn('Feil ved reloading etter sletting', err);
+    }
+
+    showToast('Kjøpet er slettet ✅', 'success');
+  }
+
   // ---------- Knapper ----------
   function setupButtons() {
     document.getElementById('backButton').addEventListener('click', () => {
@@ -989,11 +1163,13 @@
     const loadPromise = loadWeekData();
     renderOverview();
     renderCategories();
+    renderPurchases();
     renderInsights();
     await loadPromise;
     renderHeader();
     renderOverview();
     renderCategories();
+    renderPurchases();
     renderInsights();
     setupButtons();
 

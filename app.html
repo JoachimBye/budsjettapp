@@ -261,6 +261,38 @@
       font-weight:500;
       margin:0;
     }
+    .recent-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:2px 0;
+    }
+    .recent-row-main{
+      display:flex;
+      flex-direction:column;
+    }
+    .recent-meta{
+      color:#5a7a6d;
+    }
+    .recent-delete-btn{
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-size:16px;
+      opacity:0.7;
+      transition:transform 0.15s ease, opacity 0.15s ease;
+      padding:4px;
+      line-height:1;
+    }
+    .recent-delete-btn:hover{
+      opacity:1;
+      transform:scale(1.1);
+    }
+    .recent-delete-btn:focus-visible{
+      outline:2px solid #4caf50;
+      outline-offset:2px;
+    }
     .budget-over .week-pill{
       background:#d32f2f;
       box-shadow:0 6px 14px rgba(211,47,47,.4);
@@ -631,8 +663,9 @@
       try {
         const { data, error } = await supa
           .from('purchases')
-          .select('*')
+          .select('id, amount, store, week_start, purchased_at, created_at, category')
           .eq('household_id', householdId)
+          .order('purchased_at', { ascending: false })
           .order('created_at', { ascending: false })
           .limit(3);
 
@@ -658,8 +691,9 @@
       return;
     }
 
-    activityContainer.innerHTML = rows.map((p) => {
-      const amountText = `${formatAmount(p.amount || p.sum || 0)} kr`;
+    const normalizedRows = rows.map((p) => {
+      const amount = Number(p.amount || p.sum || 0);
+      const amountText = `${formatAmount(amount)} kr`;
       const whenRaw = p.purchased_at || p.date || p.created_at || p.week_start;
       let dateText = '';
       if (whenRaw) {
@@ -671,14 +705,61 @@
           dateText = '';
         }
       }
-      const store = p.store || 'Butikk';
+      return {
+        id: p.id,
+        store: p.store || 'Butikk',
+        amountText,
+        dateText,
+      };
+    });
+
+    activityContainer.innerHTML = normalizedRows.map((p) => {
+      const deleteBtn = p.id
+        ? `<button class="recent-delete-btn" onclick="handleDeleteRecentPurchase('${String(p.id).replace(/'/g, "\\'")}')" aria-label="Slett kjøp">🗑</button>`
+        : '';
       return `
-        <div class="flex justify-between text-sm text-gray-700 py-1">
-          <span>${escapeHTML(store)}</span>
-          <span>${amountText}${dateText ? ` · ${escapeHTML(dateText)}` : ''}</span>
+        <div class="recent-row text-sm text-gray-700">
+          <div class="recent-row-main">
+            <span>${escapeHTML(p.store)}</span>
+            <span class="recent-meta">${p.amountText}${p.dateText ? ` · ${escapeHTML(p.dateText)}` : ''}</span>
+          </div>
+          ${deleteBtn}
         </div>
       `;
     }).join('');
+  }
+
+  async function handleDeleteRecentPurchase(purchaseId) {
+    if (!purchaseId) return;
+
+    const confirmed = window.confirm('Vil du slette dette kjøpet?');
+    if (!confirmed) return;
+
+    if (!budgetService?.deletePurchaseById) {
+      console.warn('deletePurchaseById mangler på budgetService');
+      return;
+    }
+
+    const { error } = await budgetService.deletePurchaseById(supa, purchaseId);
+
+    if (error) {
+      console.error('Kunne ikke slette kjøpet', error);
+      showToast('Kunne ikke slette kjøpet. Prøv igjen.', 'error');
+      return;
+    }
+
+    try {
+      if (typeof loadWeekData === 'function') {
+        await loadWeekData();
+      }
+      if (typeof loadRecentActivity === 'function') {
+        await loadRecentActivity();
+      }
+    } catch (e) {
+      console.warn('Feil ved reloading etter sletting', e);
+    }
+
+    showToast('Kjøpet er slettet ✅', 'success');
   }
 
   // ---------- Oppdater UI ----------------------------------------------

@@ -164,6 +164,30 @@
     }
   };
 
+  async function deletePurchaseById(supa, purchaseId) {
+    if (!supa || !purchaseId) {
+      console.warn('deletePurchaseById: mangler supa eller purchaseId');
+      return { error: 'Missing supa or id' };
+    }
+
+    try {
+      const { error } = await supa
+        .from('purchases')
+        .delete()
+        .eq('id', purchaseId);
+
+      if (error) {
+        console.warn('Klarte ikke slette purchase', error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.warn('Uventet feil i deletePurchaseById', err);
+      return { error: err };
+    }
+  }
+
   async function fetchWeeklySummary(supa, householdId, weekISO) {
     const normalizedWeek = ensureWeekISO(weekISO);
     if (!supa || !householdId || typeof supa.rpc !== 'function') return null;
@@ -263,5 +287,6 @@
     fetchBudgetForWeek,
     fetchWeeklySummary,
     fetchPurchasesForWeek,
+    deletePurchaseById,
   });
 })(window);
