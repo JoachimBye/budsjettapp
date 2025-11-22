@@ -15,6 +15,7 @@
   <script src="/js/supa-client.js"></script>
   <script src="/auth-helpers.js"></script>
   <script src="/js/ui/toast.js"></script>
+  <script src="/js/ui/coach.js"></script>
   <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
@@ -558,6 +559,77 @@
       opacity: 0.4;
     }
 
+    /* Coach overlay (intro-guide) */
+    .coach-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      pointer-events: auto;
+    }
+    .coach-highlight {
+      position: fixed;
+      border-radius: 16px;
+      border: 2px solid #4caf50;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.55);
+      transition: all 0.25s ease;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .coach-tooltip {
+      position: fixed;
+      max-width: 90vw;
+      width: min(360px, 90vw);
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 14px 16px 12px 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+      color: #2d5f4d;
+      font-size: 14px;
+      line-height: 1.4;
+      transition: opacity 0.25s ease, top 0.25s ease;
+      opacity: 0;
+    }
+    .coach-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .coach-text { margin: 0; }
+    .coach-step-label {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #5a7a6d;
+    }
+    .coach-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .coach-btn {
+      border: none;
+      border-radius: 9999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+    .coach-btn.coach-skip {
+      background: transparent;
+      color: #5a7a6d;
+    }
+    .coach-btn.coach-prev {
+      background: #f0f0f0;
+      color: #2d5f4d;
+    }
+    .coach-btn.coach-next {
+      background: #4caf50;
+      color: #ffffff;
+    }
+    .coach-btn.coach-next:hover { background: #45a049; }
+
     @media (max-width: 640px) {
       .container { padding: 16px 16px 110px; }
       .page-title { font-size: 26px; }
@@ -617,6 +689,21 @@
 
       <div id="purchasedContainer" style="margin-top:8px;"></div>
     </section>
+  </div>
+
+  <!-- Coach overlay: forklarer handlelisten -->
+  <div class="coach-overlay" id="coachOverlay">
+    <div class="coach-highlight" id="coachHighlight"></div>
+    <div class="coach-tooltip" id="coachTooltip">
+      <div class="coach-title" id="coachTitle"></div>
+      <p class="coach-text" id="coachText"></p>
+      <div class="coach-step-label" id="coachStepLabel"></div>
+      <div class="coach-buttons">
+        <button type="button" class="coach-btn coach-skip" id="coachSkipBtn">Hopp over</button>
+        <button type="button" class="coach-btn coach-prev" id="coachPrevBtn">Tilbake</button>
+        <button type="button" class="coach-btn coach-next" id="coachNextBtn">Neste</button>
+      </div>
+    </div>
   </div>
 
   <!-- Flytende + for å legge til vare -->
@@ -715,6 +802,47 @@
       console[type === "error" ? "error" : "log"](message);
     }
   };
+
+  // ---------- Coach overlay (intro) ----------
+  const COACH_SEEN_KEY = 'coach_seen_handleliste_v2';
+  let coachInstance = null;
+  const coachSteps = [
+    {
+      id: "addItem",
+      selector: "#shoppingSection",
+      title: "Legg til varer",
+      text: "Trykk på en kategori for å legge til nye varer i handlelisten.",
+    },
+    {
+      id: "list",
+      selector: "#categoriesContainer",
+      title: "Handlelisten deres",
+      text: "Her ser dere alle varene dere har planlagt å kjøpe. Huk av etter hvert som dere handler.",
+    },
+    {
+      id: "frequent",
+      selector: "#frequentSection",
+      title: "Ofte kjøpt",
+      text: "Varer dere kjøper ofte kan dukke opp her for rask tilgang.",
+    },
+  ];
+
+  function setupCoach() {
+    if (!window.coach) return;
+    coachInstance = window.coach.create({
+      steps: coachSteps,
+      storageKey: COACH_SEEN_KEY,
+    });
+  }
+
+  function startCoachTour() {
+    coachInstance?.start();
+  }
+
+  function shouldStartCoachTour() {
+    if (!coachInstance) return false;
+    return !coachInstance.hasSeen();
+  }
 
   function getLS(key, fallback) {
     try {
@@ -1986,6 +2114,12 @@ if (modeToggleBtn) {
     await Promise.all([loadWeeklyMenuData(), loadShoppingItemsData()]);
     renderFrequentItems();
     initInboxButton();
+    setupCoach();
+    if (shouldStartCoachTour()) {
+      setTimeout(() => {
+        startCoachTour();
+      }, 600);
+    }
     await setupRealtimeChannels();
   }
 

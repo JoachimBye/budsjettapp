@@ -4,6 +4,37 @@
       return null;
     }
 
+    const waitForElement = (selector, timeoutMs = 2000) =>
+      new Promise((resolve) => {
+        if (!selector) {
+          resolve(null);
+          return;
+        }
+
+        const started = Date.now();
+        const poll = () => {
+          let el = null;
+          try {
+            el = document.querySelector(selector);
+          } catch (err) {
+            console.warn('Coach: ugyldig selector i steg', selector, err);
+            resolve(null);
+            return;
+          }
+
+          if (el) {
+            resolve(el);
+            return;
+          }
+          if (Date.now() - started >= timeoutMs) {
+            resolve(null);
+            return;
+          }
+          setTimeout(poll, 100);
+        };
+        poll();
+      });
+
     const overlay = document.getElementById('coachOverlay');
     const highlight = document.getElementById('coachHighlight');
     const tooltip = document.getElementById('coachTooltip');
@@ -21,7 +52,7 @@
 
     let active = false;
     let currentStep = 0;
-    let previousOverflow = '';
+    let positionTimeoutId = null;
 
     const hasSeen = () => {
       if (!storageKey) return false;
@@ -41,10 +72,20 @@
       }
     };
 
+    const clearPositionTimeout = () => {
+      if (positionTimeoutId) {
+        clearTimeout(positionTimeoutId);
+        positionTimeoutId = null;
+      }
+    };
+
     function positionFor(target) {
       if (!target) return;
       const rect = target.getBoundingClientRect();
       const padding = 8;
+      const viewportW = window.innerWidth || document.documentElement.clientWidth;
+      const viewportH = window.innerHeight || document.documentElement.clientHeight;
+
       const left = rect.left + window.scrollX - padding;
       const top = rect.top + window.scrollY - padding;
       const width = rect.width + padding * 2;
@@ -56,45 +97,49 @@
       highlight.style.height = `${height}px`;
       highlight.style.opacity = 1;
 
-      tooltip.style.left = '50%';
-      tooltip.style.transform = 'translateX(-50%)';
       tooltip.style.visibility = 'hidden';
       tooltip.style.opacity = 0;
+      tooltip.style.transform = 'none';
 
       requestAnimationFrame(() => {
         const ttRect = tooltip.getBoundingClientRect();
-        const viewportH = window.innerHeight || document.documentElement.clientHeight;
-        const placeAbove = rect.top > viewportH / 2;
-        let ttTop;
-        if (placeAbove) {
-          ttTop = Math.max(16, rect.top + window.scrollY - ttRect.height - 16);
-        } else {
-          ttTop = Math.min(
-            window.scrollY + viewportH - ttRect.height - 16,
-            rect.bottom + window.scrollY + 16
-          );
-        }
+        const placeBelow = rect.top < 200;
+        const minLeft = window.scrollX + 8;
+        const maxLeft = window.scrollX + viewportW - ttRect.width - 8;
+        const centeredLeft = rect.left + window.scrollX + rect.width / 2 - ttRect.width / 2;
+        const clampedLeft = Math.max(minLeft, Math.min(maxLeft, centeredLeft));
+
+        let ttTop = placeBelow
+          ? rect.bottom + window.scrollY + 16
+          : rect.top + window.scrollY - ttRect.height - 16;
+        const minTop = window.scrollY + 8;
+        const maxTop = window.scrollY + viewportH - ttRect.height - 8;
+        ttTop = Math.max(minTop, Math.min(maxTop, ttTop));
+
+        tooltip.style.left = `${clampedLeft}px`;
         tooltip.style.top = `${ttTop}px`;
         tooltip.style.visibility = 'visible';
         tooltip.style.opacity = 1;
       });
     }
 
-    function goToStep(index) {
+    async function goToStep(index) {
       if (index < 0 || index >= steps.length) {
         stop();
         return;
       }
+
+      clearPositionTimeout();
+      highlight.style.opacity = 0;
+      tooltip.style.opacity = 0;
+
       currentStep = index;
       const step = steps[currentStep] || {};
-      let target = null;
-      try {
-        target = step.selector ? document.querySelector(step.selector) : null;
-      } catch (err) {
-        console.warn('coach: ugyldig selector i steg', step, err);
-      }
+      const target = await waitForElement(step.selector, 2000);
+      if (!active) return;
+
       if (!target) {
-        console.warn('coach: fant ikke element for steg', step?.id || currentStep, step?.selector);
+        console.warn('Coach: fant ikke element for steg', index, step?.selector);
         goToStep(currentStep + 1);
         return;
       }
@@ -107,37 +152,32 @@
         nextBtn.textContent = currentStep === steps.length - 1 ? 'Ferdig' : 'Neste';
       }
 
-      const hadHiddenOverflow = document.body.style.overflow === 'hidden';
-      if (hadHiddenOverflow) {
-        document.body.style.overflow = previousOverflow || '';
-      }
-
       target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      setTimeout(() => {
+
+      const stepAtSchedule = currentStep;
+      positionTimeoutId = setTimeout(() => {
         if (!active) return;
+        if (stepAtSchedule !== currentStep) return;
+        if (!document.body.contains(target)) return;
         positionFor(target);
-        if (hadHiddenOverflow) {
-          document.body.style.overflow = 'hidden';
-        }
-      }, 350);
+      }, 400);
     }
 
     function start(startIndex = 0) {
-      if (!steps.length) return;
+      if (!steps.length || hasSeen()) return;
       active = true;
       overlay.style.display = 'block';
-      previousOverflow = document.body.style.overflow || '';
-      document.body.style.overflow = 'hidden';
       goToStep(startIndex);
-      markSeen();
     }
 
     function stop() {
+      clearPositionTimeout();
       active = false;
       overlay.style.display = 'none';
       highlight.style.opacity = 0;
       tooltip.style.opacity = 0;
-      document.body.style.overflow = previousOverflow;
+      tooltip.style.visibility = 'hidden';
+      markSeen();
     }
 
     const handleSkip = (evt) => {
@@ -167,7 +207,13 @@
     window.addEventListener('resize', () => {
       if (!active) return;
       const step = steps[currentStep];
-      const target = document.querySelector(step.selector);
+      if (!step?.selector) return;
+      let target = null;
+      try {
+        target = document.querySelector(step.selector);
+      } catch {
+        return;
+      }
       if (target) positionFor(target);
     });
     document.addEventListener('keydown', (evt) => {

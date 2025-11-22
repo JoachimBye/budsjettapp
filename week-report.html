@@ -397,7 +397,8 @@
 
     .coach-tooltip {
       position: fixed;
-      max-width: 320px;
+      max-width: 90vw;
+      width: min(360px, 90vw);
       background: #ffffff;
       border-radius: 16px;
       padding: 14px 16px 12px 16px;
@@ -603,39 +604,33 @@
   };
 
   // ---------- Intro / coach overlay ----------
-  const COACH_SEEN_KEY = 'weekReport_coach_seen_v1';
+  const COACH_SEEN_KEY = 'coach_seen_week_report_v2';
   let coachInstance = null;
 
   const coachSteps = [
     {
-      id: 'overview',
+      id: 'summary',
       selector: '.hero-card',
-      title: 'Ukas oversikt',
-      text:  'Her ser dere et sammendrag av uka: budsjett, hva som er brukt og om dere ligger foran eller bak.',
-    },
-    {
-      id: 'thermo',
-      selector: '.thermometer-section',
-      title: 'Budsjett-termometeret',
-      text:  'Denne linja viser hvor stor del av ukesbudsjettet som er brukt så langt – grønt, gult eller rødt.',
+      title: 'Ukas oppsummering',
+      text:  'Her ser du om dere klarte ukens budsjett eller ikke.',
     },
     {
       id: 'categories',
-      selector: '#categoriesGrid',
-      title: 'Hvor pengene gikk',
-      text:  'Her brytes forbruket ned per kategori, så dere ser hva som tar mest av budsjettet.',
+      selector: '.categories-section',
+      title: 'Hva bruker dere mest på?',
+      text:  'Vi grupperer kjøpene etter kategori slik at dere ser hvor pengene går.',
     },
     {
       id: 'insights',
-      selector: '#insightsList',
-      title: 'Små råd for neste uke',
-      text:  'Vi oppsummerer noen enkle observasjoner – både det som gikk bra, og det som kan justeres.',
+      selector: '.insights-section',
+      title: 'Innsikt',
+      text:  'Vi gir dere noen enkle observasjoner basert på forbruksmønsteret deres.',
     },
     {
-      id: 'back',
-      selector: '#backButton',
-      title: 'Tilbake til hovedsiden',
-      text:  'Når dere er ferdige, går dere tilbake til oversikten for å se handleliste og nye kjøp.',
+      id: 'list',
+      selector: '#purchasesList',
+      title: 'Kjøp denne uka',
+      text:  'Her kan dere bla i alle kjøpene og slette eventuelle feilregistreringer.',
     },
   ];
 
