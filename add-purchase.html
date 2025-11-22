@@ -148,6 +148,7 @@
       font-weight:700; border-radius:50px; cursor:pointer;
       box-shadow:0 8px 20px rgba(76,175,80,.3); transition:all .3s ease;
       margin-bottom:20px; position:relative; overflow:hidden;
+      display:inline-flex; align-items:center; justify-content:center; min-width:60px;
     }
     .save-button:hover {
       transform:translateY(-3px);
@@ -759,11 +760,11 @@ function shouldStartCoachTour() {
   function showSuccessMessage() {
     const overlay = document.getElementById('overlay');
     const successMessage = document.getElementById('successMessage');
-    overlay.classList.add('show');
-    successMessage.classList.add('show');
+    if (overlay) overlay.classList.add('show');
+    if (successMessage) successMessage.classList.add('show');
     setTimeout(() => {
       window.location.href = 'app.html';
-    }, 800);
+    }, 1200);
   }
 
   // ---------- Lagring til Supabase + localStorage fallback ----------
@@ -771,7 +772,8 @@ function shouldStartCoachTour() {
     e.preventDefault();
 
     const saveBtn = document.getElementById('saveButton');
-    const saveTxt  = document.getElementById('saveButtonText');
+    const saveText = document.getElementById('saveButtonText');
+    let savedSuccessfully = false;
 
     const storeSel   = document.getElementById('storeInput').value;
     const otherStore = document.getElementById('otherStoreInput').value.trim();
@@ -788,9 +790,9 @@ function shouldStartCoachTour() {
     // Vi lagrer hele kroner i DB (integer)
     const amountInt = Math.round(amountFloat);
 
-    const originalLabel = saveTxt.textContent;
-    saveBtn.classList.add('saving');
-    saveTxt.textContent = 'Lagrer...';
+    const originalLabel = saveText?.textContent || '';
+    if (saveBtn) saveBtn.classList.add('saving');
+    if (saveText) saveText.textContent = 'Lagrer...';
 
     try {
       const { data: { session } } = await supa.auth.getSession();
@@ -870,14 +872,28 @@ function shouldStartCoachTour() {
       showToast(msg, 'success');
       const successTextEl = document.getElementById('successText');
       if (successTextEl) successTextEl.textContent = msg;
+      if (saveBtn) {
+        saveBtn.classList.remove('saving');
+        saveBtn.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        saveBtn.classList.add('saving-success');
+        saveBtn.style.width = '60px';
+        saveBtn.style.padding = '0';
+        saveBtn.style.transform = 'scale(1.1)';
+      }
+      if (saveText) {
+        saveText.innerHTML = '✅';
+      }
+      savedSuccessfully = true;
       showSuccessMessage();
 
     } catch (err) {
       console.error(err);
       showToast(err.message || 'Kunne ikke lagre kjøpet.', 'error');
     } finally {
-      saveBtn.classList.remove('saving');
-      saveTxt.textContent = originalLabel;
+      if (!savedSuccessfully) {
+        if (saveBtn) saveBtn.classList.remove('saving');
+        if (saveText) saveText.textContent = originalLabel;
+      }
     }
   }
 

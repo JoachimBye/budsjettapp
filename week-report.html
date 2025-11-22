@@ -107,7 +107,7 @@
     #thermoFill {
       height: 100%;
       border-radius: 12px;
-      transition: all 0.6s ease;
+      transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
       background: #10b981; /* grønn default */
       width: 0%;
     }
@@ -777,18 +777,18 @@
       return;
     }
 
-    const prevBudget = lastOverview.budget || 0;
-    const prevSpent = lastOverview.spent || 0;
-    const prevDiff = lastOverview.diff || 0;
-    const prevPct = lastOverview.pct || 0;
+    const prevBudget = typeof lastOverview.budget === 'number' ? lastOverview.budget : 0;
+    const prevSpent = typeof lastOverview.spent === 'number' ? lastOverview.spent : 0;
+    const prevDiff = typeof lastOverview.diff === 'number' ? lastOverview.diff : 0;
+    const prevPct = typeof lastOverview.pct === 'number' ? lastOverview.pct : 0;
     const pctForText = Math.min(pct, 200);
     const diffDisplay = spent === 0
       ? budget
       : (spent <= budget ? saved : overAmount);
 
     if (window.uiAnimate?.animateValue) {
-      window.uiAnimate.animateValue(budgetEl, prevBudget, budget, 700, (v) => `${formatAmount(v)} kr`);
-      window.uiAnimate.animateValue(spentEl, prevSpent, spent, 700, (v) => `${formatAmount(v)} kr`);
+      window.uiAnimate.animateValue(budgetEl, prevBudget, budget, 1200, (v) => `${formatAmount(Math.round(v))} kr`);
+      window.uiAnimate.animateValue(spentEl, prevSpent, spent, 1200, (v) => `${formatAmount(Math.round(v))} kr`);
     } else {
       budgetEl.textContent = `${formatAmount(budget)} kr`;
       spentEl.textContent = `${formatAmount(spent)} kr`;
@@ -805,7 +805,7 @@
       diffValueEl.classList.add('negative');
     }
     if (window.uiAnimate?.animateValue) {
-      window.uiAnimate.animateValue(diffValueEl, prevDiff, diffDisplay, 700, (v) => `${formatAmount(v)} kr`);
+      window.uiAnimate.animateValue(diffValueEl, prevDiff, diffDisplay, 1200, (v) => `${formatAmount(Math.round(v))} kr`);
     } else {
       diffValueEl.textContent = `${formatAmount(diffDisplay)} kr`;
     }
@@ -819,8 +819,8 @@
           thermoText,
           prevPct,
           pctForText,
-          700,
-          (v) => `Brukt ${Math.min(v, 200)} % av budsjettet`
+          1200,
+          (v) => `Brukt ${Math.round(Math.min(v, 200))} % av budsjettet`
         );
       } else {
         thermoText.textContent = `Brukt ${pctForText} % av budsjettet`;

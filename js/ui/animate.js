@@ -1,16 +1,27 @@
 (function() {
+  function easeOutExpo(x) {
+    return x === 1 ? 1 : 1 - Math.pow(2, -10 * x);
+  }
+
   function animateValue(el, start, end, durationMs, formatFn) {
     if (!el) return;
+    const format = typeof formatFn === 'function' ? formatFn : (v) => Math.round(v);
+
+    if (start === end) {
+      el.textContent = format(end);
+      return;
+    }
+
     let startTs = null;
     const diff = end - start;
-    const format = typeof formatFn === 'function' ? formatFn : (v) => v;
 
     function step(ts) {
       if (!startTs) startTs = ts;
-      const progress = Math.min((ts - startTs) / durationMs, 1);
-      const ease = 1 - (1 - progress) * (1 - progress); // easeOutQuad
-      const current = Math.round(start + diff * ease);
+      const progress = durationMs > 0 ? Math.min((ts - startTs) / durationMs, 1) : 1;
+      const eased = easeOutExpo(progress);
+      const current = start + diff * eased;
       el.textContent = format(current);
+
       if (progress < 1) {
         window.requestAnimationFrame(step);
       } else {
@@ -21,19 +32,7 @@
     window.requestAnimationFrame(step);
   }
 
-  function animateStrokeDashoffset(el, from, to, durationMs) {
-    if (!el) return;
-    el.style.transition = 'none';
-    el.style.strokeDashoffset = from;
-    el.getBoundingClientRect();
-    el.style.transition = `stroke-dashoffset ${durationMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
-    requestAnimationFrame(() => {
-      el.style.strokeDashoffset = to;
-    });
-  }
-
   window.uiAnimate = {
     animateValue,
-    animateStrokeDashoffset,
   };
 })();

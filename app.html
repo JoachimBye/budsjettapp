@@ -118,6 +118,13 @@
       z-index:10;
       max-width:80%;
     }
+    .budget-pop{
+      animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+    }
+    @keyframes popIn{
+      0%{transform:translate(-50%,-50%) scale(0.8);opacity:0;}
+      100%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+    }
     .progress-ring{
       position:absolute;
       inset:0;
@@ -135,9 +142,8 @@
     .progress-ring .progress-ring-progress{
       stroke:var(--ring-color,#4caf50);
       stroke-linecap:round;
-      stroke-dasharray:0 999;
-      stroke-dashoffset:0;
-      transition:stroke 0.2s ease;
+      transition:stroke-dashoffset 1.2s cubic-bezier(0.2,0.8,0.2,1), stroke 0.4s ease;
+      transform-origin:center;
       filter:drop-shadow(0 4px 10px rgba(76,175,80,0.25));
     }
 
@@ -372,7 +378,7 @@
             <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70"></circle>
           </svg>
         </div>
-        <div class="circle-content">
+        <div class="circle-content budget-pop">
           <div class="remaining-amount" id="remainingAmount">0kr</div>
           <div class="remaining-text" id="remainingText">igjen denne uka</div>
           <div class="spent-summary" id="spentSummary">Brukt 0 kr av 0 kr</div>
@@ -711,8 +717,8 @@ function updateBudgetDisplay() {
   const paceEl           = document.getElementById('paceIndicator');
   const progressRing     = document.getElementById('budgetProgressRing');
 
-  const ringRadius = progressRing?.r?.baseVal?.value || 70;
-  const circumference = 2 * Math.PI * ringRadius;
+  const radius = progressRing?.r?.baseVal?.value || 70;
+  const circumference = 2 * Math.PI * radius;
   if (progressRing) {
     progressRing.style.strokeDasharray = `${circumference} ${circumference}`;
   }
@@ -736,7 +742,6 @@ function updateBudgetDisplay() {
     if (progressRing) {
       progressRing.style.stroke = '#d1d5db';
       progressRing.style.strokeDashoffset = circumference;
-      progressRing.dataset.lastOffset = `${circumference}`;
     }
     if (statusMsg) {
       statusMsg.textContent = 'Henter ukedata…';
@@ -751,19 +756,17 @@ function updateBudgetDisplay() {
   const spent = state.spent;
   const remainingRaw = total > 0 ? (total - spent) : 0;
   state.remaining = remainingRaw;
-  const formatKr = (v) => `${formatAmount(Math.max(0, v))} kr`;
-  const prevSpent = state.lastSpent ?? 0;
-  const prevRemaining = state.lastRemaining ?? 0;
+  const formatKr = (v) => `${formatAmount(Math.max(0, Math.round(v)))} kr`;
+  const startSpent = typeof state.lastSpent === 'number' ? state.lastSpent : 0;
+  const startRemaining = typeof state.lastRemaining === 'number' ? state.lastRemaining : 0;
   const remainingDisplay = remainingRaw < 0 ? Math.abs(remainingRaw) : remainingRaw;
-  const prevRemainingDisplay = prevRemaining < 0 ? Math.abs(prevRemaining) : Math.max(prevRemaining, 0);
-  state.lastSpent = spent;
-  state.lastRemaining = remainingRaw;
+  const startRemainingDisplay = startRemaining < 0 ? Math.abs(startRemaining) : Math.max(startRemaining, 0);
 
   // Oppdater "Brukt X av Y"
   if (spentSummaryEl) {
-    const summaryFormatter = (v) => `Brukt ${formatAmount(v)} kr av ${formatAmount(total)} kr`;
+    const summaryFormatter = (v) => `Brukt ${formatAmount(Math.round(v))} kr av ${formatAmount(total)} kr`;
     if (window.uiAnimate?.animateValue) {
-      window.uiAnimate.animateValue(spentSummaryEl, prevSpent, spent, 800, summaryFormatter);
+      window.uiAnimate.animateValue(spentSummaryEl, startSpent, spent, 1200, summaryFormatter);
     } else {
       spentSummaryEl.textContent = summaryFormatter(spent);
     }
@@ -782,11 +785,11 @@ function updateBudgetDisplay() {
   let color  = '#4caf50';   // ring-farge
   let ringDeg = 0;
   let status = 'Bra kontroll så langt 💪';
-  const pct = total > 0 ? Math.min((spent / total) * 100, 150) : 0;
+  const pctDisplay = total > 0 ? Math.min((spent / total) * 100, 150) : 0;
   const ratio = total > 0 ? (spent / total) : 0;
 
   if (total > 0) {
-    ringDeg = Math.min(360, Math.max(0, pct * 3.6));
+    ringDeg = Math.min(360, Math.max(0, pctDisplay * 3.6));
 
     if (ratio >= 1.0) {
       // OVER budsjett – full rød ring, hvit tekst for maks kontrast
@@ -831,10 +834,10 @@ function updateBudgetDisplay() {
     if (window.uiAnimate?.animateValue) {
       window.uiAnimate.animateValue(
         remainingElement,
-        prevRemainingDisplay,
+        startRemainingDisplay,
         remainingDisplay,
-        800,
-        (v) => `${formatAmount(v)} kr`
+        1500,
+        (v) => `${formatAmount(Math.round(v))} kr`
       );
     } else {
       remainingElement.textContent = formatKr(remainingDisplay);
@@ -847,14 +850,25 @@ function updateBudgetDisplay() {
   }
 
   if (progressRing) {
-    const offsetTo = circumference * (1 - Math.min(pct, 100) / 100);
-    const offsetFrom = Number(progressRing.dataset.lastOffset) || circumference;
-    progressRing.dataset.lastOffset = `${offsetTo}`;
-    progressRing.style.stroke = color;
-    if (window.uiAnimate?.animateStrokeDashoffset) {
-      window.uiAnimate.animateStrokeDashoffset(progressRing, offsetFrom, offsetTo, 1000);
+    const pct = total > 0 ? Math.min(spent / total, 1) : 0;
+    const offset = circumference * (1 - pct);
+
+    // smooth progress-ring animation
+    if (!progressRing.dataset.initialized) {
+      progressRing.style.transition = 'none';
+      progressRing.style.strokeDashoffset = circumference;
+      progressRing.getBoundingClientRect(); // force reflow
+      progressRing.style.transition =
+        'stroke-dashoffset 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.4s ease';
+      progressRing.dataset.initialized = 'true';
+
+      setTimeout(() => {
+        progressRing.style.stroke = color;
+        progressRing.style.strokeDashoffset = offset;
+      }, 100);
     } else {
-      progressRing.style.strokeDashoffset = offsetTo;
+      progressRing.style.stroke = color;
+      progressRing.style.strokeDashoffset = offset;
     }
   }
 
@@ -895,6 +909,9 @@ function updateBudgetDisplay() {
     remainingElement.classList.add('pulse');
     setTimeout(() => remainingElement.classList.remove('pulse'), 600);
   }
+
+  state.lastRemaining = remainingRaw;
+  state.lastSpent = spent;
 }
 
   // ---------- Farge/tema fra Element SDK -------------------------------
