@@ -11,7 +11,9 @@
 
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/store-service.js"></script>
   <script src="/js/ui/toast.js"></script>
@@ -496,9 +498,8 @@
   }
 
   // --------- Supabase / auth ----------
-  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supaClient?.getClient();
+  const householdCtx = window.householdContext;
 
   let householdId = null;
 
@@ -740,6 +741,10 @@
   }
 
   async function loadSettings() {
+    if (!supa || !householdCtx?.getHouseholdId) {
+      showToast('Supabase ikke tilgjengelig.', 'error');
+      return;
+    }
     try {
       const { data: { session } } = await supa.auth.getSession();
       if (!session) {
@@ -747,20 +752,13 @@
         return;
       }
 
-      // Finn medlem -> household_id
-      const { data: member, error: memberErr } = await supa
-        .from('members')
-        .select('id, household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (memberErr || !member) {
-        console.error(memberErr);
+      const resolvedHouseholdId = await householdCtx.getHouseholdId(supa);
+      if (!resolvedHouseholdId) {
         showToast('Fant ikke husstand for brukeren.', 'error');
         return;
       }
 
-      householdId = member.household_id;
+      householdId = resolvedHouseholdId;
 
       // Hent husstandens navn + default_weekly_budget
       const { data: household, error: hErr } = await supa
@@ -904,6 +902,10 @@
   }
 
   async function init() {
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+      return;
+    }
     // Auth guard
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);

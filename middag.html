@@ -6,7 +6,9 @@
   <title>Middagsanbefaling</title>
   <script src="/_sdk/element_sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
@@ -305,9 +307,8 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supa = window.supaClient?.getClient();
+    const householdCtx = window.householdContext;
     const showToast = (message, type = 'info') => {
       if (window.toast?.show) {
         window.toast.show(message, { type });
@@ -453,8 +454,8 @@
         quickOnly: false,
       },
       budget: { total: 0, used: 0, remaining: 0 },
-      activeWeekISO: (dateUtils.getActiveWeekISO
-        ? dateUtils.getActiveWeekISO()
+      activeWeekISO: (dateUtils.getOrInitActiveWeekISO
+        ? dateUtils.getOrInitActiveWeekISO()
         : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10))),
       currentRecipe: null,
     };
@@ -470,6 +471,13 @@
       isBudgetLoading = true;
       budgetLoadError = null;
       updateBudgetDisplay();
+
+      if (!supa) {
+        budgetLoadError = 'Ingen forbindelse til databasen.';
+        isBudgetLoading = false;
+        updateBudgetDisplay();
+        return;
+      }
 
       if (window.budgetService?.loadWeekSummary) {
         try {
@@ -493,31 +501,24 @@
         return;
       }
 
-      // Fallback til eksisterende localStorage-logikk om service ikke er tilgjengelig
-      const weeklyBudgetKey = `weeklyBudget_${weekISO}`;
-      const purchasesKey = `purchases_${weekISO}`;
+      const total = window.budgetService?.readWeeklyBudgetLocal
+        ? window.budgetService.readWeeklyBudgetLocal(weekISO)
+        : 0;
 
-      const fallbackBudget = parseInt((localStorage.getItem('weeklyBudget') || '').replace(/\s|kr/g,''), 10);
-      const weekBudget = parseInt((localStorage.getItem(weeklyBudgetKey) || '').replace(/\s|kr/g,''), 10);
-
-      const total = Number.isFinite(weekBudget) ? weekBudget
-                  : (Number.isFinite(fallbackBudget) ? fallbackBudget : 0);
-
-      let used = 0;
-      try {
-        const raw = localStorage.getItem(purchasesKey);
-        if (raw) {
+      const localPurchases = (() => {
+        try {
+          const raw = localStorage.getItem(`purchases_${weekISO}`);
+          if (!raw) return [];
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            if (window.budgetUtils?.safeSumPurchases) {
-              used = window.budgetUtils.safeSumPurchases(parsed);
-            } else {
-              used = parsed.reduce((sum, item) => sum + (Number(item?.amount) || 0), 0);
-            }
-          }
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
         }
-      } catch {}
+      })();
 
+      const used = window.budgetUtils?.safeSumPurchases
+        ? window.budgetUtils.safeSumPurchases(localPurchases)
+        : localPurchases.reduce((sum, item) => sum + (Number(item?.amount || item?.sum || 0) || 0), 0);
       const remaining = Math.max(0, total - used);
       state.budget = { total, used, remaining };
       isBudgetLoading = false;
@@ -860,11 +861,28 @@
     /* =========================
        Init
        ========================= */
-    initPeopleFromHousehold();
-    loadBudgetData();
-    setupFilters();
-    displayRecipes(filterRecipes());
-    applyConfig(defaultConfig);
+    async function bootstrap() {
+      if (!supa) {
+        console.error('Supabase-klient mangler');
+        return;
+      }
+      if (window.authHelpers?.initializeAuthListener) {
+        window.authHelpers.initializeAuthListener(supa);
+      }
+      if (window.authHelpers?.protectPage) {
+        await window.authHelpers.protectPage(supa);
+        if (window.location.pathname !== '/middag.html') {
+          return;
+        }
+      }
+      initPeopleFromHousehold();
+      await loadBudgetData();
+      setupFilters();
+      displayRecipes(filterRecipes());
+      applyConfig(defaultConfig);
+    }
+
+    document.addEventListener('DOMContentLoaded', bootstrap);
   </script>
 
   <!-- (Canva/Cloudflare-snutt beholdt urørt) -->

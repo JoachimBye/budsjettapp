@@ -12,8 +12,10 @@
   <!-- (valgfritt) Tailwind, men vi bruker mest egen CSS -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
   <script src="/auth-helpers.js"></script>
   <script src="/js/ui/toast.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/shopping-list-service.js"></script>
@@ -697,9 +699,8 @@
   let currentConfig = { ...defaultConfig };
 
   // ---------- Supabase ----------
-  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supaClient?.getClient();
+  const householdCtx = window.householdContext;
 
   // ---------- Utils ----------
   const $ = (sel) => document.querySelector(sel);
@@ -815,33 +816,9 @@
   }
 
   // ---------- Nøkler ----------
-  const ACTIVE_WEEK_ISO = (() => {
-    if (dateUtils.getOrInitActiveWeekISO) {
-      return dateUtils.getOrInitActiveWeekISO();
-    }
-
-    const storedISO = dateUtils.getActiveWeekISO ? dateUtils.getActiveWeekISO() : null;
-    const computeMonday = () => {
-      if (dateUtils.mondayISO) return dateUtils.mondayISO();
-      const today = new Date();
-      const day = (today.getDay() + 6) % 7;
-      today.setDate(today.getDate() - day);
-      today.setHours(12, 0, 0, 0);
-      return today.toISOString().slice(0, 10);
-    };
-    const currentMonday = computeMonday();
-
-    if (!storedISO || storedISO < currentMonday) {
-      if (dateUtils.setActiveWeekISO) {
-        dateUtils.setActiveWeekISO(currentMonday);
-      } else {
-        localStorage.setItem('activeWeekISO', currentMonday);
-      }
-      return currentMonday;
-    }
-
-    return storedISO;
-  })();
+  const ACTIVE_WEEK_ISO = dateUtils.getOrInitActiveWeekISO
+    ? dateUtils.getOrInitActiveWeekISO()
+    : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10));
   const WEEK_MENU_KEY   = `weeklyMenu_${ACTIVE_WEEK_ISO}`;
   const FREQ_KEY        = `frequentItems`;
   const INBOX_KEY       = `shoppingList_inbox_${ACTIVE_WEEK_ISO}`;
@@ -1598,6 +1575,14 @@ function renderCategories() {
 
   // ---------- Mutators ----------
 
+  function renderWithCheckDelay(isChecked) {
+    if (isChecked) {
+      setTimeout(() => renderCategories(), 400);
+    } else {
+      renderCategories();
+    }
+  }
+
   async function toggleItemChecked(itemId) {
     const idx = shoppingItems.findIndex(item => item.id === itemId);
     if (idx === -1) return;
@@ -1612,7 +1597,7 @@ function renderCategories() {
           ACTIVE_WEEK_ISO
         );
         applyShoppingItems(updated);
-        renderCategories();
+        renderWithCheckDelay(nextValue);
         return;
       } catch (err) {
         console.error("Kunne ikke oppdatere vare-status", err);
@@ -1622,7 +1607,7 @@ function renderCategories() {
 
     shoppingItems[idx].checked = nextValue;
     saveShoppingItems();
-    renderCategories();
+    renderWithCheckDelay(nextValue);
   }
 
   async function updateQuantity(itemId, delta) {
@@ -1974,6 +1959,10 @@ if (modeToggleBtn) {
 
   // ---------- Init ----------
   async function init() {
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+      return;
+    }
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
       if (window.location.pathname !== '/handleliste.html') {

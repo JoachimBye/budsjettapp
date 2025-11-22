@@ -1,87 +1,31 @@
 (function (global) {
   const dateUtils = global.dateUtils || {};
+  const householdContext = global.householdContext;
   const SHOPPING_CACHE_PREFIX = 'shopping_list_cache_v2';
   const MENU_CACHE_PREFIX = 'weekly_menu_cache_v1';
-  const LEGACY_LIST_PREFIX = 'shoppingList_';
-  const LEGACY_MENU_PREFIX = 'weeklyMenu_';
 
-  let cachedHouseholdContext = { userId: null, householdId: null };
+  const inMemoryItems = new Map(); // key: `${householdId}_${weekISO}`
+  const inMemoryMenu = new Map();  // key: `${householdId}_${weekISO}`
 
   const cloneList = (list) =>
     Array.isArray(list) ? list.map((item) => ({ ...item })) : [];
 
   const ensureWeekISO = (weekISO) => {
-    if (typeof weekISO === 'string' && weekISO) return weekISO;
-    if (dateUtils?.getActiveWeekISO) return dateUtils.getActiveWeekISO();
-    if (dateUtils?.mondayISO) return dateUtils.mondayISO();
-    return new Date().toISOString().slice(0, 10);
+    if (weekISO) {
+      if (dateUtils.resolveWeekISOForDate && dateUtils.dateFromISOLocal) {
+        return dateUtils.resolveWeekISOForDate(dateUtils.dateFromISOLocal(weekISO));
+      }
+      return weekISO;
+    }
+    if (dateUtils.getOrInitActiveWeekISO) return dateUtils.getOrInitActiveWeekISO();
+    if (dateUtils.mondayISO) return dateUtils.mondayISO();
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today.toISOString().slice(0, 10);
   };
 
-  const legacyListKey = (weekISO) => `${LEGACY_LIST_PREFIX}${weekISO}`;
   const cacheKey = (prefix, householdId, weekISO) =>
     householdId ? `${prefix}_${householdId}_${weekISO}` : null;
-
-  const fetchSession = async (supa) => {
-    if (!supa) return null;
-    try {
-      const { data } = await supa.auth.getSession();
-      return data?.session || null;
-    } catch (err) {
-      console.warn('shoppingListService: kunne ikke hente session', err);
-      return null;
-    }
-  };
-
-  const getCachedHouseholdId = (session) => {
-    if (!session?.user?.id) return null;
-    if (cachedHouseholdContext.userId === session.user.id) {
-      return cachedHouseholdContext.householdId || null;
-    }
-    return null;
-  };
-
-  const cacheHouseholdId = (session, householdId) => {
-    if (!session?.user?.id || !householdId) return;
-    cachedHouseholdContext = {
-      userId: session.user.id,
-      householdId,
-    };
-  };
-
-  const fetchHouseholdId = async (supa, session) => {
-    if (!supa || !session) return null;
-    const cached = getCachedHouseholdId(session);
-    if (cached) return cached;
-
-    try {
-      if (typeof supa.rpc === 'function') {
-        const { data, error } = await supa.rpc('get_my_household_id');
-        if (!error && data) {
-          cacheHouseholdId(session, data);
-          return data;
-        }
-      }
-    } catch (err) {
-      console.warn('shoppingListService: get_my_household_id feilet', err);
-    }
-
-    try {
-      const { data, error } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (!error && data?.household_id) {
-        cacheHouseholdId(session, data.household_id);
-        return data.household_id;
-      }
-    } catch (err) {
-      console.warn('shoppingListService: kunne ikke hente household_id', err);
-    }
-
-    return null;
-  };
 
   const readCache = (prefix, householdId, weekISO) => {
     const key = cacheKey(prefix, householdId, weekISO);
@@ -105,63 +49,29 @@
     }
   };
 
-  const readLegacyList = (weekISO) => {
-    try {
-      const raw = localStorage.getItem(legacyListKey(weekISO));
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return [];
+  const memoryKey = (householdId, weekISO) => `${householdId}_${weekISO}`;
 
-      const flattened = [];
-      parsed.forEach((entry) => {
-        if (entry && Array.isArray(entry.items)) {
-          entry.items.forEach((item) => {
-            if (!item) return;
-            const name = String(item.name || '').trim();
-            if (!name) return;
-            flattened.push({
-              name,
-              category: String(item.category || entry.name || '').trim() || null,
-              quantity: Math.max(1, Number(item.quantity) || 1),
-              checked: !!item.checked,
-            });
-          });
-        } else if (entry && typeof entry === 'object') {
-          const name = String(entry.name || '').trim();
-          if (!name) return;
-          flattened.push({
-            name,
-            category: String(entry.category || '').trim() || null,
-            quantity: Math.max(1, Number(entry.quantity) || 1),
-            checked: !!entry.checked,
-          });
-        }
-      });
-      return flattened;
-    } catch (err) {
-      console.warn('shoppingListService: kunne ikke lese legacy-handleliste', err);
-      return [];
-    }
-  };
+  async function ensureHouseholdContext(supa, weekISO) {
+    if (!supa) throw new Error('Supabase-klient mangler');
+    if (!householdContext?.getHouseholdId) throw new Error('householdContext mangler');
+    const householdId = await householdContext.getHouseholdId(supa);
+    if (!householdId) throw new Error('Fant ikke husstand');
+    return { householdId, weekISO: ensureWeekISO(weekISO) };
+  }
 
-  const readLegacyMenu = (weekISO) => {
-    try {
-      const raw = localStorage.getItem(`${LEGACY_MENU_PREFIX}${weekISO}`);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return null;
-      return parsed;
-    } catch {
-      return null;
-    }
-  };
+  async function getHouseholdId(supa) {
+    const ctxId = await householdContext?.getHouseholdId?.(supa);
+    if (!ctxId) throw new Error('Fant ikke husstand');
+    return ctxId;
+  }
 
-  const fetchItemsFromDB = async (supa, householdId, weekISO) => {
+  async function fetchItemsFromDB(supa, householdId, weekISO) {
+    const normalizedWeek = ensureWeekISO(weekISO);
     const { data, error } = await supa
       .from('shopping_list_items')
       .select('id, name, category, quantity, checked')
       .eq('household_id', householdId)
-      .eq('week_start', weekISO)
+      .eq('week_start', normalizedWeek)
       .order('name', { ascending: true });
 
     if (error) {
@@ -169,14 +79,15 @@
     }
 
     return Array.isArray(data) ? data : [];
-  };
+  }
 
-  const fetchMenuFromDB = async (supa, householdId, weekISO) => {
+  async function fetchMenuFromDB(supa, householdId, weekISO) {
+    const normalizedWeek = ensureWeekISO(weekISO);
     const { data, error } = await supa
       .from('weekly_menu')
       .select('day_key, dish_name')
       .eq('household_id', householdId)
-      .eq('week_start', weekISO);
+      .eq('week_start', normalizedWeek);
 
     if (error) {
       throw error;
@@ -189,77 +100,52 @@
       }
     });
     return menu;
-  };
-
-  const ensureHouseholdContext = async (supa, weekISO) => {
-    if (!supa) throw new Error('Supabase-klient mangler');
-    const session = await fetchSession(supa);
-    if (!session) throw new Error('Ikke innlogget');
-    const householdId = await fetchHouseholdId(supa, session);
-    if (!householdId) throw new Error('Fant ikke husstand');
-    return { session, householdId, weekISO: ensureWeekISO(weekISO) };
-  };
-
-  async function getHouseholdId(supa) {
-    const session = await fetchSession(supa);
-    if (!session) {
-      throw new Error('Ikke innlogget');
-    }
-    const householdId = await fetchHouseholdId(supa, session);
-    if (!householdId) {
-      throw new Error('Fant ikke husstand');
-    }
-    return householdId;
   }
 
   async function loadItemsForWeek(supa, weekISO) {
     const ctx = await ensureHouseholdContext(supa, weekISO);
+    const memKey = memoryKey(ctx.householdId, ctx.weekISO);
+
+    if (inMemoryItems.has(memKey)) {
+      return cloneList(inMemoryItems.get(memKey));
+    }
+
+    const cached = readCache(SHOPPING_CACHE_PREFIX, ctx.householdId, ctx.weekISO);
+    if (Array.isArray(cached) && cached.length) {
+      refreshItems(supa, ctx.householdId, ctx.weekISO).catch((err) => {
+        console.warn('shoppingListService: bakgrunnsoppdatering feilet', err);
+      });
+      inMemoryItems.set(memKey, cached);
+      return cloneList(cached);
+    }
 
     try {
-      let items = await fetchItemsFromDB(supa, ctx.householdId, ctx.weekISO);
-      if (!items.length) {
-        const legacy = readLegacyList(ctx.weekISO);
-        if (legacy.length) {
-          const payload = legacy.map((item) => ({
-            household_id: ctx.householdId,
-            week_start: ctx.weekISO,
-            name: item.name,
-            category: item.category || null,
-            quantity: item.quantity || 1,
-            checked: item.checked === true,
-          }));
-          try {
-            await supa.from('shopping_list_items').insert(payload);
-            items = await fetchItemsFromDB(supa, ctx.householdId, ctx.weekISO);
-          } catch (err) {
-            console.warn('shoppingListService: kunne ikke migrere legacy-data', err);
-            items = legacy.map((item, idx) => ({
-              id: `local_${idx}`,
-              ...item,
-            }));
-          }
-        }
-      }
+      const items = await fetchItemsFromDB(supa, ctx.householdId, ctx.weekISO);
       writeCache(SHOPPING_CACHE_PREFIX, ctx.householdId, ctx.weekISO, items);
+      inMemoryItems.set(memKey, items);
       return items;
     } catch (err) {
-      console.warn('shoppingListService: loadItemsForWeek feilet, bruker cache', err);
-      const cached = readCache(SHOPPING_CACHE_PREFIX, ctx.householdId, ctx.weekISO);
-      if (Array.isArray(cached)) return cached;
-      const legacy = readLegacyList(ctx.weekISO);
-      return legacy.map((item, idx) => ({ id: `local_${idx}`, ...item }));
+      console.warn('shoppingListService: loadItemsForWeek feilet', err);
+      return [];
     }
   }
 
   async function refreshItems(supa, householdId, weekISO) {
+    const normalizedWeek = ensureWeekISO(weekISO);
+    const memKey = memoryKey(householdId, normalizedWeek);
     try {
-      const items = await fetchItemsFromDB(supa, householdId, weekISO);
-      writeCache(SHOPPING_CACHE_PREFIX, householdId, weekISO, items);
+      const items = await fetchItemsFromDB(supa, householdId, normalizedWeek);
+      writeCache(SHOPPING_CACHE_PREFIX, householdId, normalizedWeek, items);
+      inMemoryItems.set(memKey, items);
       return items;
     } catch (err) {
       console.warn('shoppingListService: refreshItems feilet', err);
-      const cached = readCache(SHOPPING_CACHE_PREFIX, householdId, weekISO);
-      return Array.isArray(cached) ? cached : [];
+      const cached = readCache(SHOPPING_CACHE_PREFIX, householdId, normalizedWeek);
+      if (Array.isArray(cached)) {
+        inMemoryItems.set(memKey, cached);
+        return cached;
+      }
+      return [];
     }
   }
 
@@ -348,37 +234,40 @@
 
   async function loadWeeklyMenu(supa, weekISO) {
     const ctx = await ensureHouseholdContext(supa, weekISO);
+    const memKey = memoryKey(ctx.householdId, ctx.weekISO);
+
+    if (inMemoryMenu.has(memKey)) {
+      return { ...inMemoryMenu.get(memKey) };
+    }
+
+    const cached = readCache(MENU_CACHE_PREFIX, ctx.householdId, ctx.weekISO);
+    if (cached) {
+      refreshMenu(supa, ctx.householdId, ctx.weekISO).catch((err) => {
+        console.warn('shoppingListService: bakgrunnsoppdatering meny feilet', err);
+      });
+      inMemoryMenu.set(memKey, cached);
+      return { ...cached };
+    }
+
+    return refreshMenu(supa, ctx.householdId, ctx.weekISO);
+  }
+
+  async function refreshMenu(supa, householdId, weekISO) {
+    const normalizedWeek = ensureWeekISO(weekISO);
+    const memKey = memoryKey(householdId, normalizedWeek);
     try {
-      let menu = await fetchMenuFromDB(supa, ctx.householdId, ctx.weekISO);
-      const hasDish = Object.values(menu).some((dish) => !!dish);
-      if (!hasDish) {
-        const legacy = readLegacyMenu(ctx.weekISO);
-        if (legacy) {
-          const payload = Object.entries(legacy).map(([day_key, dish_name]) => ({
-            household_id: ctx.householdId,
-            week_start: ctx.weekISO,
-            day_key,
-            dish_name,
-          }));
-          if (payload.length) {
-            try {
-              await supa.from('weekly_menu').upsert(payload, {
-                onConflict: 'household_id,week_start,day_key',
-              });
-              menu = await fetchMenuFromDB(supa, ctx.householdId, ctx.weekISO);
-            } catch (err) {
-              console.warn('shoppingListService: kunne ikke migrere meny', err);
-            }
-          }
-        }
-      }
-      writeCache(MENU_CACHE_PREFIX, ctx.householdId, ctx.weekISO, menu);
-      return menu;
+      const menu = await fetchMenuFromDB(supa, householdId, normalizedWeek);
+      writeCache(MENU_CACHE_PREFIX, householdId, normalizedWeek, menu);
+      inMemoryMenu.set(memKey, menu);
+      return { ...menu };
     } catch (err) {
-      console.warn('shoppingListService: loadWeeklyMenu feilet, bruker cache', err);
-      const cached = readCache(MENU_CACHE_PREFIX, ctx.householdId, ctx.weekISO);
-      if (cached) return cached;
-      return readLegacyMenu(ctx.weekISO) || {};
+      console.warn('shoppingListService: refreshMenu feilet', err);
+      const cached = readCache(MENU_CACHE_PREFIX, householdId, normalizedWeek);
+      if (cached) {
+        inMemoryMenu.set(memKey, cached);
+        return { ...cached };
+      }
+      return { mon: '', tue: '', wed: '', thu: '', fri: '', sat: '', sun: '' };
     }
   }
 
@@ -397,7 +286,7 @@
         { onConflict: 'household_id,week_start,day_key' }
       );
 
-    return loadWeeklyMenu(supa, ctx.weekISO);
+    return refreshMenu(supa, ctx.householdId, ctx.weekISO);
   }
 
   global.shoppingListService = {

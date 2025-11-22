@@ -10,9 +10,9 @@
     { name: '📦 Annet', enabled: false, sort_order: 5 },
   ]);
 
+  const householdContext = global.householdContext;
   let inMemoryCategories = [];
   let inMemoryHouseholdId = null;
-  let cachedHouseholdContext = { userId: null, householdId: null };
 
   const cloneList = (list) =>
     Array.isArray(list) ? list.map((item) => ({ ...item })) : [];
@@ -106,67 +106,15 @@
     return defaults;
   }
 
-  const fetchSession = async (supa) => {
-    if (!supa) return null;
+  async function resolveHouseholdId(supa) {
+    if (!supa || !householdContext?.getHouseholdId) return null;
     try {
-      const { data } = await supa.auth.getSession();
-      return data?.session || null;
+      return await householdContext.getHouseholdId(supa);
     } catch (err) {
-      console.warn('categoryService: kunne ikke hente session', err);
+      console.warn('categoryService: kunne ikke hente householdId', err);
       return null;
     }
-  };
-
-  const getCachedHouseholdId = (session) => {
-    if (!session?.user?.id) return null;
-    if (cachedHouseholdContext.userId === session.user.id) {
-      return cachedHouseholdContext.householdId || null;
-    }
-    return null;
-  };
-
-  const cacheHouseholdId = (session, householdId) => {
-    if (!session?.user?.id || !householdId) return;
-    cachedHouseholdContext = {
-      userId: session.user.id,
-      householdId,
-    };
-  };
-
-  const fetchHouseholdId = async (supa, session) => {
-    if (!supa || !session) return null;
-    const cached = getCachedHouseholdId(session);
-    if (cached) return cached;
-
-    try {
-      if (typeof supa.rpc === 'function') {
-        const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
-        if (!rpcError && rpcData) {
-          cacheHouseholdId(session, rpcData);
-          return rpcData;
-        }
-      }
-    } catch (rpcErr) {
-      console.warn('categoryService: get_my_household_id feilet', rpcErr);
-    }
-
-    try {
-      const { data: member, error } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (!error && member?.household_id) {
-        cacheHouseholdId(session, member.household_id);
-        return member.household_id;
-      }
-    } catch (err) {
-      console.warn('categoryService: kunne ikke hente household_id fra members', err);
-    }
-
-    return null;
-  };
+  }
 
   async function fetchCategoriesFromDB(supa, householdId) {
     try {
@@ -218,57 +166,63 @@
   }
 
   async function refreshCategories(supa, householdId) {
+    if (!householdId || !supa) {
+      return loadLegacyFallback();
+    }
+
     const remote = await fetchCategoriesFromDB(supa, householdId);
     if (Array.isArray(remote)) {
-      persistHouseholdCache(householdId, remote);
-      updateInMemory(remote, householdId);
-      return remote;
+      let result = remote;
+      if (remote.length === 0) {
+        result = await seedCategoriesForHousehold(supa, householdId);
+      }
+      persistHouseholdCache(householdId, result);
+      updateInMemory(result, householdId);
+      return result;
     }
+
     const cached = readHouseholdCache(householdId);
     if (cached.length) {
       updateInMemory(cached, householdId);
       return cached;
     }
+
     return loadLegacyFallback();
   }
 
-  async function loadCategorySettingsFromDB(supa) {
-    const session = await fetchSession(supa);
-    if (!session) {
-      return loadLegacyFallback();
-    }
-    const householdId = await fetchHouseholdId(supa, session);
+  async function loadCategorySettingsFromDB(supa, options = {}) {
+    const householdId = await resolveHouseholdId(supa);
     if (!householdId) {
       return loadLegacyFallback();
     }
 
-    let categories = await fetchCategoriesFromDB(supa, householdId);
-    if (Array.isArray(categories)) {
-      if (categories.length === 0) {
-        categories = await seedCategoriesForHousehold(supa, householdId);
-      }
-      persistHouseholdCache(householdId, categories);
-      updateInMemory(categories, householdId);
-      return categories;
+    if (inMemoryCategories.length && inMemoryHouseholdId === householdId) {
+      return cloneList(inMemoryCategories);
     }
 
     const cached = readHouseholdCache(householdId);
     if (cached.length) {
       updateInMemory(cached, householdId);
-      return cached;
+      if (options.refresh !== false) {
+        refreshCategories(supa, householdId).catch((err) => {
+          console.warn('categoryService: bakgrunnsoppdatering feilet', err);
+        });
+      }
+      return cloneList(cached);
     }
 
-    return loadLegacyFallback();
+    const fresh = await refreshCategories(supa, householdId);
+    return cloneList(fresh);
   }
 
-  function loadCategorySettings(supa) {
+  function loadCategorySettings(supa, options = {}) {
     if (!supa) {
       if (!inMemoryCategories.length) {
         return loadLegacyFallback();
       }
       return cloneList(inMemoryCategories);
     }
-    return loadCategorySettingsFromDB(supa);
+    return loadCategorySettingsFromDB(supa, options);
   }
 
   function saveCategorySettings(categories) {
@@ -284,15 +238,11 @@
   }
 
   async function resolveHouseholdContext(supa) {
-    const session = await fetchSession(supa);
-    if (!session) {
-      throw new Error('Ikke innlogget');
-    }
-    const householdId = await fetchHouseholdId(supa, session);
+    const householdId = await resolveHouseholdId(supa);
     if (!householdId) {
       throw new Error('Fant ikke husstand for bruker');
     }
-    return { session, householdId };
+    return { householdId };
   }
 
   async function getNextSortOrder(supa, householdId) {

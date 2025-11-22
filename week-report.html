@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ukesrapport – Familiebudsjett</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
+  <script src="/auth-helpers.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
@@ -529,9 +533,8 @@
 <script>
 (function () {
   // ---------- Supabase init ----------
-  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supaClient?.getClient();
+  const householdCtx = window.householdContext;
   const showToast = (message, type = 'info') => {
     if (window.toast?.show) {
       window.toast.show(message, { type });
@@ -649,28 +652,10 @@
     if (dateUtils.getOrInitActiveWeekISO) {
       return dateUtils.getOrInitActiveWeekISO();
     }
-
-    const storedISO = dateUtils.getActiveWeekISO ? dateUtils.getActiveWeekISO() : null;
-    const computeMonday = () => {
-      if (dateUtils.mondayISO) return dateUtils.mondayISO();
-      const today = new Date();
-      const day = (today.getDay() + 6) % 7;
-      today.setDate(today.getDate() - day);
-      today.setHours(12, 0, 0, 0);
-      return today.toISOString().slice(0, 10);
-    };
-    const currentMonday = computeMonday();
-
-    if (!storedISO || storedISO < currentMonday) {
-      if (dateUtils.setActiveWeekISO) {
-        dateUtils.setActiveWeekISO(currentMonday);
-      } else {
-        localStorage.setItem('activeWeekISO', currentMonday);
-      }
-      return currentMonday;
-    }
-
-    return storedISO;
+    if (dateUtils.mondayISO) return dateUtils.mondayISO();
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today.toISOString().slice(0, 10);
   }
 
   // ---------- Hent budsjett + kjøp ----------
@@ -694,17 +679,15 @@
       }
     }
 
-    const totalBudget = summary?.budget
-      ?? (budgetService?.readWeeklyBudgetLocal
+    const totalBudget = Number.isFinite(summary?.budget)
+      ? Number(summary.budget)
+      : (budgetService?.readWeeklyBudgetLocal
         ? budgetService.readWeeklyBudgetLocal(weekISO)
-        : (() => {
-            const byWeek = parseInt(localStorage.getItem(`weeklyBudget_${weekISO}`) || '', 10);
-            if (!Number.isNaN(byWeek) && byWeek > 0) return byWeek;
-            const globalBudget = parseInt(localStorage.getItem('weeklyBudget') || '', 10);
-            return (!Number.isNaN(globalBudget) && globalBudget > 0) ? globalBudget : 3000;
-          })());
+        : 3000);
 
-    const purchases = summary?.purchases ?? safeGet(`purchases_${weekISO}`, []);
+    const purchases = Array.isArray(summary?.purchases)
+      ? summary.purchases
+      : safeGet(`purchases_${weekISO}`, []);
 
     const spent = summary?.spent
       ?? (budgetUtils.safeSumPurchases
@@ -990,6 +973,13 @@
 
   // ---------- Init ----------
   async function init() {
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+      return;
+    }
+    if (window.authHelpers?.initializeAuthListener) {
+      window.authHelpers.initializeAuthListener(supa);
+    }
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
       if (window.location.pathname !== '/week-report.html') return;

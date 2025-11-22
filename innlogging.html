@@ -14,6 +14,7 @@
 
   <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
 
   <!-- Sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
@@ -283,11 +284,10 @@
 
   <script>
     // ===== Supabase init =====================================================
-    const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-    const SUPABASE_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-
-    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supa = window.supaClient?.getClient();
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+    }
 
     // ===== Element SDK – enkel tekst/tema-konfig ============================
     const defaultConfig = {

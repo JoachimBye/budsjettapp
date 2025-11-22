@@ -14,7 +14,9 @@
 
   <!-- Supabase + auth-helpers -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/store-service.js"></script>
@@ -425,9 +427,8 @@
   };
 
   // ---------- Supabase init ----------
-  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supaClient?.getClient();
+  const householdCtx = window.householdContext;
   const showToast = (message, type = 'info') => {
     if (window.toast?.show) {
       window.toast.show(message, { type });
@@ -574,6 +575,11 @@ function shouldStartCoachTour() {
       opt.textContent = cat.name; // Viser med emoji + navn
       select.appendChild(opt);
     });
+
+    const storeSel = document.getElementById('storeInput');
+    if (storeSel && storeSel.value && storeSel.value !== OTHER_STORE_VALUE) {
+      applyLastCategoryForStore(storeSel.value);
+    }
   }
 
   async function initStoreSelect() {
@@ -616,6 +622,9 @@ function shouldStartCoachTour() {
     select.disabled = false;
     select.required = true;
     updateOtherStoreVisibility();
+    if (select.value && select.value !== OTHER_STORE_VALUE) {
+      applyLastCategoryForStore(select.value);
+    }
   }
 
   // ---------- State for budsjett-hint ----------
@@ -748,6 +757,31 @@ function shouldStartCoachTour() {
     }
   }
 
+  const lastCategoryKey = (storeName) => storeName ? `lastCategoryForStore_${storeName}` : null;
+
+  function rememberLastCategory(storeName, categoryName) {
+    const key = lastCategoryKey(storeName);
+    if (!key || !categoryName) return;
+    try {
+      localStorage.setItem(key, categoryName);
+    } catch (err) {
+      console.warn('Kunne ikke lagre forrige kategori for butikk', err);
+    }
+  }
+
+  function applyLastCategoryForStore(storeName) {
+    const key = lastCategoryKey(storeName);
+    if (!key) return;
+    const last = localStorage.getItem(key);
+    if (!last) return;
+    const categorySelect = document.getElementById('categoryInput');
+    if (!categorySelect) return;
+    const exists = Array.from(categorySelect.options).some((opt) => opt.value === last);
+    if (exists) {
+      categorySelect.value = last;
+    }
+  }
+
   function adjustColor(color, percent) {
     const num = parseInt(color.replace('#',''), 16);
     const amt = Math.round(2.55 * percent);
@@ -770,6 +804,10 @@ function shouldStartCoachTour() {
   // ---------- Lagring til Supabase + localStorage fallback ----------
   async function handleSubmit(e){
     e.preventDefault();
+    if (!supa) {
+      showToast('Klarte ikke kontakte databasen. Prøv igjen.', 'error');
+      return;
+    }
 
     const saveBtn = document.getElementById('saveButton');
     const saveText = document.getElementById('saveButtonText');
@@ -798,14 +836,9 @@ function shouldStartCoachTour() {
       const { data: { session } } = await supa.auth.getSession();
       if (!session) throw new Error('Ikke innlogget');
 
-      let householdId = null;
-      const { data: rpcId, error: rpcErr } = await supa.rpc('get_my_household_id');
-      if (!rpcErr && rpcId) {
-        householdId = rpcId;
-      } else if (rpcErr) {
-        console.error('Feil fra get_my_household_id i add-purchase:', rpcErr);
-      }
-
+      const resolvedHouseholdId = householdCtx?.getHouseholdId
+        ? await householdCtx.getHouseholdId(supa)
+        : null;
       const { data: member, error: memErr } = await supa
         .from('members')
         .select('id, household_id')
@@ -819,9 +852,8 @@ function shouldStartCoachTour() {
         throw new Error('Fant ikke medlemsinfo for denne brukeren.');
       }
 
-      if (!householdId && member.household_id) {
-        householdId = member.household_id;
-      }
+      const householdId = member.household_id || resolvedHouseholdId;
+      const memberId = member.id;
       if (!householdId) {
         throw new Error('Klarte ikke identifisere husstand for kjøpet.');
       }
@@ -838,7 +870,7 @@ function shouldStartCoachTour() {
         .from('purchases')
         .insert({
           household_id: householdId,
-          member_id:    member.id,
+          member_id:    memberId,
           week_start:   weekISO,
           amount:       amountInt,
           store:        store,
@@ -850,6 +882,8 @@ function shouldStartCoachTour() {
         console.error('Insert feil mot purchases:', insErr);
         throw new Error('Lagring feilet i databasen.');
       }
+
+      rememberLastCategory(store, category);
 
       try {
         const localKey = `purchases_${weekISO}`;
@@ -975,6 +1009,10 @@ function shouldStartCoachTour() {
   }
 
   async function init(){
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+      return;
+    }
     // Auth guard (bruk samme "hjerne" som de andre sidene)
     if (window.authHelpers?.protectPage) {
       await window.authHelpers.protectPage(supa);
@@ -1003,7 +1041,13 @@ function shouldStartCoachTour() {
     // Lyttere
     document.getElementById('amountInput').addEventListener('input', () => { updateBudgetHint(); });
     document.getElementById('dateInput').addEventListener('change', () => { updateBudgetHint(); });
-    document.getElementById('storeInput').addEventListener('change', () => { updateOtherStoreVisibility(); });
+    document.getElementById('storeInput').addEventListener('change', () => {
+      updateOtherStoreVisibility();
+      const value = document.getElementById('storeInput').value;
+      if (value && value !== OTHER_STORE_VALUE) {
+        applyLastCategoryForStore(value);
+      }
+    });
 
     document.getElementById('purchaseForm').addEventListener('submit', handleSubmit);
     document.getElementById('backButton').addEventListener('click', () => {

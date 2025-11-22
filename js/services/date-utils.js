@@ -77,7 +77,13 @@
   }
 
   function resolveWeekISOForDate(date) {
-    return localStorage.getItem('activeWeekISO') || mondayISO(date || new Date());
+    if (date) {
+      return mondayISO(date);
+    }
+    if (typeof getOrInitActiveWeekISO === 'function') {
+      return getOrInitActiveWeekISO();
+    }
+    return mondayISO(new Date());
   }
 
   function getISOWeekFromISODate(isoDate) {

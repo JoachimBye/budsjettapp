@@ -11,9 +11,9 @@
     { name: 'Bunnpris', enabled: false },
   ]);
 
+  const householdContext = global.householdContext;
   let inMemoryStores = [];
   let storeHouseholdId = null;
-  let cachedHouseholdContext = { userId: null, householdId: null };
 
   const cloneList = (list) =>
     Array.isArray(list) ? list.map((item) => ({ ...item })) : [];
@@ -103,67 +103,15 @@
     return defaults;
   }
 
-  const fetchSession = async (supa) => {
-    if (!supa) return null;
+  async function resolveHouseholdId(supa) {
+    if (!supa || !householdContext?.getHouseholdId) return null;
     try {
-      const { data } = await supa.auth.getSession();
-      return data?.session || null;
+      return await householdContext.getHouseholdId(supa);
     } catch (err) {
-      console.warn('storeService: kunne ikke hente session', err);
+      console.warn('storeService: kunne ikke hente householdId', err);
       return null;
     }
-  };
-
-  const getCachedHouseholdId = (session) => {
-    if (!session?.user?.id) return null;
-    if (cachedHouseholdContext.userId === session.user.id) {
-      return cachedHouseholdContext.householdId || null;
-    }
-    return null;
-  };
-
-  const cacheHouseholdId = (session, householdId) => {
-    if (!session?.user?.id || !householdId) return;
-    cachedHouseholdContext = {
-      userId: session.user.id,
-      householdId,
-    };
-  };
-
-  const fetchHouseholdId = async (supa, session) => {
-    if (!supa || !session) return null;
-    const cached = getCachedHouseholdId(session);
-    if (cached) return cached;
-
-    try {
-      if (typeof supa.rpc === 'function') {
-        const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
-        if (!rpcError && rpcData) {
-          cacheHouseholdId(session, rpcData);
-          return rpcData;
-        }
-      }
-    } catch (rpcErr) {
-      console.warn('storeService: get_my_household_id feilet', rpcErr);
-    }
-
-    try {
-      const { data: member, error } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (!error && member?.household_id) {
-        cacheHouseholdId(session, member.household_id);
-        return member.household_id;
-      }
-    } catch (err) {
-      console.warn('storeService: kunne ikke hente household_id', err);
-    }
-
-    return null;
-  };
+  }
 
   async function fetchStoresFromDB(supa, householdId) {
     try {
@@ -212,11 +160,17 @@
   }
 
   async function refreshStores(supa, householdId) {
+    if (!supa || !householdId) return loadLegacyFallback();
+
     const remote = await fetchStoresFromDB(supa, householdId);
     if (Array.isArray(remote)) {
-      persistHouseholdCache(householdId, remote);
-      updateInMemory(remote, householdId);
-      return remote;
+      let result = remote;
+      if (remote.length === 0) {
+        result = await seedStoresForHousehold(supa, householdId);
+      }
+      persistHouseholdCache(householdId, result);
+      updateInMemory(result, householdId);
+      return result;
     }
     const cached = readHouseholdCache(householdId);
     if (cached.length) {
@@ -226,43 +180,39 @@
     return loadLegacyFallback();
   }
 
-  async function loadStoreSettingsFromDB(supa) {
-    const session = await fetchSession(supa);
-    if (!session) {
-      return loadLegacyFallback();
-    }
-    const householdId = await fetchHouseholdId(supa, session);
+  async function loadStoreSettingsFromDB(supa, options = {}) {
+    const householdId = await resolveHouseholdId(supa);
     if (!householdId) {
       return loadLegacyFallback();
     }
 
-    let stores = await fetchStoresFromDB(supa, householdId);
-    if (Array.isArray(stores)) {
-      if (stores.length === 0) {
-        stores = await seedStoresForHousehold(supa, householdId);
-      }
-      persistHouseholdCache(householdId, stores);
-      updateInMemory(stores, householdId);
-      return stores;
+    if (inMemoryStores.length && storeHouseholdId === householdId) {
+      return cloneList(inMemoryStores);
     }
 
     const cached = readHouseholdCache(householdId);
     if (cached.length) {
       updateInMemory(cached, householdId);
-      return cached;
+      if (options.refresh !== false) {
+        refreshStores(supa, householdId).catch((err) => {
+          console.warn('storeService: bakgrunnsoppdatering feilet', err);
+        });
+      }
+      return cloneList(cached);
     }
 
-    return loadLegacyFallback();
+    const fresh = await refreshStores(supa, householdId);
+    return cloneList(fresh);
   }
 
-  function loadStoreSettings(supa) {
+  function loadStoreSettings(supa, options = {}) {
     if (!supa) {
       if (!inMemoryStores.length) {
         return loadLegacyFallback();
       }
       return cloneList(inMemoryStores);
     }
-    return loadStoreSettingsFromDB(supa);
+    return loadStoreSettingsFromDB(supa, options);
   }
 
   function saveStoreSettings(stores) {
@@ -278,11 +228,9 @@
   }
 
   async function resolveHouseholdContext(supa) {
-    const session = await fetchSession(supa);
-    if (!session) throw new Error('Ikke innlogget');
-    const householdId = await fetchHouseholdId(supa, session);
+    const householdId = await resolveHouseholdId(supa);
     if (!householdId) throw new Error('Fant ikke husstand');
-    return { session, householdId };
+    return { householdId };
   }
 
   async function addStore(supa, name, options = {}) {

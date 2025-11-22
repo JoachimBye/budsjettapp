@@ -11,6 +11,7 @@
 
   <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="/js/supa-client.js" defer></script>
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript" defer></script>
@@ -83,6 +84,7 @@
         Følg med på forbruket, registrer kjøp, og få kontroll på pengene – sammen som familie.
       </p>
       <button class="cta-button" id="ctaButton">Kom i gang</button>
+      <div id="inviteStatus" class="description" style="margin-top:16px; min-height: 28px;"></div>
     </div>
   </main>
 
@@ -175,28 +177,41 @@
     // ---------- Ruting + Supabase / join_with_code ----------
     window.addEventListener('DOMContentLoaded', async () => {
       const btn = document.getElementById('ctaButton');
+      const statusEl = document.getElementById('inviteStatus');
+
+      const attachDefaultCta = () => {
+        if (!btn) return;
+        btn.disabled = false;
+        btn.textContent = btn.dataset.defaultText || 'Kom i gang';
+        btn.onclick = () => {
+          btn.style.transform = 'scale(0.95)';
+          setTimeout(() => {
+            btn.style.transform = '';
+            window.location.href = '/onboarding1.html';
+          }, 120);
+        };
+      };
 
       // 1) Init tema/Element
       initElementTheme();
 
       // 2) Hvis Supabase-lib ikke er lastet → enkel fallback til innlogging
       if (!window.supabase || !window.supabase.createClient) {
-        btn.addEventListener('click', () => {
-          btn.style.transform = 'scale(0.95)';
-          setTimeout(() => {
-            btn.style.transform = '';
-            window.location.href = '/innlogging.html';
-          }, 120);
+        attachDefaultCta();
+        btn?.addEventListener('click', () => {
+          window.location.href = '/innlogging.html';
         });
         return;
       }
 
-      // Supabase-klient
-      const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-      const SUPABASE_KEY =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-
-      const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const supa = window.supaClient?.getClient();
+      if (!supa) {
+        attachDefaultCta();
+        btn?.addEventListener('click', () => {
+          window.location.href = '/innlogging.html';
+        });
+        return;
+      }
 
       // Lytt på SIGNED_OUT globalt (uten å rydde localStorage – det gjør handleLogout)
       if (window.authHelpers?.initializeAuthListener) {
@@ -206,48 +221,66 @@
       // La auth-helpers bestemme om vi skal være på /index.html eller redirectes
       if (window.authHelpers?.protectPage) {
         await window.authHelpers.protectPage(supa);
-
-        // Hvis vi ble sendt videre (til f.eks. /innlogging.html eller /app.html), stopp
         if (window.location.pathname !== '/index.html') return;
       }
 
-      // Hvis vi fortsatt er her:
-      //  - Bruker er innlogget
-      //  - IKKE setupComplete
-      //  - IKKE ferdig onboardet (ellers hadde protectPage sendt til /takk.html)
-
-      try {
-        const { data: { session } } = await supa.auth.getSession();
-
-        if (session) {
-          const inviteCode =
-            (session.user &&
-             session.user.user_metadata &&
-             session.user.user_metadata.invite_code) ||
-            localStorage.getItem('pending_invite') ||
-            null;
-
-          if (inviteCode) {
-            try {
-              await supa.rpc('join_with_code', { p_code: inviteCode });
-              localStorage.removeItem('pending_invite');
-            } catch (e) {
-              console.warn('join_with_code feilet:', e?.message || e);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Feil under join_with_code/session-henting:', e?.message || e);
+      const { data: { session } } = await supa.auth.getSession();
+      if (!session) {
+        attachDefaultCta();
+        return;
       }
 
-      // Til slutt: knapp → start onboarding
-      btn.addEventListener('click', () => {
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-          btn.style.transform = '';
-          window.location.href = '/onboarding1.html';
-        }, 120);
-      });
+      const inviteCode =
+        localStorage.getItem('pending_invite') ||
+        session.user?.user_metadata?.invite_code ||
+        null;
+
+      const attemptJoin = async () => {
+        if (!inviteCode) return true;
+        if (statusEl) statusEl.textContent = 'Kobler deg til husstanden...';
+        try {
+          const { error } = await supa.rpc('join_with_code', { p_code: inviteCode });
+          if (error) {
+            console.error('join_with_code failed', error);
+            if (statusEl) {
+              statusEl.textContent = 'Kunne ikke koble deg til husstanden. Sjekk invitasjonskoden og prøv igjen.';
+            }
+            return false;
+          }
+          localStorage.removeItem('pending_invite');
+          if (statusEl) statusEl.textContent = 'Du er nå koblet til husstanden 🎉';
+          return true;
+        } catch (e) {
+          console.error('Unexpected error in join_with_code', e);
+          if (statusEl) statusEl.textContent = 'Noe gikk galt. Prøv igjen senere.';
+          return false;
+        }
+      };
+
+      let joinSuccess = true;
+      if (inviteCode) {
+        joinSuccess = await attemptJoin();
+      } else if (statusEl) {
+        statusEl.textContent = '';
+      }
+
+      if (!joinSuccess) {
+        if (btn) {
+          btn.dataset.defaultText = btn.textContent;
+          btn.textContent = 'Prøv igjen';
+          btn.onclick = async () => {
+            btn.disabled = true;
+            const ok = await attemptJoin();
+            btn.disabled = false;
+            if (ok) {
+              attachDefaultCta();
+            }
+          };
+        }
+        return;
+      }
+
+      attachDefaultCta();
     });
   </script>
 </body>

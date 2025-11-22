@@ -2,6 +2,7 @@
   const DEFAULT_WEEKLY_BUDGET = 3000;
   const budgetUtils = global.budgetUtils || {};
   const dateUtils = global.dateUtils || {};
+  const householdContext = global.householdContext;
 
   const safeSum = (list) => {
     if (budgetUtils.safeSumPurchases) {
@@ -51,127 +52,85 @@
     }
   };
 
-  const fetchSession = async (supa) => {
-    if (!supa) return null;
-    try {
-      const { data } = await supa.auth.getSession();
-      return data?.session || null;
-    } catch (err) {
-      console.warn('Klarte ikke hente Supabase-session', err);
-      return null;
-    }
-  };
-
-  let cachedHouseholdContext = { userId: null, householdId: null };
-
-  const cacheHouseholdId = (session, householdId) => {
-    if (!session?.user?.id || !householdId) return;
-    cachedHouseholdContext = {
-      userId: session.user.id,
-      householdId,
-    };
-  };
-
-  const getCachedHouseholdId = (session) => {
-    if (!session?.user?.id) return null;
-    if (cachedHouseholdContext.userId === session.user.id) {
-      return cachedHouseholdContext.householdId || null;
-    }
-    return null;
-  };
-
-  const fetchHouseholdId = async (supa, session) => {
-    if (!supa || !session) return null;
-    const cached = getCachedHouseholdId(session);
-    if (cached) return cached;
-
-    // Prøv å hente via RPC hvis funksjonen er tilgjengelig
-    try {
-      if (typeof supa.rpc === 'function') {
-        const { data: rpcData, error: rpcError } = await supa.rpc('get_my_household_id');
-        if (!rpcError && rpcData) {
-          cacheHouseholdId(session, rpcData);
-          return rpcData;
-        }
+  const ensureWeekISO = (weekISO) => {
+    if (weekISO) {
+      if (dateUtils.resolveWeekISOForDate && dateUtils.dateFromISOLocal) {
+        return dateUtils.resolveWeekISOForDate(dateUtils.dateFromISOLocal(weekISO));
       }
-    } catch (rpcErr) {
-      console.warn('fetchHouseholdId RPC feilet, prøver members-tabellen.', rpcErr);
+      return weekISO;
     }
-
-    try {
-      const { data: member, error } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.warn('Klarte ikke å hente household_id fra members', error);
-        return null;
-      }
-
-      if (member?.household_id) {
-        cacheHouseholdId(session, member.household_id);
-        return member.household_id;
-      }
-    } catch (err) {
-      console.warn('Klarte ikke hente household_id fra members', err);
+    if (dateUtils.getOrInitActiveWeekISO) {
+      return dateUtils.getOrInitActiveWeekISO();
     }
-    return null;
+    if (dateUtils.mondayISO) {
+      return dateUtils.mondayISO();
+    }
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today.toISOString().slice(0, 10);
   };
 
   const fetchBudgetForWeek = async (supa, householdId, weekISO) => {
-    if (!supa || !householdId) return null;
+    const normalizedWeek = ensureWeekISO(weekISO);
+    if (!supa || !householdId) {
+      console.warn('fetchBudgetForWeek: supa eller householdId mangler');
+      return readWeeklyBudgetLocal(normalizedWeek, DEFAULT_WEEKLY_BUDGET);
+    }
+
     try {
       const { data: budgetRow, error: budgetError } = await supa
         .from('household_budgets')
         .select('amount')
         .eq('household_id', householdId)
-        .eq('week_start', weekISO)
+        .eq('week_start', normalizedWeek)
         .maybeSingle();
 
-      if (budgetError) {
-        console.warn('Klarte ikke hente budsjett fra household_budgets', budgetError);
-        return null;
-      }
-
-      if (budgetRow && typeof budgetRow.amount === 'number') {
+      if (!budgetError && budgetRow && typeof budgetRow.amount === 'number') {
+        persistWeeklyBudget(normalizedWeek, budgetRow.amount);
         return budgetRow.amount;
       }
 
       let defaultAmount = DEFAULT_WEEKLY_BUDGET;
-      const { data: household, error: householdErr } = await supa
-        .from('households')
-        .select('default_weekly_budget')
-        .eq('id', householdId)
-        .maybeSingle();
+      try {
+        const { data: household, error: householdErr } = await supa
+          .from('households')
+          .select('default_weekly_budget')
+          .eq('id', householdId)
+          .maybeSingle();
 
-      if (householdErr) {
-        console.warn('Klarte ikke hente default_weekly_budget fra households', householdErr);
-      } else if (typeof household?.default_weekly_budget === 'number') {
-        defaultAmount = household.default_weekly_budget;
+        if (!householdErr && typeof household?.default_weekly_budget === 'number') {
+          defaultAmount = household.default_weekly_budget;
+        } else if (householdErr) {
+          console.warn('Klarte ikke hente default_weekly_budget fra households', householdErr);
+        }
+      } catch (err) {
+        console.warn('Feil ved henting av households.default_weekly_budget', err);
       }
 
-      const { error: upsertError } = await supa
-        .from('household_budgets')
-        .upsert(
-          {
-            household_id: householdId,
-            week_start: weekISO,
-            amount: defaultAmount,
-          },
-          { onConflict: 'household_id,week_start' }
-        );
+      try {
+        const { error: upsertError } = await supa
+          .from('household_budgets')
+          .upsert(
+            {
+              household_id: householdId,
+              week_start: normalizedWeek,
+              amount: defaultAmount,
+            },
+            { onConflict: 'household_id,week_start' }
+          );
 
-      if (upsertError) {
-        console.warn('Klarte ikke opprette budsjett for uke', upsertError);
-        return null;
+        if (upsertError) {
+          console.warn('Klarte ikke opprette budsjett for uke', upsertError);
+        }
+      } catch (err) {
+        console.warn('Feil ved upsert av budsjett', err);
       }
 
+      persistWeeklyBudget(normalizedWeek, defaultAmount);
       return defaultAmount;
     } catch (err) {
       console.warn('Klarte ikke hente/lagre budsjett fra Supabase', err);
-      return null;
+      return readWeeklyBudgetLocal(normalizedWeek, DEFAULT_WEEKLY_BUDGET);
     }
   };
 
@@ -181,76 +140,118 @@
     weekISO,
     selectColumns = 'amount, category'
   ) => {
-    if (!supa || !householdId) return null;
+    const normalizedWeek = ensureWeekISO(weekISO);
+    if (!supa || !householdId) {
+      console.warn('fetchPurchasesForWeek: supa eller householdId mangler');
+      return [];
+    }
     try {
       const { data, error } = await supa
         .from('purchases')
         .select(selectColumns)
         .eq('household_id', householdId)
-        .eq('week_start', weekISO);
+        .eq('week_start', normalizedWeek);
 
       if (error) {
         console.warn('Klarte ikke hente purchases fra Supabase', error);
-        return null;
+        return [];
       }
 
       return Array.isArray(data) ? data : [];
     } catch (err) {
       console.warn('Nettverksfeil ved henting av purchases', err);
-      return null;
+      return [];
     }
   };
 
-  async function loadWeekSummary(supa, weekISO, options = {}) {
-    const activeISO =
-      weekISO ||
-      (dateUtils.getActiveWeekISO
-        ? dateUtils.getActiveWeekISO()
-        : (dateUtils.mondayISO ? dateUtils.mondayISO() : new Date().toISOString().slice(0, 10)));
+  async function fetchWeeklySummary(supa, householdId, weekISO) {
+    const normalizedWeek = ensureWeekISO(weekISO);
+    if (!supa || !householdId || typeof supa.rpc !== 'function') return null;
+    try {
+      const { data, error } = await supa.rpc('get_weekly_summary', {
+        p_household_id: householdId,
+        p_week_start: normalizedWeek,
+      });
+      if (error || !data) return null;
 
-    const defaultBudget = options.defaultBudget ?? DEFAULT_WEEKLY_BUDGET;
-    let budget = readWeeklyBudgetLocal(activeISO, defaultBudget);
-    let purchases = readLocalPurchases(activeISO);
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) return null;
 
-    let session = null;
-    if (options.skipRemote !== true) {
-      session = await fetchSession(supa);
+      const budget = Number(row.budget);
+      const spent = Number(row.spent);
+      return {
+        weekISO: normalizedWeek,
+        budget: Number.isFinite(budget) ? budget : null,
+        spent: Number.isFinite(spent) ? spent : 0,
+      };
+    } catch (err) {
+      console.warn('fetchWeeklySummary RPC feilet', err);
+      return null;
     }
+  }
 
-    if (session && options.skipRemote !== true) {
-      const householdId = await fetchHouseholdId(supa, session);
-      if (householdId) {
-        const remoteBudget = await fetchBudgetForWeek(supa, householdId, activeISO);
-        if (typeof remoteBudget === 'number' && remoteBudget > 0) {
-          budget = remoteBudget;
-          persistWeeklyBudget(activeISO, remoteBudget);
-        }
+  async function loadWeekSummary(supa, weekISO, options = {}) {
+    const activeISO = ensureWeekISO(weekISO);
+    const includePurchases = options.includePurchases !== false;
 
-        if (options.includePurchases !== false) {
-          const remotePurchases = await fetchPurchasesForWeek(
-            supa,
-            householdId,
-            activeISO,
-            options.selectPurchases || 'amount, category'
-          );
-          if (Array.isArray(remotePurchases)) {
-            purchases = remotePurchases;
-            persistPurchases(activeISO, purchases);
+    let budget = readWeeklyBudgetLocal(activeISO, DEFAULT_WEEKLY_BUDGET);
+    let purchases = includePurchases ? readLocalPurchases(activeISO) : [];
+    let spent = includePurchases ? safeSum(purchases) : 0;
+
+    if (supa && options.skipRemote !== true) {
+      try {
+        const householdId = await householdContext?.getHouseholdId?.(supa);
+        if (!householdId) {
+          console.warn('Fant ikke householdId – hopper over remote oppslag');
+        } else {
+          let rpcSummary = null;
+          if (options.useWeeklySummaryRpc !== false) {
+            rpcSummary = await fetchWeeklySummary(supa, householdId, activeISO);
+          }
+
+          if (rpcSummary && Number.isFinite(rpcSummary.budget)) {
+            budget = rpcSummary.budget;
+            spent = Number.isFinite(rpcSummary.spent) ? rpcSummary.spent : spent;
+            persistWeeklyBudget(activeISO, budget);
+          }
+
+          if (!rpcSummary || includePurchases) {
+            const remoteBudget = await fetchBudgetForWeek(supa, householdId, activeISO);
+            if (Number.isFinite(remoteBudget)) {
+              budget = remoteBudget;
+              persistWeeklyBudget(activeISO, remoteBudget);
+            }
+
+            if (includePurchases) {
+              const remotePurchases = await fetchPurchasesForWeek(
+                supa,
+                householdId,
+                activeISO,
+                options.selectPurchases || 'amount, category'
+              );
+              if (Array.isArray(remotePurchases) && remotePurchases.length) {
+                purchases = remotePurchases;
+                spent = safeSum(remotePurchases);
+                persistPurchases(activeISO, remotePurchases);
+              } else if (!rpcSummary) {
+                spent = safeSum(purchases);
+              }
+            }
           }
         }
+      } catch (err) {
+        console.warn('loadWeekSummary: fallback til lokal cache', err);
       }
     }
 
-    const spent = safeSum(purchases);
-    const remaining = (Number(budget) || 0) - spent;
-
+    const remaining = (Number(budget) || 0) - (Number(spent) || 0);
     localStorage.setItem('activeWeekISO', activeISO);
     persistWeeklyBudget(activeISO, Number(budget) || 0);
 
     return {
       weekISO: activeISO,
       budget: Number(budget) || 0,
-      spent,
+      spent: Number(spent) || 0,
       remaining,
       purchases,
     };
@@ -259,5 +260,8 @@
   global.budgetService = Object.freeze({
     loadWeekSummary,
     readWeeklyBudgetLocal,
+    fetchBudgetForWeek,
+    fetchWeeklySummary,
+    fetchPurchasesForWeek,
   });
 })(window);

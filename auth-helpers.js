@@ -176,6 +176,10 @@ async function handleLogout(supa) {
       }
     });
 
+    if (window.householdContext?.clearCache) {
+      window.householdContext.clearCache();
+    }
+
     window.location.href = '/innlogging.html';
   }
 }

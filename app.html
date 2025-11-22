@@ -11,12 +11,14 @@
 
   <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supa-client.js"></script>
 
   <!-- (valgfritt) Tailwind -->
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 
   <!-- Ny: sentral auth/ruting-hjerne -->
   <script src="/auth-helpers.js"></script>
+  <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
@@ -259,6 +261,16 @@
       font-weight:500;
       margin:0;
     }
+    .budget-over .week-pill{
+      background:#d32f2f;
+      box-shadow:0 6px 14px rgba(211,47,47,.4);
+    }
+    .budget-over .circle-bg{background:#fff0f0;}
+    .budget-over .status-bar{
+      background:rgba(211,47,47,0.12);
+      color:#b71c1c;
+    }
+    .budget-over .status-message{color:#b71c1c;}
     .pulse{animation:pulse 2s ease-in-out;}
 
     @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px);}to{opacity:1;transform:translateY(0);}}
@@ -443,9 +455,7 @@
 
 <script>
   // ===== Supabase init ===================================================
-  const SUPABASE_URL = 'https://mmeitnqbnphuabnyamns.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tZWl0bnFibnBodWFibnlhbW5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3ODAzNDUsImV4cCI6MjA3ODM1NjM0NX0.qewZdwM-yfIBKMr-MUuLKX-fpfCy0Gw8agronvVzONY';
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const supa = window.supaClient?.getClient();
   const showToast = (message, type = 'info') => {
     if (window.toast?.show) {
       window.toast.show(message, { type });
@@ -487,41 +497,26 @@
   const dateUtils = window.dateUtils || {};
   const budgetService = window.budgetService || null;
   const budgetUtils = window.budgetUtils || {};
+  const householdCtx = window.householdContext;
 
   // ---------- Uke-hjelpere ----------------------------------------------
   function resolveActiveWeekISO() {
     if (dateUtils.getOrInitActiveWeekISO) {
       return dateUtils.getOrInitActiveWeekISO();
     }
-
-    const storedISO = dateUtils.getActiveWeekISO ? dateUtils.getActiveWeekISO() : null;
-    const computeMonday = () => {
-      if (dateUtils.mondayISO) return dateUtils.mondayISO();
-      const today = new Date();
-      const day = (today.getDay() + 6) % 7;
-      today.setDate(today.getDate() - day);
-      today.setHours(12, 0, 0, 0);
-      return today.toISOString().slice(0, 10);
-    };
-    const currentMonday = computeMonday();
-
-    if (!storedISO || storedISO < currentMonday) {
-      const activeISO = currentMonday;
-      if (dateUtils.setActiveWeekISO) {
-        dateUtils.setActiveWeekISO(activeISO);
-      } else {
-        localStorage.setItem('activeWeekISO', activeISO);
-      }
-      return activeISO;
-    }
-
-    return storedISO;
+    if (dateUtils.mondayISO) return dateUtils.mondayISO();
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    return today.toISOString().slice(0, 10);
   }
 
   function getActiveMondayDate(){
     const iso =
       state.activeWeekISO ||
       resolveActiveWeekISO();
+    if (dateUtils.dateFromISOLocal) {
+      return dateUtils.dateFromISOLocal(iso);
+    }
     const [y, m, d] = iso.split('-').map(Number);
     return new Date(y, m - 1, d, 12, 0, 0, 0);
   }
@@ -613,37 +608,15 @@
 
   async function resolveHouseholdId() {
     if (cachedHouseholdId) return cachedHouseholdId;
+    if (!householdCtx?.getHouseholdId) return null;
     try {
-      const { data: { session } } = await supa.auth.getSession();
-      if (!session) return null;
-
-      if (typeof supa.rpc === 'function') {
-        const { data: rpcId, error: rpcErr } = await supa.rpc('get_my_household_id');
-        if (!rpcErr && rpcId) {
-          cachedHouseholdId = rpcId;
-          return rpcId;
-        }
-      }
-
-      const { data: member, error: memErr } = await supa
-        .from('members')
-        .select('household_id')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (memErr) {
-        console.warn('Kunne ikke hente household_id', memErr);
-        return null;
-      }
-
-      if (member?.household_id) {
-        cachedHouseholdId = member.household_id;
-        return member.household_id;
-      }
+      const id = await householdCtx.getHouseholdId(supa);
+      cachedHouseholdId = id;
+      return id;
     } catch (err) {
       console.warn('resolveHouseholdId feilet', err);
+      return null;
     }
-    return null;
   }
 
   async function loadRecentActivity() {
@@ -912,6 +885,11 @@ function updateBudgetDisplay() {
     setTimeout(() => remainingElement.classList.remove('pulse'), 600);
   }
 
+  const container = document.querySelector('.container');
+  if (container) {
+    container.classList.toggle('budget-over', remainingRaw < 0);
+  }
+
   state.lastRemaining = remainingRaw;
   state.lastSpent = spent;
 }
@@ -1118,6 +1096,10 @@ function updateBudgetDisplay() {
 
   // ---------- Auth + bootstrapping -------------------------------------
   async function main() {
+    if (!supa) {
+      console.error('Supabase-klient mangler');
+      return;
+    }
     // Global auth-listener
     if (window.authHelpers?.initializeAuthListener) {
       window.authHelpers.initializeAuthListener(supa);
