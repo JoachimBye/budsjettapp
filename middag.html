@@ -112,16 +112,16 @@
       display: inline-flex; align-items: center; gap: 10px; padding: 12px 16px;
       border-radius: 14px; background: #f2f7f3; color: #2e4b3b; font-size: 14px; font-weight: 600;
       border: 1px solid #dbe8de; cursor: pointer; transition: all .2s; user-select: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9); justify-content: center;
     }
     .toggle-chip:hover { transform: translateY(-1px); }
     .toggle-chip.active { background: rgba(76,175,80,.12); color: #1f3a2d; border-color: rgba(76,175,80,.35); box-shadow: 0 12px 26px rgba(76,175,80,.16); }
 
-    .suggest-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .suggest-row { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
     .suggest-btn {
-      padding: 14px 24px; background: #4caf50; color: #fff; border: none; border-radius: 999px;
+      padding: 14px 24px; background: #4caf50; color: #fff; border: none; border-radius: 14px;
       font-size: 16px; font-weight: 700; cursor: pointer; transition: all .2s; font-family: inherit;
-      box-shadow: 0 14px 30px rgba(76,175,80,.3);
+      box-shadow: 0 14px 30px rgba(76,175,80,.3); width: 100%;
     }
     .suggest-btn:hover { background: #45a049; transform: translateY(-1px); box-shadow: 0 18px 36px rgba(76,175,80,.3); }
     .suggest-btn:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
@@ -144,9 +144,10 @@
     .recipe-card-inner { display: flex; gap: 16px; align-items: center; }
     .recipe-card-emoji-wrap {
       width: 88px; height: 88px; border-radius: 24px;
-      background: radial-gradient(circle at 30% 30%, #e8f5e9 0%, #d7efdd 50%, #f8fffb 100%);
-      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 28px rgba(44,96,70,.14);
+      background: radial-gradient(circle at 30% 30%, rgba(76,175,80,.12) 0%, rgba(76,175,80,.05) 50%, #f9fdfa 100%);
+      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 10px 24px rgba(44,96,70,.12);
       flex-shrink: 0;
+      border-radius: 50%;
     }
     .recipe-emoji { font-size: 56px; }
     .recipe-card-body { display: flex; flex-direction: column; gap: 10px; flex: 1; }
@@ -155,17 +156,17 @@
     .recipe-meta { display: flex; align-items: center; gap: 10px; color: #5e7467; font-size: 14px; font-weight: 600; flex-wrap: wrap; }
     .meta-item { color: inherit; }
     .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: #c8d7ce; display: inline-block; }
-    .recipe-description { font-size: 14px; color: #5f7367; margin: 0; line-height: 1.5; }
+    .recipe-grid .recipe-description { display: none; }
     .recipe-chips { display: flex; gap: 8px; flex-wrap: wrap; }
     .recipe-chip { padding: 6px 10px; background: #f2f7f3; color: #2e4b3b; font-size: 12px; border-radius: 10px; font-weight: 600; }
     .recipe-chip.price { background: #4caf50; color: #fff; }
     .recipe-actions { display: none; }
     .open-icon {
-      width: 32px; height: 32px; border-radius: 50%; border: 1px solid #dbe8de; background: #f6fbf8;
-      color: #2f5c46; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
-      font-size: 16px; transition: all .2s ease; flex-shrink: 0;
+      width: 28px; height: 28px; border: none; background: transparent;
+      color: #6c8276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 20px; transition: all .2s ease; flex-shrink: 0;
     }
-    .open-icon:hover { background: #eaf4ed; transform: translateX(2px); }
+    .open-icon:hover { transform: translateX(2px); color: #3b5d4a; }
     .open-icon:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
     .meta-inline { display: inline-flex; align-items: center; gap: 10px; }
     .muted { color: #738679; }
@@ -191,11 +192,18 @@
     .modal-close { width: 32px; height: 32px; border: none; background: #f0f0f0; border-radius: 50%; cursor: pointer; font-size: 18px; color: #5a7a6d; display: flex; align-items: center; justify-content: center; }
     .modal-close:hover { background: #e0e0e0; }
     .modal-close:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
-    .modal-price { font-size: 20px; font-weight: 700; color: #4caf50; margin-bottom: 20px; }
+    .modal-price { font-size: 20px; font-weight: 700; color: #4caf50; margin-bottom: 12px; }
+    .modal-meta { font-size: 14px; color: #5f7367; display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+    .modal-meta-dot { width: 4px; height: 4px; border-radius: 50%; background: #c8d7ce; display: inline-block; }
+    .modal .recipe-chips { gap: 6px; margin-bottom: 10px; }
+    .modal .recipe-chip { background: #f2f4f3; color: #2f4438; box-shadow: none; border: none; }
+    .modal .recipe-chip.price { background: #e8f3eb; color: #2f4438; }
 
     .accordion { border: 1px solid rgba(76,175,80,.2); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
     .accordion-header { padding: 16px 20px; background: #f8fffe; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #2d5f4d; user-select: none; }
     .accordion-header:hover { background: #f0f9f4; }
+    .accordion-chevron { color: #6c8276; transition: transform .2s ease; font-size: 18px; }
+    .accordion.open .accordion-chevron { transform: rotate(-180deg); }
     .accordion-content { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
     .accordion.open .accordion-content { max-height: 500px; }
     .accordion-body { padding: 20px; }
@@ -209,8 +217,14 @@
     .step-item { display: flex; gap: 12px; }
     .step-number { width: 24px; height: 24px; background: #4caf50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
     .step-text { font-size: 14px; color: #2d5f4d; line-height: 1.5; }
-    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
     .modal-note { font-size: 12px; color: #5a7a6d; margin-top: 8px; }
+    .modal .btn-primary { width: 100%; border-radius: 14px; height: 52px; font-size: 16px; }
+    .link-button {
+      background: none; border: none; padding: 8px 0; color: #2f5c46; font-weight: 700; font-size: 14px;
+      cursor: pointer; text-decoration: none; align-self: center;
+    }
+    .link-button:hover { text-decoration: underline; }
 
     /* ------ Toast ------ */
     .toast {
@@ -354,7 +368,7 @@
       </div>
 
       <div class="accordion" id="ingredientsAccordion">
-        <div class="accordion-header"><span>Ingredienser</span><span>▼</span></div>
+        <div class="accordion-header"><span>Ingredienser</span><span class="accordion-chevron">⌄</span></div>
         <div class="accordion-content">
           <div class="accordion-body">
             <ul class="ingredient-list" id="ingredientsList"></ul>
@@ -369,8 +383,8 @@
 
       <div class="modal-actions">
         <button class="btn btn-primary" id="addToShoppingBtn">Legg til i handlelista</button>
-        <button class="btn btn-secondary" id="goToListBtn">Åpne handlelista</button>
-        <button class="btn btn-secondary" id="closeModalBtn">Lukk</button>
+        <button class="link-button" id="goToListBtn">Åpne handlelista</button>
+        <button class="btn btn-secondary" id="closeModalBtn" style="display:none;">Lukk</button>
       </div>
     </div>
   </div>
@@ -824,10 +838,15 @@
 
       modalTitle.textContent = recipe.navn;
       modalChips.innerHTML = `
-        <span class="recipe-chip price">${recipe.prisPerMåltid} kr/pers</span>
-        <span class="recipe-chip">${recipe.tidMin} min</span>
-        <span class="recipe-chip">${recipe.vanskelighetsgrad}</span>
-        <span class="recipe-chip">${recipe.kalorier} kcal</span>
+        <div class="modal-meta">
+          <span>${recipe.prisPerMåltid} kr/pers</span>
+          <span class="modal-meta-dot"></span>
+          <span>${recipe.tidMin} min</span>
+          <span class="modal-meta-dot"></span>
+          <span>${recipe.vanskelighetsgrad}</span>
+          <span class="modal-meta-dot"></span>
+          <span>${recipe.kalorier} kcal</span>
+        </div>
       `;
 
       const totalPrice = recipe.prisPerMåltid * state.filters.people;
