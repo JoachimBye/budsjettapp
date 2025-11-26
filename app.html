@@ -68,12 +68,16 @@
       display:flex;
       flex-direction:column;
       gap:12px;
-      background:rgba(255,255,255,0.8);
-      border:1px solid rgba(229,229,234,0.6);
+    }
+    .hero-card{
+      background:#ffffff;
       border-radius:24px;
-      padding:14px 14px 16px;
-      box-shadow:var(--shadow-soft);
-      backdrop-filter:blur(8px);
+      padding:20px 18px 18px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.06);
+      border:1px solid rgba(229,229,234,0.7);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
       animation:fadeInDown .6s ease-out;
     }
     .hero-top{
@@ -156,6 +160,11 @@
       transform-origin:center;
       filter:drop-shadow(0 6px 14px rgba(76,175,80,0.3));
     }
+    .progress-ring .progress-ring-center{
+      fill:#ffffff;
+      transform:rotate(90deg);
+      transform-origin:center;
+    }
     .circle-content{
       position:absolute;
       inset:0;
@@ -208,25 +217,38 @@
       gap:8px;
       text-align:center;
     }
+    .hero-action{
+      display:flex;
+      justify-content:center;
+      margin-top:4px;
+    }
     .pace-indicator{
       font-size:13px;
-      color:var(--text-muted);
-      background:rgba(229,229,234,0.5);
+      color:var(--brand-green-dark);
+      background:var(--accent-soft-green);
       border-radius:999px;
       padding:8px 12px;
       width:100%;
-      max-width:320px;
+      max-width:360px;
+      display:none;
     }
     .status-pill{
-      font-size:14px;
+      font-size:13px;
       font-weight:600;
       color:var(--brand-green-dark);
       background:var(--accent-soft-green);
       border-radius:14px;
-      padding:10px 12px;
+      padding:8px 12px;
       width:100%;
       max-width:360px;
       box-shadow:0 10px 24px rgba(76,175,80,0.16);
+    }
+    .status-row{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      margin-top:2px;
     }
 
     .actions-section{
@@ -247,16 +269,16 @@
       border:none;
       font-size:16px;
       font-weight:700;
-      background:linear-gradient(135deg,#5fd38d,#4caf50);
+      background:var(--brand-green-dark);
       color:#ffffff;
       cursor:pointer;
-      box-shadow:0 10px 30px rgba(76,175,80,0.35);
+      box-shadow:0 10px 18px rgba(45,92,69,0.35);
       transition:transform 0.08s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s ease;
     }
-    .primary-cta:hover{box-shadow:0 12px 34px rgba(76,175,80,0.38);}
+    .primary-cta:hover{box-shadow:0 12px 24px rgba(45,92,69,0.32);}
     .primary-cta:active{
       transform:scale(0.97);
-      box-shadow:0 6px 18px rgba(76,175,80,0.25);
+      box-shadow:0 6px 12px rgba(45,92,69,0.25);
     }
 
     .nav-grid{
@@ -270,7 +292,7 @@
     .nav-card{
       background:#ffffff;
       border-radius:18px;
-      padding:14px 12px;
+      padding:16px 18px;
       box-shadow:0 4px 12px rgba(0,0,0,0.04);
       display:flex;
       flex-direction:column;
@@ -285,23 +307,23 @@
       box-shadow:0 2px 8px rgba(0,0,0,0.06);
     }
     .nav-card-icon{
-      width:28px;
-      height:28px;
+      width:32px;
+      height:32px;
       border-radius:999px;
       background:var(--accent-soft-green);
       display:inline-flex;
       align-items:center;
       justify-content:center;
       color:var(--brand-green-dark);
-      font-size:15px;
+      font-size:18px;
     }
     .nav-card-label{
-      font-size:14px;
+      font-size:15px;
       font-weight:600;
       color:var(--text-main);
     }
     .nav-card-subtitle{
-      font-size:12px;
+      font-size:13px;
       color:var(--text-muted);
       line-height:1.4;
     }
@@ -323,9 +345,9 @@
     }
     .section-title{
       font-size:16px;
-      font-weight:600;
+      font-weight:700;
       color:var(--text-main);
-      margin:0 0 4px 0;
+      margin:0 0 8px 0;
     }
     .recent-list{
       display:flex;
@@ -358,6 +380,7 @@
       color:var(--text-muted);
     }
     .recent-amount{
+      font-size:14px;
       font-weight:700;
       color:var(--text-main);
     }
@@ -426,6 +449,7 @@
       .progress-ring{inset:14px;}
       .remaining-amount{font-size:30px;}
       .week-range{font-size:13px;}
+      /* Sticky CTA can be enabled later if needed */
     }
 
     /* Coach overlay (intro-guide) */
@@ -507,41 +531,46 @@
 <body>
   <main class="app-shell container">
     <section class="hero-section">
-      <div class="hero-top">
-        <div class="week-pill">
-          <span id="weekText">Uke 0</span>
+      <div class="hero-card">
+        <div class="hero-top">
+          <div class="week-pill">
+            <span id="weekText">Uke 0</span>
+          </div>
+          <p class="week-range" id="dateRange">dd.–dd. mmmm</p>
         </div>
-        <p class="week-range" id="dateRange">dd.–dd. mmmm</p>
-      </div>
 
-      <div class="hero-content">
-        <div class="budget-circle">
-          <div class="circle-bg">
-            <div class="circle-progress" id="circleProgress"></div>
-            <svg class="progress-ring" viewBox="0 0 160 160" aria-hidden="true">
-              <circle class="progress-ring-bg" cx="80" cy="80" r="70" fill="none"></circle>
-              <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70" fill="none"></circle>
-            </svg>
+        <div class="hero-content">
+          <div class="budget-circle">
+            <div class="circle-bg">
+              <div class="circle-progress" id="circleProgress"></div>
+              <svg class="progress-ring" viewBox="0 0 160 160" aria-hidden="true">
+                <circle class="progress-ring-bg" cx="80" cy="80" r="70" fill="none"></circle>
+                <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70" fill="none"></circle>
+                <circle class="progress-ring-center" cx="80" cy="80" r="52"></circle>
+              </svg>
+            </div>
+            <div class="circle-content budget-pop">
+              <div class="remaining-amount" id="remainingAmount">0 kr</div>
+              <div class="remaining-text" id="remainingText">igjen denne uka</div>
+            </div>
           </div>
-          <div class="circle-content budget-pop">
-            <div class="remaining-amount" id="remainingAmount">0 kr</div>
-            <div class="remaining-text" id="remainingText">igjen denne uka</div>
-          </div>
+          <div class="spent-summary" id="spentSummary">Brukt 0 kr av 0 kr</div>
         </div>
-        <div class="spent-summary" id="spentSummary">Brukt 0 kr av 0 kr</div>
-        <div class="hero-meta">
+
+        <div class="status-row">
           <div class="pace-indicator" id="paceIndicator"></div>
           <div class="status-pill" id="statusMessage">Bra kontroll så langt 💪</div>
+        </div>
+
+        <div class="hero-action">
+          <button class="primary-cta" id="addPurchaseBtn">
+            Legg til kjøp
+          </button>
         </div>
       </div>
     </section>
 
     <section class="actions-section">
-      <div class="primary-action-wrapper">
-        <button class="primary-cta" id="addPurchaseBtn">
-          Legg til kjøp
-        </button>
-      </div>
       <div class="nav-grid">
         <button class="nav-card" id="shoppingListBtn">
           <div class="nav-card-icon">🧺</div>
