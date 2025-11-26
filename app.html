@@ -126,18 +126,9 @@
       width:100%;
       height:100%;
       border-radius:50%;
-      background:radial-gradient(circle at 30% 30%, rgba(76,175,80,0.08), rgba(233,244,236,0.3));
+      background:#ffffff;
       position:relative;
       overflow:hidden;
-    }
-    .circle-progress{
-      --ring-color:var(--brand-green);
-      --ring-deg:0deg;
-      position:absolute;
-      inset:0;
-      border-radius:50%;
-      background:conic-gradient(var(--ring-color) var(--ring-deg), rgba(229,229,234,0.8) var(--ring-deg));
-      transition:background .6s ease-out;
     }
     .progress-ring{
       position:absolute;
@@ -152,16 +143,19 @@
     }
     .progress-ring .progress-ring-bg{
       stroke:var(--border-light);
+      fill:none;
     }
     .progress-ring .progress-ring-progress{
-      stroke:var(--brand-green);
+      stroke:var(--brand-green, #2d5c45);
       stroke-linecap:round;
+      fill:none;
       transition:stroke-dashoffset 1.2s cubic-bezier(0.2,0.8,0.2,1), stroke 0.4s ease;
       transform-origin:center;
       filter:drop-shadow(0 6px 14px rgba(76,175,80,0.3));
     }
     .progress-ring .progress-ring-center{
       fill:#ffffff;
+      stroke:none;
       transform:rotate(90deg);
       transform-origin:center;
     }
@@ -222,16 +216,6 @@
       justify-content:center;
       margin-top:4px;
     }
-    .pace-indicator{
-      font-size:13px;
-      color:var(--brand-green-dark);
-      background:var(--accent-soft-green);
-      border-radius:999px;
-      padding:8px 12px;
-      width:100%;
-      max-width:360px;
-      display:none;
-    }
     .status-pill{
       font-size:13px;
       font-weight:600;
@@ -242,13 +226,11 @@
       width:100%;
       max-width:360px;
       box-shadow:0 10px 24px rgba(76,175,80,0.16);
-    }
-    .status-row{
+      margin:2px auto 0;
+      text-align:center;
       display:flex;
-      flex-direction:column;
+      justify-content:center;
       align-items:center;
-      gap:6px;
-      margin-top:2px;
     }
 
     .actions-section{
@@ -542,7 +524,6 @@
         <div class="hero-content">
           <div class="budget-circle">
             <div class="circle-bg">
-              <div class="circle-progress" id="circleProgress"></div>
               <svg class="progress-ring" viewBox="0 0 160 160" aria-hidden="true">
                 <circle class="progress-ring-bg" cx="80" cy="80" r="70" fill="none"></circle>
                 <circle class="progress-ring-progress" id="budgetProgressRing" cx="80" cy="80" r="70" fill="none"></circle>
@@ -557,10 +538,7 @@
           <div class="spent-summary" id="spentSummary">Brukt 0 kr av 0 kr</div>
         </div>
 
-        <div class="status-row">
-          <div class="pace-indicator" id="paceIndicator"></div>
-          <div class="status-pill" id="statusMessage">Bra kontroll så langt 💪</div>
-        </div>
+        <div class="status-pill" id="motivationMessage">Bra kontroll så langt 💪</div>
 
         <div class="hero-action">
           <button class="primary-cta" id="addPurchaseBtn">
@@ -938,10 +916,8 @@ function updateBudgetDisplay() {
   const remainingElement = document.getElementById('remainingAmount');
   const remainingText    = document.getElementById('remainingText');
   const spentSummaryEl   = document.getElementById('spentSummary');
-  const circleProgress   = document.getElementById('circleProgress');
-  const statusMsg        = document.getElementById('statusMessage');
+  const motivationMsg    = document.getElementById('motivationMessage');
   const mealSubtitle     = document.getElementById('mealPlanSubtitle');
-  const paceEl           = document.getElementById('paceIndicator');
   const progressRing     = document.getElementById('budgetProgressRing');
 
   const radius = progressRing?.r?.baseVal?.value || 70;
@@ -962,20 +938,12 @@ function updateBudgetDisplay() {
     if (spentSummaryEl) {
       spentSummaryEl.textContent = 'Henter data…';
     }
-    if (circleProgress) {
-      circleProgress.style.setProperty('--ring-color', '#d1d5db');
-      circleProgress.style.setProperty('--ring-deg', '0deg');
-    }
     if (progressRing) {
       progressRing.style.stroke = '#d1d5db';
       progressRing.style.strokeDashoffset = circumference;
     }
-    if (statusMsg) {
-      statusMsg.textContent = 'Henter ukedata…';
-    }
-    if (paceEl) {
-      paceEl.textContent = '';
-      paceEl.style.display = 'none';
+    if (motivationMsg) {
+      motivationMsg.textContent = 'Henter ukedata…';
     }
     return;
   }
@@ -1011,24 +979,22 @@ function updateBudgetDisplay() {
   }
 
   let color  = '#4caf50';   // ring-farge
-  let ringDeg = 0;
   let status = 'Bra kontroll så langt 💪';
-  const pctDisplay = total > 0 ? Math.min((spent / total) * 100, 150) : 0;
+  let warningText = '';
+  let paceText = '';
   const ratio = total > 0 ? (spent / total) : 0;
 
   if (total > 0) {
-    ringDeg = Math.min(360, Math.max(0, pctDisplay * 3.6));
-
     if (ratio >= 1.0) {
       // OVER budsjett – full rød ring, hvit tekst for maks kontrast
       color = '#d32f2f';
-      ringDeg = 360;
 
       remainingElement?.classList.add('over');
       remainingText?.classList.add('over');
       if (remainingText) remainingText.textContent = 'overskredet';
 
-      status = 'Over budsjett – kutt kostnader 💸';
+      warningText = 'Over budsjett – kutt kostnader 💸';
+      status = warningText;
 
     } else if (ratio >= 0.7) {
       // NÆR budsjett – gul ring, mørk gul/brun tekst
@@ -1038,7 +1004,8 @@ function updateBudgetDisplay() {
       remainingText?.classList.add('warn');
       if (remainingText) remainingText.textContent = 'igjen denne uka';
 
-      status = 'Nær budsjett – vurder billigere valg ⚠️';
+      warningText = 'Nær budsjett – vurder billigere valg ⚠️';
+      status = warningText;
 
     } else {
       // God kontroll – grønn ring, mørk tekst
@@ -1049,7 +1016,6 @@ function updateBudgetDisplay() {
   } else {
     // Ikke satt budsjett
     color = '#4caf50';
-    ringDeg = 0;
     if (remainingElement) remainingElement.style.color = '#1c1c1e';
     if (remainingText) {
       remainingText.style.color    = '#8e8e93';
@@ -1070,11 +1036,6 @@ function updateBudgetDisplay() {
     } else {
       remainingElement.textContent = formatKr(remainingDisplay);
     }
-  }
-
-  if (circleProgress) {
-    circleProgress.style.setProperty('--ring-color', color);
-    circleProgress.style.setProperty('--ring-deg', `${ringDeg}deg`);
   }
 
   if (progressRing) {
@@ -1106,32 +1067,35 @@ function updateBudgetDisplay() {
       : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
   }
 
-  if (summaryLoadError) {
-    statusMsg.textContent = summaryLoadError;
-  } else {
-    statusMsg.textContent = status;
+  if (total > 0) {
+    const today = new Date();
+    const dayIndex = (today.getDay() + 6) % 7; // 0 = mandag
+    const weekProgress = (dayIndex + 1) / 7;
+    const budgetRatio = spent / total;
+
+    let text = '👍 Dere følger budsjettet ganske bra.';
+    if (budgetRatio > weekProgress + 0.15) {
+      text = '🔥 Forbruket er litt høyt for denne ukedagen – ta en rolig dag?';
+    } else if (budgetRatio < weekProgress - 0.1) {
+      text = '🐢 Dere ligger godt an denne uka – super kontroll!';
+    }
+
+    paceText = text;
   }
 
-  if (paceEl) {
-    if (total > 0) {
-      paceEl.style.display = 'block';
-      const today = new Date();
-      const dayIndex = (today.getDay() + 6) % 7; // 0 = mandag
-      const weekProgress = (dayIndex + 1) / 7;
-      const budgetRatio = spent / total;
+  let motivationText = 'Bra kontroll så langt 💪';
+  if (summaryLoadError) {
+    motivationText = summaryLoadError;
+  } else if (warningText) {
+    motivationText = warningText;
+  } else if (paceText) {
+    motivationText = paceText;
+  } else {
+    motivationText = status || 'Bra kontroll så langt 💪';
+  }
 
-      let text = '👍 Dere følger budsjettet ganske bra.';
-      if (budgetRatio > weekProgress + 0.15) {
-        text = '🔥 Forbruket er litt høyt for denne ukedagen – ta en rolig dag?';
-      } else if (budgetRatio < weekProgress - 0.1) {
-        text = '🐢 Dere ligger godt an denne uka – super kontroll!';
-      }
-
-      paceEl.textContent = text;
-    } else {
-      paceEl.textContent = '';
-      paceEl.style.display = 'none';
-    }
+  if (motivationMsg) {
+    motivationMsg.textContent = motivationText;
   }
 
   // Liten “pulse” når tallene oppdateres
@@ -1175,7 +1139,7 @@ function updateBudgetDisplay() {
       { id: 'dateRange',       size: baseSize * 1.05, color: secondaryTextColor },
       { id: 'remainingAmount', size: baseSize * 2,    color: primaryActionColor },
       { id: 'remainingText',   size: baseSize * 0.95, color: textColor },
-      { id: 'statusMessage',   size: baseSize,        color: secondaryTextColor }
+      { id: 'motivationMessage', size: baseSize,      color: secondaryTextColor }
     ];
     elements.forEach(el => {
       const node = document.getElementById(el.id);
@@ -1206,7 +1170,7 @@ function updateBudgetDisplay() {
 
     const circleBg  = document.querySelector('.circle-bg');
     const statusPill = document.querySelector('.status-pill');
-    if (circleBg)  circleBg.style.background = adjustColor(primaryActionColor, 85);
+    if (circleBg)  circleBg.style.background = '#ffffff';
     if (statusPill) statusPill.style.background = adjustColor(primaryActionColor, 82);
   }
 
@@ -1267,9 +1231,9 @@ function updateBudgetDisplay() {
     },
     {
       id: 'pace',
-      selector: '#paceIndicator',
-      title: 'Ligger dere foran eller bak?',
-      text: 'Vi sammenligner forbruket deres med hvor langt ut i uken vi er.'
+      selector: '#motivationMessage',
+      title: 'Ukens motivasjon',
+      text: 'Her får dere én samlet statuslinje for hvordan budsjettet ligger an.'
     },
     {
       id: 'add',
