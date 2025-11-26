@@ -52,7 +52,7 @@
 
     .settings-header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       gap: 12px;
     }
 
@@ -81,11 +81,16 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
     }
 
-    .header-text {
+    .settings-title-group {
       flex: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
 
-    .header-eyebrow {
+    .settings-eyebrow {
       margin: 4px 0 6px;
       font-size: 12px;
       letter-spacing: 0.06em;
@@ -94,18 +99,19 @@
       font-weight: 700;
     }
 
-    .header-text h1 {
+    .settings-title {
       margin: 0 0 6px;
       font-size: 32px;
       font-weight: 800;
       color: var(--text-strong);
     }
 
-    .header-subtitle {
+    .settings-subtitle {
       margin: 0;
       color: var(--text-muted);
       font-size: 16px;
       line-height: 1.45;
+      max-width: 620px;
     }
 
     .section-block {
@@ -443,7 +449,7 @@
     }
 
     @media (max-width: 640px) {
-      .header-text h1 {
+      .settings-title {
         font-size: 26px;
       }
 
@@ -469,10 +475,10 @@
   <div class="settings-shell">
     <header class="settings-header">
       <button class="back-button" id="back-button" type="button" aria-label="Oversikt">← Oversikt</button>
-      <div class="header-text">
-        <div class="header-eyebrow">Husholdningsbudsjett</div>
-        <h1 id="page-title">Innstillinger</h1>
-        <p id="page-subtitle" class="header-subtitle">Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.</p>
+      <div class="settings-title-group">
+        <div class="settings-eyebrow">Husholdningsbudsjett</div>
+        <h1 id="page-title" class="settings-title">Innstillinger</h1>
+        <p id="page-subtitle" class="settings-subtitle">Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.</p>
       </div>
     </header>
 
@@ -555,7 +561,6 @@
         </div>
         <div class="list-row note-row">
           <div class="row-left">
-            <p class="household-note">Disse innstillingene gjelder for alle som bruker husholdningen.</p>
             <a href="#" class="admin-link">Administrer husholdning (kommer senere)</a>
           </div>
         </div>
