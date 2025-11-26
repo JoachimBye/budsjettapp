@@ -17,6 +17,7 @@
   <script src="/js/services/category-service.js"></script>
   <script src="/js/services/store-service.js"></script>
   <script src="/js/ui/toast.js"></script>
+  <script src="/js/ui/coach.js"></script>
 
   <style>
     :root {
@@ -655,6 +656,40 @@
     { name: 'Bunnpris', enabled: false }
   ];
 
+  const coachEngine = window.CoachEngine ? new window.CoachEngine() : null;
+  if (coachEngine) {
+    window.coachEngine = coachEngine;
+  }
+
+  const settingsTourSteps = [
+    {
+      id: 'budget-hero',
+      selector: '.budget-card',
+      title: 'Ukesbudsjettet deres',
+      text: 'Her setter dere summen dere ønsker å bruke på mat og husholdning hver uke. Dette blir standard for nye uker.',
+    },
+    {
+      id: 'categories',
+      selector: '#category-list',
+      title: 'Kategorier for kjøp',
+      text: 'Her kan dere skru av kategorier dere ikke bruker, og trykke på navn for å endre tekst eller emoji.',
+      waitCondition: () => document.querySelectorAll('#category-list .list-row').length > 1,
+    },
+    {
+      id: 'stores',
+      selector: '#store-list',
+      title: 'Butikker',
+      text: 'Tilpass listen over butikker som dukker opp når dere legger inn nye kjøp.',
+      waitCondition: () => document.querySelectorAll('#store-list .list-row').length > 1,
+    },
+    {
+      id: 'logout',
+      selector: '#logout-btn',
+      title: 'Husholdning & konto',
+      text: 'Her kan du logge ut hvis du skal bytte bruker eller husholdning.',
+    },
+  ];
+
   function cloneList(list) {
     return Array.isArray(list) ? list.map(item => ({ ...item })) : [];
   }
@@ -1232,6 +1267,14 @@
           e.preventDefault();
           addStore();
         }
+      });
+    }
+
+    if (coachEngine) {
+      coachEngine.startTour({
+        pageId: 'settings',
+        version: 1,
+        steps: settingsTourSteps,
       });
     }
   }
