@@ -154,23 +154,22 @@
     }
 
     .ghost-button {
-      border: 1px solid var(--divider);
-      background: rgba(16, 185, 129, 0.08);
+      border: none;
+      background: transparent;
       color: var(--green);
-      padding: 10px 16px;
+      padding: 8px 4px;
       font-weight: 700;
-      border-radius: 14px;
+      border-radius: 10px;
       cursor: pointer;
-      min-height: 40px;
+      min-height: 36px;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+      transition: color 0.2s ease, transform 0.15s ease;
     }
 
     .ghost-button:hover {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: #c6eada;
+      color: #0f8f63;
       transform: translateY(-1px);
     }
 
@@ -268,7 +267,7 @@
       content: '';
       position: absolute;
       top: 0;
-      left: 16px;
+      left: 20px;
       right: 0;
       height: 1px;
       background: var(--divider);
@@ -293,17 +292,6 @@
 
     .row-label.editable:hover {
       color: #0f5132;
-    }
-
-    .row-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-      opacity: 0.7;
-      transition: opacity 0.15s ease;
-    }
-
-    .list-row:hover .row-hint {
-      opacity: 1;
     }
 
     .row-value {
@@ -447,6 +435,13 @@
       background: #fff5f5;
     }
 
+    .list-footnote {
+      margin: 8px 4px 0 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
     @media (max-width: 640px) {
       .header-text h1 {
         font-size: 26px;
@@ -473,7 +468,7 @@
 <body>
   <div class="settings-shell">
     <header class="settings-header">
-      <button class="back-button" id="back-button" type="button" aria-label="Tilbake til oversikten">← Tilbake til oversikten</button>
+      <button class="back-button" id="back-button" type="button" aria-label="Oversikt">← Oversikt</button>
       <div class="header-text">
         <div class="header-eyebrow">Husholdningsbudsjett</div>
         <h1 id="page-title">Innstillinger</h1>
@@ -520,6 +515,7 @@
           <div class="list-row note-row loading-text">Laster kategorier…</div>
         </div>
       </div>
+      <p class="list-footnote">Tips: Du kan trykke på en kategori for å endre navn.</p>
     </section>
 
     <section class="section-block">
@@ -537,6 +533,7 @@
           <div class="list-row note-row loading-text">Laster butikker…</div>
         </div>
       </div>
+      <p class="list-footnote">Tips: Du kan trykke på en butikk for å endre navn.</p>
     </section>
 
     <section class="section-block">
@@ -578,7 +575,7 @@
     page_title: "Innstillinger",
     page_subtitle: "Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.",
     household_name: "Fam. Hansen",
-    back_button_text: "Tilbake til oversikten"
+    back_button_text: "Oversikt"
   };
 
   function onConfigChange(config) {
@@ -772,7 +769,6 @@
         row.innerHTML = `
           <div class="row-left">
             <span class="row-label editable"></span>
-            <span class="row-hint">Trykk for å endre navn</span>
           </div>
           <label class="switch">
             <input type="checkbox">
@@ -856,7 +852,6 @@
         row.innerHTML = `
           <div class="row-left">
             <span class="row-label editable"></span>
-            <span class="row-hint">Trykk for å endre navn</span>
           </div>
           <label class="switch">
             <input type="checkbox">
