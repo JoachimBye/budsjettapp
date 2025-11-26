@@ -20,175 +20,252 @@
   <script src="/auth-helpers.js"></script>
 
   <style>
-    body {
-      box-sizing: border-box; margin: 0; padding: 0; min-height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 2rem 1rem;
-      overflow: hidden;
-      position: relative;
+    :root {
+      --bg-app: #F9FAF9;
+      --bg-card: #FFFFFF;
+      --brand-green: #4A7A65;
+      --brand-green-dark: #2D5C45;
+      --accent-soft-green: #E8F5E9;
+      --text-main: #1C1C1E;
+      --text-secondary: #636366;
+      --text-muted: #8E8E93;
+      --border-radius-card: 24px;
+      --border-radius-input: 12px;
+      --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.08);
     }
+
     * { box-sizing: border-box; }
 
-    .card {
-      background:#fff; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,.1);
-      padding:2.5rem; max-width:480px; width:100%; margin-bottom:1.5rem;
-      position: relative;
-      z-index: 10;
+    body {
+      margin: 0;
+      padding: 32px 16px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(140% 120% at 50% 0%, #ffffff 0%, var(--bg-app) 55%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      color: var(--text-main);
     }
-    .title {
-      font-size:1.75rem; font-weight:700; color:#1b5e20;
-      margin-bottom:.5rem; text-align:center;
-    }
-    .subtitle {
-      font-size:1rem; color:#558b2f; margin-bottom:2rem;
-      text-align:center; line-height:1.5;
-    }
-    .form-group { margin-bottom:1.5rem; }
-    label {
-      display:block; font-size:.9rem; font-weight:600;
-      color:#2e7d32; margin-bottom:.5rem;
-    }
-    input {
-      width:100%; padding:.875rem 1rem;
-      border:2px solid #c8e6c9; border-radius:.5rem;
-      font-size:1rem; transition:all .3s ease; background:#fff;
-      position: relative;
-    }
-    input:focus {
-      outline:none; border-color:#4caf50;
-      box-shadow:0 0 0 3px rgba(76,175,80,.1);
-    }
-    .hint { font-size:.85rem; color:#689f38; margin-top:.5rem; line-height:1.4; }
 
-    .submit-btn {
-      width:100%; padding:1rem; background:#4caf50; color:#fff;
-      border:none; border-radius:.5rem; font-size:1.1rem;
-      font-weight:600; cursor:pointer; transition:all .3s ease; margin-top:1rem;
+    .auth-card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius-card);
+      box-shadow: var(--shadow-card);
+      padding: 28px 28px 32px;
+      max-width: 420px;
+      width: 100%;
+      margin: 24px auto;
+      position: relative;
     }
-    .submit-btn:hover {
-      background:#45a049; transform:translateY(-2px);
-      box-shadow:0 4px 12px rgba(76,175,80,.3);
+
+    .login-card {
+      animation: cardEnter 0.6s 0.05s ease-out backwards;
     }
-    .submit-btn:disabled {
-      background:#a5d6a7; cursor:not-allowed; transform:none;
-      box-shadow:none;
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin: 0 0 8px;
+      text-align: center;
+      letter-spacing: -0.01em;
+    }
+
+    .auth-subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin: 0 0 24px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .auth-field-group {
+      margin-bottom: 16px;
+    }
+
+    .auth-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .auth-input {
+      width: 100%;
+      height: 50px;
+      border-radius: var(--border-radius-input);
+      border: none;
+      background: #F2F2F7;
+      padding: 0 14px;
+      font-size: 16px;
+      color: var(--text-main);
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+      transition: box-shadow 0.2s ease, background-color 0.2s ease, transform 0.08s ease;
+    }
+
+    .auth-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .auth-input:focus {
+      background: #FFFFFF;
+      box-shadow:
+        0 0 0 1px rgba(74, 122, 101, 0.25),
+        0 0 0 4px rgba(74, 122, 101, 0.08);
+    }
+
+    .auth-input.pulse-once {
+      animation: softPulse 1.4s ease-out 0.8s 2;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .submit-btn,
+    .auth-button-primary {
+      width: 100%;
+      height: 52px;
+      border-radius: 16px;
+      border: none;
+      background: var(--brand-green);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(74, 122, 101, 0.4);
+      transition:
+        transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.12s ease,
+        opacity 0.2s ease;
+      margin-top: 6px;
+    }
+
+    .auth-button-primary:hover:not(:disabled) {
+      box-shadow: 0 10px 24px rgba(74, 122, 101, 0.45);
+    }
+
+    .auth-button-primary:active:not(:disabled) {
+      transform: scale(0.96);
+      box-shadow: 0 4px 10px rgba(74, 122, 101, 0.35);
+    }
+
+    .auth-button-primary:disabled {
+      opacity: 0.55;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .auth-button-primary .spinner {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-top-color: rgba(255, 255, 255, 1);
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .auth-button-primary.loading .spinner {
+      display: inline-block;
+    }
+
+    .auth-button-primary.loading {
+      cursor: progress;
     }
 
     .success-message {
-      background:#e8f5e9; border:2px solid #4caf50;
-      border-radius:.5rem; padding:1rem; margin-top:1rem;
-      display:none; align-items:center; gap:.75rem;
+      background: var(--accent-soft-green);
+      border: 1px solid rgba(74, 122, 101, 0.18);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-top: 16px;
+      display: none;
+      align-items: center;
+      gap: 10px;
     }
-    .success-message.show { display:flex; }
-    .success-text { color:#2e7d32; font-weight:600; flex:1; }
+
+    .success-message.show { display: flex; }
+
+    .success-text {
+      color: var(--text-main);
+      font-weight: 500;
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
     .login-link {
-      text-align:center; margin-top:1.5rem;
-      font-size:.9rem; color:#558b2f;
-    }
-    .login-link a {
-      color:#2e7d32; text-decoration:none; font-weight:600;
-    }
-    .login-link a:hover { text-decoration:underline; }
-
-    .footer {
-      text-align:center; color:#558b2f; font-size:.85rem;
+      text-align: center;
+      margin-top: 18px;
+      font-size: 14px;
+      color: var(--text-secondary);
     }
 
-    /* Inline feilmelding */
+    .auth-link {
+      color: var(--brand-green-dark);
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.15s ease, text-decoration 0.15s ease;
+    }
+
+    .auth-link:hover {
+      text-decoration: underline;
+      color: var(--brand-green);
+    }
+
+    .footer,
+    .auth-footer-note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
     .error-hint {
-      margin-top: .75rem;
-      font-size: .85rem;
+      margin-top: 10px;
+      font-size: 13px;
       color: #d32f2f;
-      line-height: 1.4;
+      line-height: 1.5;
+      text-align: center;
     }
 
-    @media (max-width:640px){
-      .card{padding:1.5rem}
-      .title{font-size:1.5rem}
+    @keyframes softPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(74, 122, 101, 0.28); }
+      100% { box-shadow: 0 0 0 14px rgba(74, 122, 101, 0); }
+    }
+
+    @keyframes cardEnter {
+      0%   { opacity: 0; transform: translateY(24px) scale(0.97); }
+      60%  { opacity: 1; transform: translateY(0) scale(1.01); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      body { padding: 24px 16px 32px; }
+      .auth-card { padding: 24px; margin: 12px auto; }
+      .auth-title { font-size: 22px; }
+      .auth-subtitle { font-size: 14px; }
     }
 
     @view-transition { navigation: auto; }
 
-    /* --- Flytende "boble"-bakgrunn --- */
-    .floating-bubbles {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    .bubble {
-      position: absolute;
-      border-radius: 9999px;
-      background: radial-gradient(circle, rgba(200, 230, 201, 0.5), rgba(240, 244, 195, 0.3));
-      animation: floatUpDown 25s ease-in-out infinite;
-    }
-    .bubble-1 {
-      width: 200px;
-      height: 200px;
-      top: 10%;
-      left: 5%;
-      animation-duration: 30s;
-    }
-    .bubble-2 {
-      width: 300px;
-      height: 300px;
-      top: 60%;
-      right: -10%;
-      animation-duration: 25s;
-      animation-delay: 2s;
-    }
-    .bubble-3 {
-      width: 150px;
-      height: 150px;
-      bottom: 5%;
-      left: 30%;
-      animation-duration: 20s;
-    }
-    .bubble-4 {
-      width: 250px;
-      height: 250px;
-      top: -5%;
-      left: 60%;
-      animation-duration: 35s;
-      animation-delay: 1s;
-    }
-
-    @keyframes floatUpDown {
-      0%   { transform: translateY(0) translateX(0) scale(1);   opacity: 0.65; }
-      50%  { transform: translateY(-28px) translateX(10px) scale(1.05); opacity: 0.9; }
-      100% { transform: translateY(0) translateX(0) scale(1);   opacity: 0.65; }
-    }
-
-    /* Pop-in animasjon på kortet */
-    .login-card {
-      animation: cardEnter 0.6s 0.1s ease-out backwards;
-    }
-
-    @keyframes cardEnter {
-      0%   { opacity: 0; transform: translateY(24px) scale(0.96); }
-      60%  { opacity: 1; transform: translateY(0) scale(1.02); }
-      100% { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Invitasjonskode "pulse" */
-    input#invite.pulse-once {
-      animation: softPulse 1.4s ease-out 0.8s 2;
-    }
-
-    @keyframes softPulse {
-      0%   { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.40); }
-      100% { box-shadow: 0 0 0 14px rgba(76, 175, 80, 0.00); }
-    }
-
-    /* Redusert bevegelse */
     @media (prefers-reduced-motion: reduce) {
-      .floating-bubbles .bubble,
       .login-card,
-      input#invite.pulse-once {
+      .auth-input.pulse-once {
         animation: none !important;
         transition: none !important;
       }
@@ -196,25 +273,16 @@
   </style>
 </head>
 <body>
-
-  <!-- Bakgrunnsbobler -->
-  <div class="floating-bubbles" aria-hidden="true">
-    <span class="bubble bubble-1"></span>
-    <span class="bubble bubble-2"></span>
-    <span class="bubble bubble-3"></span>
-    <span class="bubble bubble-4"></span>
-  </div>
-
-  <div class="card login-card">
-    <h1 class="title" id="main-title">Bli med i familie betaen</h1>
-    <p class="subtitle" id="subtitle">
-      Du er invitert til å teste vår nye budsjett app før alle andre.
+  <div class="card auth-card login-card">
+    <h1 class="title auth-title" id="main-title">Bli med i familie betaen</h1>
+    <p class="subtitle auth-subtitle" id="subtitle">
+      Vi sender deg en magisk lenke på e-post slik at du kan komme i gang.
     </p>
 
     <form id="loginForm">
       <!-- Steg 1: e-post -->
-      <div class="form-group" id="emailGroup">
-        <label for="email" id="email-label">E-postadresse</label>
+      <div class="form-group auth-field-group" id="emailGroup">
+        <label for="email" class="auth-label" id="email-label">E-postadresse</label>
         <input
           type="email"
           id="email"
@@ -222,19 +290,21 @@
           required
           placeholder="din@epost.no"
           autocomplete="email"
+          class="auth-input"
         />
         <p class="hint" id="email-hint" style="display:none;"></p>
       </div>
 
       <!-- Steg 1 (kun registrering): invitasjonskode -->
-      <div class="form-group" id="inviteGroup">
-        <label for="invite" id="code-label">Invitasjonskode</label>
+      <div class="form-group auth-field-group" id="inviteGroup">
+        <label for="invite" class="auth-label" id="code-label">Invitasjonskode</label>
         <input
           type="text"
           id="invite"
           name="invite"
           required
           placeholder=""
+          class="auth-input"
         />
         <p class="hint" id="code-hint">
           Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.
@@ -242,8 +312,8 @@
       </div>
 
       <!-- Steg 2: OTP-kode (skjules i steg 1) -->
-      <div class="form-group" id="otpGroup" style="display:none;">
-        <label for="otpInput" id="otp-label">Engangskode</label>
+      <div class="form-group auth-field-group" id="otpGroup" style="display:none;">
+        <label for="otpInput" class="auth-label" id="otp-label">Engangskode</label>
         <input
           type="text"
           id="otpInput"
@@ -252,13 +322,15 @@
           pattern="[0-9]*"
           maxlength="6"
           placeholder="Skriv 6-sifret kode"
+          class="auth-input"
         />
         <p class="hint" id="otp-hint">
           Sjekk e-posten din. Tips: se i søppelpost/spam hvis du ikke finner den.
         </p>
       </div>
 
-      <button type="submit" class="submit-btn" id="submitBtn">
+      <button type="submit" class="submit-btn auth-button-primary" id="submitBtn">
+        <span class="spinner" aria-hidden="true"></span>
         <span id="button-text">Bli med i betaen</span>
       </button>
 
@@ -274,11 +346,11 @@
 
     <div class="login-link" id="login-link-row">
       <span id="loginLinkPrefix">Har du ikke konto?</span>
-      <a href="/index.html" id="loginAnchor" data-action="landing">Bli med i betaen</a>
+      <a href="/index.html" class="auth-link" id="loginAnchor" data-action="landing">Bli med i betaen</a>
     </div>
   </div>
 
-  <div class="footer" id="footer-text">
+  <div class="footer auth-footer-note" id="footer-text">
     Laget i Uranusvegen 30 🌙 · Familieversjon 1.0
   </div>
 
@@ -292,17 +364,18 @@
     // ===== Element SDK – enkel tekst/tema-konfig ============================
     const defaultConfig = {
       main_title: "Bli med i familie-betaen 👨‍👩‍👧‍👦",
-      subtitle: "Du er invitert til å teste vår nye budsjett-app før alle andre.",
+      subtitle: "Vi sender deg en magisk lenke slik at du kan komme i gang.",
       email_label: "E-postadresse",
       code_label: "Husstandskode (invitasjonskode)",
       code_hint: "Koden forbinder deg med familien din og gir deg tilgang til beta-versjonen.",
       button_text: "Bli med i betaen",
       footer_text: "Laget i Tromsø 🌙 · Familieversjon v0.9 beta",
-      background_color: "#e8f5e9",
-      card_color: "#ffffff",
-      primary_color: "#4caf50",
-      text_color: "#1b5e20",
-      accent_color: "#558b2f"
+      background_color: "#F9FAF9",
+      card_color: "#FFFFFF",
+      primary_color: "#4A7A65",
+      primary_color_dark: "#2D5C45",
+      text_color: "#1C1C1E",
+      accent_color: "#E8F5E9"
     };
 
     function onConfigChange(config) {
@@ -324,13 +397,21 @@
       const backgroundColor = config.background_color || defaultConfig.background_color;
       const cardColor = config.card_color || defaultConfig.card_color;
       const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const primaryDark = config.primary_color_dark || defaultConfig.primary_color_dark;
       const textColor = config.text_color || defaultConfig.text_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
 
-      document.body.style.background =
-        `linear-gradient(135deg, ${backgroundColor} 0%, #fff8e1 100%)`;
-      document.querySelector('.card').style.background = cardColor;
-      document.querySelector('.submit-btn').style.background = primaryColor;
-      document.querySelector('.title').style.color = textColor;
+      const setVar = (name, value) => {
+        if (!value) return;
+        document.documentElement.style.setProperty(name, value);
+      };
+
+      setVar('--bg-app', backgroundColor);
+      setVar('--bg-card', cardColor);
+      setVar('--brand-green', primaryColor);
+      setVar('--brand-green-dark', primaryDark);
+      setVar('--accent-soft-green', accentColor);
+      setVar('--text-main', textColor);
     }
 
     if (window.elementSdk) {
@@ -417,6 +498,9 @@
         // Loading-state
         if (el.submitBtn && el.buttonText) {
           el.submitBtn.disabled = isLoading;
+          el.submitBtn.classList.toggle('loading', isLoading);
+          el.submitBtn.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+
           if (isLoading) {
             el.buttonText.textContent =
               step === 'email'
@@ -508,9 +592,11 @@
             if (!isLoading) el.otpInput.focus();
           }
           if (el.successBox) el.successBox.classList.add('show');
-          if (el.successText && lastEmail) {
+          if (el.successText) {
             el.successText.textContent =
-              `Vi har sendt en kode til ${lastEmail}. Skriv den inn for å fullføre.`;
+              lastEmail
+                ? `Vi har sendt en kode til ${lastEmail}. Skriv den inn for å fullføre.`
+                : 'Vi har sendt deg en kode. Skriv den inn for å fullføre.';
           }
         } else {
           if (el.title) el.title.textContent = 'Sjekk e-posten din';
@@ -521,9 +607,11 @@
                 : 'Vi har sendt deg en magisk lenke. Åpne den for å fortsette.';
           }
           if (el.successBox) el.successBox.classList.add('show');
-          if (el.successText && lastEmail) {
+          if (el.successText) {
             el.successText.textContent =
-              `Vi har sendt en magisk lenke til ${lastEmail}. Klikk på lenken for å fortsette.`;
+              lastEmail
+                ? `Vi har sendt en magisk lenke til ${lastEmail}. Klikk på lenken for å fortsette.`
+                : 'Vi har sendt deg en magisk lenke. Åpne den for å fortsette.';
           }
         }
 
