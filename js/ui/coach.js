@@ -72,6 +72,7 @@
       this.boundHandleNext = this.handleNext.bind(this);
       this.boundHandlePrev = this.handlePrev.bind(this);
       this.boundHandleSkip = this.handleSkip.bind(this);
+      this._prevBodyOverflow = '';
     }
 
     startTour({ pageId, version = 1, steps = [] } = {}) {
@@ -88,6 +89,14 @@
 
       this.ensureDom();
       this.attachListeners();
+
+      try {
+        this._prevBodyOverflow = document.body.style.overflow || '';
+        document.body.style.overflow = 'hidden';
+      } catch (e) {
+        console.warn('CoachEngine: could not lock body scroll', e);
+      }
+
       this.active = true;
       this.showOverlay();
       this.goToStep(0);
@@ -379,15 +388,16 @@
 
       try {
         target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      } catch {
-        // Ignorer scroll-feil
+      } catch (e) {
+        console.warn('CoachEngine: scrollIntoView failed', e);
       }
 
       const scheduledStep = this.currentStepIndex;
+      this.clearPositionTimeout();
       this.positionTimeoutId = window.setTimeout(() => {
         if (!this.active || scheduledStep !== this.currentStepIndex) return;
         this.positionElements(target, step);
-      }, 380);
+      }, 700);
     }
 
     updateTooltipContent(step) {
@@ -529,6 +539,13 @@
     finish(markSeen = true) {
       this.clearPositionTimeout();
       this.active = false;
+
+      try {
+        document.body.style.overflow = this._prevBodyOverflow || '';
+      } catch (e) {
+        console.warn('CoachEngine: could not restore body scroll', e);
+      }
+
       if (markSeen) {
         this.markSeen();
       }
