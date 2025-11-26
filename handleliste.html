@@ -130,6 +130,9 @@
       color: #ffffff;
       box-shadow: 0 10px 26px rgba(47, 127, 63, 0.35);
     }
+    .store-mode .mode-toggle {
+      display: none;
+    }
 
     /* Seksjoner */
     .section {
@@ -222,7 +225,7 @@
       padding: 10px 14px;
       border-radius: 9999px;
       border: none;
-      background: #f2f2f7;
+      background: #ebeef2;
       cursor: pointer;
       font-size: 14px;
       font-weight: 600;
@@ -231,9 +234,10 @@
       align-items: center;
       gap: 6px;
       transition: background 0.2s, box-shadow 0.2s, transform 0.08s, color 0.2s;
+      box-shadow: 0 3px 10px rgba(45,95,77,0.08);
     }
     .frequent-chip:hover {
-      background: #e5efe9;
+      background: #e1e5ea;
       box-shadow: 0 6px 16px rgba(45,95,77,0.14);
     }
     .frequent-chip:active {
@@ -412,11 +416,11 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #f5f7f6;
+      background: #f9f9f9;
       border-radius: 14px;
       padding: 4px 8px;
-      border: 1px solid #dbe6df;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+      border: 1px solid #e5e5ea;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
     }
     .stepper-btn {
       border: none;
@@ -428,12 +432,13 @@
       justify-content: center;
       font-size: 16px;
       cursor: pointer;
-      background: #e8f1eb;
+      background: #ffffff;
       color: #2d5f4d;
       flex-shrink: 0;
-      transition: background 0.2s, transform 0.08s, color 0.2s;
+      transition: background 0.2s, transform 0.08s, color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    .stepper-btn:hover { background: #dce9e1; }
+    .stepper-btn:hover { background: #f0f0f0; }
     .stepper-btn:active { transform: scale(0.94); }
     .stepper-value {
       min-width: 24px;
@@ -452,7 +457,7 @@
       justify-content: center;
       cursor: pointer;
       background: transparent;
-      color: #9e9e9e;
+      color: #c7c7cc;
       flex-shrink: 0;
       transition: background 0.2s, color 0.2s, border-color 0.2s;
       border: 1px solid #e6efe9;
@@ -634,6 +639,16 @@
       border-color: #dbe6df;
     }
     .footer-btn.clear:hover { background: #f5f7f6; }
+    .footer-btn.exit-store {
+      display: none;
+      background: #2d5f4d;
+      color: #ffffff;
+      border-color: #2d5f4d;
+    }
+    .footer-btn.exit-store:hover { background: #254d3f; }
+    .store-mode .footer-btn.exit-store {
+      display: inline-flex;
+    }
 
     /* Kjøpt-seksjon i butikk-modus */
     .purchased-section-title {
@@ -852,6 +867,7 @@
   <footer class="footer">
     <div class="footer-total" id="footerTotal">Antall varer i handlelista: 0</div>
     <div class="footer-actions">
+      <button class="footer-btn exit-store" id="exitStoreBtn">Ferdig i butikken</button>
       <button class="footer-btn mark-all" id="markAllBtn">Merk alle som kjøpt</button>
       <button class="footer-btn clear" id="clearBtn">Tøm kjøpte</button>
     </div>
@@ -1580,6 +1596,25 @@
     }
   }
 
+  function deriveDisplayName(item) {
+    if (!item || !item.name) return "";
+    const trimmed = String(item.name).trim();
+    const qtyNumber = Math.max(1, Number(item.quantity) || 1);
+    const match = /^(\d+)\s+(.*)$/.exec(trimmed);
+    if (match) {
+      const leadingQty = Number(match[1]);
+      const rest = match[2].trim();
+      const firstWord = rest.split(/\s+/)[0]?.toLowerCase();
+      const unitWords = new Set([
+        "stk","st","pk","pakke","pakker","pose","poser","kg","g","l","dl","ml","cl","x","flaske","flasker","boks","bokser","eske","kartong"
+      ]);
+      if (leadingQty === qtyNumber && rest && !unitWords.has(firstWord)) {
+        return rest.charAt(0).toUpperCase() + rest.slice(1);
+      }
+    }
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
+
   function createItemCard(item, options = {}) {
     const { showCategorySuffix = false } = options;
     const card = document.createElement("div");
@@ -1604,10 +1639,11 @@
 
     const nameEl = document.createElement("div");
     nameEl.className = "item-name";
+    const baseName = deriveDisplayName(item);
     if (showCategorySuffix && item.category) {
-      nameEl.textContent = `${item.name} (${item.category})`;
+      nameEl.textContent = `${baseName} (${item.category})`;
     } else {
-      nameEl.textContent = item.name;
+      nameEl.textContent = baseName;
     }
 
     left.appendChild(checkbox);
@@ -2045,28 +2081,37 @@ function renderCategories() {
 
   // ---------- Butikk-modus ----------
 const modeToggleBtn = $("#modeToggleBtn");
-if (modeToggleBtn) {
-  modeToggleBtn.addEventListener("click", () => {
-    isStoreMode = !isStoreMode;
-    document.body.classList.toggle("store-mode", isStoreMode);
+const exitStoreBtn = $("#exitStoreBtn");
 
-    if (isStoreMode) {
-      modeToggleBtn.textContent = "Avslutt butikk-modus";
-      modeToggleBtn.classList.add("active");
+function setStoreMode(nextValue) {
+  isStoreMode = !!nextValue;
+  document.body.classList.toggle("store-mode", isStoreMode);
 
-      // Scroll ned til handlelista når butikk-modus startes
-      const shoppingSection = $("#shoppingSection");
-      if (shoppingSection) {
-        shoppingSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    } else {
-      modeToggleBtn.textContent = "Start butikk-modus 🛒";
-      modeToggleBtn.classList.remove("active");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  if (modeToggleBtn) {
+    modeToggleBtn.textContent = isStoreMode ? "Avslutt butikk-modus" : "Start butikk-modus 🛒";
+    modeToggleBtn.classList.toggle("active", isStoreMode);
+  }
+  if (exitStoreBtn) {
+    exitStoreBtn.textContent = isStoreMode ? "Ferdig i butikken" : "Start butikk-modus";
+  }
+
+  if (isStoreMode) {
+    const shoppingSection = $("#shoppingSection");
+    if (shoppingSection) {
+      shoppingSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
-    renderCategories();
-  });
+  renderCategories();
+}
+
+if (modeToggleBtn) {
+  modeToggleBtn.addEventListener("click", () => setStoreMode(!isStoreMode));
+}
+if (exitStoreBtn) {
+  exitStoreBtn.addEventListener("click", () => setStoreMode(false));
 }
 
   // ---------- Tilbake-knapp ----------
