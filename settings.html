@@ -19,293 +19,450 @@
   <script src="/js/ui/toast.js"></script>
 
   <style>
-    body {
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --green: #10b981;
+      --text-strong: #1c1c1e;
+      --text-muted: #636366;
+      --divider: #e5e5ea;
+      --destructive: #dc2626;
+    }
+
+    * {
       box-sizing: border-box;
+    }
+
+    body {
       margin: 0;
-      padding: 20px;
-      min-height: 100%;
-      background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e8 50%, #f0fdf4 100%);
+      padding: 24px 16px 40px;
+      min-height: 100vh;
+      background: var(--bg);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif;
-      color: #1f2937;
+      color: var(--text-strong);
     }
 
-    .container {
-      max-width: 800px;
+    .settings-shell {
+      max-width: 780px;
       margin: 0 auto;
-      background: white;
-      border-radius: 24px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-      padding: 40px;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .header h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #065f46;
-      margin: 0 0 12px 0;
-    }
-
-    .header p {
-      font-size: 1.2rem;
-      color: #6b7280;
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    .section {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 32px;
-      margin-bottom: 24px;
-      border: 1px solid #e2e8f0;
-    }
-
-    .section-header {
       display: flex;
-      align-items: center;
-      margin-bottom: 16px;
+      flex-direction: column;
+      gap: 26px;
     }
 
-    .section-header h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #065f46;
-      margin: 0 0 0 12px;
-    }
-
-    .section-description {
-      color: #6b7280;
-      font-size: 1rem;
-      margin-bottom: 24px;
-      line-height: 1.5;
-    }
-
-    .budget-input-group {
+    .settings-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
-      margin-bottom: 16px;
     }
 
-    .budget-input {
+    .back-button {
+      height: 42px;
+      min-width: 42px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--divider);
+      background: var(--card);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-strong);
+      line-height: 1;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .back-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-text {
       flex: 1;
-      padding: 16px 20px;
-      font-size: 1.3rem;
-      border: 2px solid #d1d5db;
-      border-radius: 12px;
-      background: white;
-      font-weight: 600;
     }
 
-    .budget-input:focus {
-      outline: none;
-      border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    .header-eyebrow {
+      margin: 4px 0 6px;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #8e8e93;
+      font-weight: 700;
     }
 
-    .currency-label {
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #374151;
+    .header-text h1 {
+      margin: 0 0 6px;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-strong);
     }
 
-    .budget-note {
-      font-size: 0.9rem;
-      color: #6b7280;
-      margin-bottom: 20px;
+    .header-subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1.45;
     }
 
-    .category-list, .store-list {
+    .section-block {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 20px;
     }
 
-    .category-item, .store-item {
+    .section-heading {
       display: flex;
-      align-items: center;
-      padding: 16px;
-      background: white;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-    }
-
-    .category-item input[type="checkbox"], .store-item input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-right: 16px;
-      accent-color: #10b981;
-    }
-
-    .category-name, .store-name {
-      flex: 1;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #374151;
-    }
-
-    .edit-icon {
-      color: #6b7280;
-      font-size: 0.9rem;
-      cursor: pointer;
-      padding: 8px;
-    }
-
-    .add-input-group {
-      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
       gap: 12px;
+    }
+
+    .heading-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .section-emoji {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: var(--card);
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.07);
     }
 
-    .add-input {
-      flex: 1;
-      padding: 14px 16px;
-      font-size: 1rem;
-      border: 2px solid #d1d5db;
-      border-radius: 10px;
-      background: white;
+    .section-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-strong);
     }
 
-    .add-input:focus {
-      outline: none;
-      border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    .section-description {
+      margin: 4px 0 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-muted);
     }
 
-    .btn-primary {
-      background: #10b981;
-      color: white;
-      border: none;
-      padding: 16px 32px;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 12px;
+    .ghost-button {
+      border: 1px solid var(--divider);
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--green);
+      padding: 10px 16px;
+      font-weight: 700;
+      border-radius: 14px;
       cursor: pointer;
-      transition: all 0.2s;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
     }
 
-    .btn-primary:hover {
-      background: #059669;
+    .ghost-button:hover {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #c6eada;
       transform: translateY(-1px);
     }
 
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 2px solid #d1d5db;
-      padding: 12px 24px;
-      font-size: 1rem;
-      font-weight: 500;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
+    .budget-card {
+      background: linear-gradient(145deg, #ffffff 0%, #f7fbf8 100%);
+      border-radius: 22px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 16px 44px rgba(16, 24, 40, 0.08);
     }
 
-    .btn-secondary:hover {
-      background: #e5e7eb;
-      border-color: #9ca3af;
+    .budget-hero-label {
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #8e8e93;
+      margin: 4px 0 8px;
     }
 
-    .btn-small {
-      padding: 10px 16px;
-      font-size: 0.9rem;
+    .budget-hero-input {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px 20px;
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
     }
 
-    .household-info {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      margin-bottom: 20px;
+    #weekly-budget {
+      font-size: 46px;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      outline: none;
+      width: 100%;
+      background: transparent;
+      color: #0f5132;
+      padding: 0;
     }
 
-    .household-name {
-      font-size: 1.2rem;
+    #weekly-budget::-webkit-outer-spin-button,
+    #weekly-budget::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    #weekly-budget[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    #weekly-budget::placeholder {
+      color: #c4cfc8;
+    }
+
+    .budget-currency {
+      font-size: 18px;
       font-weight: 600;
-      color: #065f46;
-      margin-bottom: 8px;
+      color: #8a9a8d;
+      padding-bottom: 8px;
+    }
+
+    .budget-note {
+      text-align: center;
+      margin: 10px 0 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .inset-card {
+      background: var(--card);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .settings-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-row {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--card);
+    }
+
+    .list-row:not(:first-child)::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 16px;
+      right: 0;
+      height: 1px;
+      background: var(--divider);
+    }
+
+    .row-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+      cursor: text;
+    }
+
+    .row-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-strong);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .row-label.editable:hover {
+      color: #0f5132;
+    }
+
+    .row-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      opacity: 0.7;
+      transition: opacity 0.15s ease;
+    }
+
+    .list-row:hover .row-hint {
+      opacity: 1;
+    }
+
+    .row-value {
+      color: var(--text-strong);
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #e5e5ea;
+      transition: 0.2s;
+      border-radius: 999px;
+    }
+
+    .switch-slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 2px;
+      bottom: 2px;
+      background: var(--card);
+      transition: 0.2s;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .switch input:checked + .switch-slider {
+      background: var(--green);
+    }
+
+    .switch input:checked + .switch-slider:before {
+      transform: translateX(20px);
+    }
+
+    .switch input:disabled + .switch-slider {
+      opacity: 0.5;
+    }
+
+    .add-row {
+      cursor: pointer;
+      color: var(--green);
+      font-weight: 700;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+
+    .add-plus {
+      font-size: 20px;
+      width: 20px;
+      display: inline-block;
+    }
+
+    button.list-row {
+      width: 100%;
+      border: none;
+      background: var(--card);
+      font: inherit;
+      padding: 14px 16px;
+    }
+
+    .empty-text, .loading-text {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .note-row {
+      align-items: flex-start;
+    }
+
+    .note-row .row-label {
+      white-space: normal;
+      line-height: 1.4;
+      font-weight: 500;
+      color: var(--text-muted);
     }
 
     .household-note {
-      font-size: 0.9rem;
-      color: #6b7280;
-      margin-bottom: 20px;
-    }
-
-    .logout-btn {
-      background: #dc2626;
-      color: white;
-      border: none;
-      padding: 16px 32px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 12px;
-    }
-
-    .logout-btn:hover {
-      background: #b91c1c;
-      transform: translateY(-1px);
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
     }
 
     .admin-link {
-      color: #9ca3af;
-      font-size: 0.9rem;
+      color: #8e8e93;
+      font-size: 13px;
       text-decoration: none;
+      margin-top: 6px;
+      display: inline-block;
     }
 
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-top: 24px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .footer-note {
+    .admin-link:hover {
       color: #6b7280;
-      font-size: 0.9rem;
-      margin-bottom: 20px;
+      text-decoration: underline;
     }
 
     .save-indicator {
       display: none;
-      background: #10b981;
+      background: var(--green);
       color: white;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      margin-left: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
     }
 
     .save-indicator.show {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    @media (max-width: 768px) {
-      .container {
-        margin: 10px;
-        padding: 24px;
+    .destructive-row {
+      color: var(--destructive);
+      font-weight: 700;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .destructive-row:hover {
+      background: #fff5f5;
+    }
+
+    @media (max-width: 640px) {
+      .header-text h1 {
+        font-size: 26px;
       }
 
-      .header h1 {
-        font-size: 2rem;
-      }
-
-      .budget-input-group {
+      .section-heading {
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-start;
       }
 
-      .add-input-group {
-        flex-direction: column;
+      .ghost-button {
+        width: fit-content;
+      }
+
+      #weekly-budget {
+        font-size: 40px;
       }
     }
   </style>
@@ -314,140 +471,105 @@
   <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1 id="page-title">Innstillinger</h1>
-      <p id="page-subtitle">Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.</p>
-    </div>
+  <div class="settings-shell">
+    <header class="settings-header">
+      <button class="back-button" id="back-button" type="button" aria-label="Tilbake til oversikten">← Tilbake til oversikten</button>
+      <div class="header-text">
+        <div class="header-eyebrow">Husholdningsbudsjett</div>
+        <h1 id="page-title">Innstillinger</h1>
+        <p id="page-subtitle" class="header-subtitle">Tilpass budsjettet og hvordan appen fungerer for husholdningen deres.</p>
+      </div>
+    </header>
 
-    <!-- Ukentlig budsjett -->
-    <div class="section">
-      <div class="section-header">
-        <span style="font-size: 1.5rem;">💰</span>
-        <h2>Ukentlig budsjett</h2>
-      </div>
-      <p class="section-description">Sett standard ukesbudsjett for mat og husholdning.</p>
-      <div class="budget-input-group">
-        <input type="number" id="weekly-budget" class="budget-input" value="3000" placeholder="3000">
-        <span class="currency-label">kr</span>
-      </div>
-      <p class="budget-note">Gjelder som standard for nye uker.</p>
-      <button class="btn-primary" id="save-budget-btn">
-        Lagre endringer
-        <span id="budget-save-indicator" class="save-indicator">Lagret!</span>
-      </button>
-    </div>
-
-    <!-- Kategorier -->
-    <div class="section">
-      <div class="section-header">
-        <span style="font-size: 1.5rem;">🧺</span>
-        <h2>Kategorier for kjøp</h2>
-      </div>
-      <p class="section-description">Velg hvilke kategorier dere vil bruke når dere legger inn kjøp.</p>
-      <div class="category-list" id="category-list">
-        <div class="category-item">
-          <input type="checkbox" checked>
-          <span class="category-name">🥕 Mat &amp; dagligvarer</span>
-          <span class="edit-icon">✏️</span>
+    <section class="section-block">
+      <div class="section-heading">
+        <div class="heading-left">
+          <div class="section-emoji">💰</div>
+          <div>
+            <p class="section-title">Ukentlig budsjett</p>
+            <p class="section-description">Sett standard ukesbudsjett for mat og husholdning.</p>
+          </div>
         </div>
-        <div class="category-item">
-          <input type="checkbox" checked>
-          <span class="category-name">🧽 Husholdning &amp; rengjøring</span>
-          <span class="edit-icon">✏️</span>
-        </div>
-        <div class="category-item">
-          <input type="checkbox" checked>
-          <span class="category-name">🍞 Frokost &amp; brød</span>
-          <span class="edit-icon">✏️</span>
-        </div>
-        <div class="category-item">
-          <input type="checkbox" checked>
-          <span class="category-name">🍿 Snacks &amp; kos</span>
-          <span class="edit-icon">✏️</span>
-        </div>
-        <div class="category-item">
-          <input type="checkbox" checked>
-          <span class="category-name">🥬 Frukt &amp; grønt</span>
-          <span class="edit-icon">✏️</span>
-        </div>
-        <div class="category-item">
-          <input type="checkbox">
-          <span class="category-name">📦 Annet</span>
-          <span class="edit-icon">✏️</span>
-        </div>
-      </div>
-      <div class="add-input-group">
-        <input type="text" id="new-category" class="add-input" placeholder="Ny kategori...">
-        <button class="btn-secondary btn-small" type="button" id="add-category-btn">
-          + Legg til ny kategori
+        <button class="ghost-button" id="save-budget-btn" type="button">
+          Lagre
+          <span id="budget-save-indicator" class="save-indicator">Lagret</span>
         </button>
       </div>
-    </div>
+      <div class="budget-card">
+        <div class="budget-hero-label">Beløp per uke</div>
+        <div class="budget-hero-input">
+          <input type="number" id="weekly-budget" value="3000" placeholder="3000" inputmode="decimal" min="0">
+          <span class="budget-currency">kr</span>
+        </div>
+        <p class="budget-note">Gjelder som standard for nye uker.</p>
+      </div>
+    </section>
 
-    <!-- Butikker -->
-    <div class="section">
-      <div class="section-header">
-        <span style="font-size: 1.5rem;">🏪</span>
-        <h2>Butikker</h2>
-      </div>
-      <p class="section-description">Tilpass listen over butikker som vises når du legger inn kjøp.</p>
-      <div class="store-list" id="store-list">
-        <div class="store-item">
-          <input type="checkbox" checked>
-          <span class="store-name">Kiwi</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox" checked>
-          <span class="store-name">Rema 1000</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox" checked>
-          <span class="store-name">Coop Extra</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox" checked>
-          <span class="store-name">Meny</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox" checked>
-          <span class="store-name">Spar</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox">
-          <span class="store-name">Joker</span>
-        </div>
-        <div class="store-item">
-          <input type="checkbox">
-          <span class="store-name">Bunnpris</span>
+    <section class="section-block">
+      <div class="section-heading">
+        <div class="heading-left">
+          <div class="section-emoji">🧺</div>
+          <div>
+            <p class="section-title">Kategorier for kjøp</p>
+            <p class="section-description">Velg hvilke kategorier dere vil bruke når dere legger inn kjøp.</p>
+          </div>
         </div>
       </div>
-      <div class="add-input-group">
-        <input type="text" id="new-store" class="add-input" placeholder="Ny butikk...">
-        <button class="btn-secondary btn-small" type="button" id="add-store-btn">
-          + Legg til butikk
-        </button>
+      <div class="inset-card">
+        <div class="settings-list" id="category-list">
+          <div class="list-row note-row loading-text">Laster kategorier…</div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Husholdning & konto -->
-    <div class="section">
-      <div class="section-header">
-        <span style="font-size: 1.5rem;">👨‍👩‍👧‍👦</span>
-        <h2>Husholdning &amp; konto</h2>
+    <section class="section-block">
+      <div class="section-heading">
+        <div class="heading-left">
+          <div class="section-emoji">🏪</div>
+          <div>
+            <p class="section-title">Butikker</p>
+            <p class="section-description">Tilpass listen over butikker som vises når du legger inn kjøp.</p>
+          </div>
+        </div>
       </div>
-      <div class="household-info">
-        <div class="household-name" id="household-name">Familien</div>
-        <p class="household-note">Disse innstillingene gjelder for alle som bruker husholdningen.</p>
-        <button class="logout-btn" type="button" id="logout-btn">Logg ut</button><br>
-        <a href="#" class="admin-link">Administrer husholdning (kommer senere)</a>
+      <div class="inset-card">
+        <div class="settings-list" id="store-list">
+          <div class="list-row note-row loading-text">Laster butikker…</div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <div class="footer">
-      <p class="footer-note">Endringer lagres for husstanden din</p>
-      <button class="btn-secondary" id="back-button" type="button">Tilbake til oversikten</button>
-    </div>
+    <section class="section-block">
+      <div class="section-heading">
+        <div class="heading-left">
+          <div class="section-emoji">👨‍👩‍👧‍👦</div>
+          <div>
+            <p class="section-title">Husholdning &amp; konto</p>
+            <p class="section-description">Disse innstillingene gjelder for alle som bruker husholdningen.</p>
+          </div>
+        </div>
+      </div>
+      <div class="inset-card">
+        <div class="list-row">
+          <div class="row-left">
+            <span class="row-label">Husholdning</span>
+          </div>
+          <span class="row-value" id="household-name">Familien</span>
+        </div>
+        <div class="list-row note-row">
+          <div class="row-left">
+            <p class="household-note">Disse innstillingene gjelder for alle som bruker husholdningen.</p>
+            <a href="#" class="admin-link">Administrer husholdning (kommer senere)</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="inset-card">
+        <button class="list-row destructive-row" type="button" id="logout-btn">Logg ut</button>
+      </div>
+    </section>
   </div>
 
 <script>
@@ -466,8 +588,12 @@
       config.page_subtitle || defaultConfig.page_subtitle;
     document.getElementById('household-name').textContent =
       config.household_name || defaultConfig.household_name;
-    document.getElementById('back-button').textContent =
-      config.back_button_text || defaultConfig.back_button_text;
+    const backBtn = document.getElementById('back-button');
+    const backText = config.back_button_text || defaultConfig.back_button_text;
+    if (backBtn) {
+      backBtn.textContent = `← ${backText}`;
+      backBtn.setAttribute('aria-label', backText);
+    }
   }
 
   function mapToCapabilities(config) {
@@ -502,6 +628,9 @@
   const householdCtx = window.householdContext;
 
   let householdId = null;
+  const BUDGET_SAVE_DELAY = 800;
+  let budgetSaveTimeout = null;
+  let budgetDirty = false;
 
   // --------- Kategori / butikk-innstillinger ----------
   const categoryService = window.categoryService || null;
@@ -591,6 +720,18 @@
     }
   }
 
+  async function renameStore(storeId, newName) {
+    if (!storeId || !storeService?.updateStoreName) return;
+    try {
+      storeSettings = await storeService.updateStoreName(supa, storeId, newName);
+      renderStores();
+      showToast('Butikk oppdatert.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Kunne ikke endre butikk.', 'error');
+    }
+  }
+
   async function toggleStore(storeId, enabled) {
     if (!storeId || !storeService?.toggleStoreEnabled) {
       const target = storeSettings.find((store) => store.id === storeId);
@@ -616,60 +757,81 @@
 
     if (!Array.isArray(categorySettings) || categorySettings.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'empty-text';
-      empty.textContent = 'Ingen kategorier ennå. Legg til deres første kategori under.';
+      empty.className = 'list-row note-row';
+      const label = document.createElement('span');
+      label.className = 'row-label';
+      label.textContent = 'Ingen kategorier ennå. Legg til deres første kategori.';
+      empty.appendChild(label);
       list.appendChild(empty);
-      return;
+    } else {
+      categorySettings.forEach((cat, index) => {
+        const row = document.createElement('div');
+        row.className = 'list-row';
+        row.dataset.index = String(index);
+        row.dataset.id = cat.id || '';
+        row.innerHTML = `
+          <div class="row-left">
+            <span class="row-label editable"></span>
+            <span class="row-hint">Trykk for å endre navn</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox">
+            <span class="switch-slider"></span>
+          </label>
+        `;
+
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        const nameEl = row.querySelector('.row-label');
+        const editArea = row.querySelector('.row-left');
+
+        const labelText = cat.name || 'Kategori';
+
+        if (nameEl) {
+          nameEl.textContent = labelText;
+        }
+
+        if (checkbox) {
+          checkbox.checked = !!cat.enabled;
+          checkbox.setAttribute('aria-label', `Aktiver ${labelText}`);
+          checkbox.addEventListener('change', async () => {
+            checkbox.disabled = true;
+            await toggleCategory(cat.id, checkbox.checked);
+            checkbox.disabled = false;
+          });
+        }
+
+        if (editArea) {
+          editArea.addEventListener('click', async () => {
+            const current = categorySettings[index].name || '';
+            const newName = prompt('Nytt navn på kategori:', current);
+            if (!newName) return;
+            const trimmed = newName.trim();
+            if (!trimmed || trimmed === current.trim()) return;
+            if (!cat.id || !categoryService?.updateCategoryName) {
+              categorySettings[index].name = trimmed;
+              if (categoryService?.saveCategorySettings) {
+                categoryService.saveCategorySettings(categorySettings);
+              }
+              renderCategories();
+              return;
+            }
+            await renameCategory(cat.id, trimmed);
+          });
+        }
+
+        list.appendChild(row);
+      });
     }
 
-    categorySettings.forEach((cat, index) => {
-      const div = document.createElement('div');
-      div.className = 'category-item';
-      div.dataset.index = String(index);
-      div.dataset.id = cat.id || '';
-      div.innerHTML = `
-        <input type="checkbox">
-        <span class="category-name"></span>
-        <span class="edit-icon">✏️</span>
-      `;
-
-      const checkbox = div.querySelector('input[type="checkbox"]');
-      const nameEl = div.querySelector('.category-name');
-      const editIcon = div.querySelector('.edit-icon');
-
-      if (checkbox) {
-        checkbox.checked = !!cat.enabled;
-        checkbox.addEventListener('change', async () => {
-          checkbox.disabled = true;
-          await toggleCategory(cat.id, checkbox.checked);
-          checkbox.disabled = false;
-        });
-      }
-
-      if (nameEl) {
-        nameEl.textContent = cat.name;
-      }
-
-      if (editIcon) {
-        editIcon.addEventListener('click', async () => {
-          const current = categorySettings[index].name || '';
-          const newName = prompt('Nytt navn på kategori:', current);
-          if (!newName) return;
-          if (!cat.id || !categoryService?.updateCategoryName) {
-            categorySettings[index].name = newName.trim();
-            nameEl.textContent = categorySettings[index].name;
-            if (categoryService?.saveCategorySettings) {
-              categoryService.saveCategorySettings(categorySettings);
-            }
-            renderCategories();
-            return;
-          }
-          await renameCategory(cat.id, newName.trim());
-        });
-      }
-
-      list.appendChild(div);
-    });
+    const addRow = document.createElement('button');
+    addRow.type = 'button';
+    addRow.className = 'list-row add-row';
+    addRow.innerHTML = `
+      <span class="add-plus">+</span>
+      <span class="row-label">Legg til ny kategori</span>
+    `;
+    addRow.addEventListener('click', () => promptNewCategory());
+    list.appendChild(addRow);
   }
 
   function renderStores() {
@@ -679,40 +841,81 @@
 
     if (!Array.isArray(storeSettings) || storeSettings.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'empty-text';
-      empty.textContent = 'Ingen butikker registrert ennå.';
+      empty.className = 'list-row note-row';
+      const label = document.createElement('span');
+      label.className = 'row-label';
+      label.textContent = 'Ingen butikker registrert ennå.';
+      empty.appendChild(label);
       list.appendChild(empty);
-      return;
+    } else {
+      storeSettings.forEach((store, index) => {
+        const row = document.createElement('div');
+        row.className = 'list-row';
+        row.dataset.index = String(index);
+        row.dataset.id = store.id || '';
+        row.innerHTML = `
+          <div class="row-left">
+            <span class="row-label editable"></span>
+            <span class="row-hint">Trykk for å endre navn</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox">
+            <span class="switch-slider"></span>
+          </label>
+        `;
+
+        const checkbox = row.querySelector('input[type="checkbox"]');
+        const nameEl = row.querySelector('.row-label');
+        const editArea = row.querySelector('.row-left');
+
+        const labelText = store.name || 'Butikk';
+
+        if (nameEl) {
+          nameEl.textContent = labelText;
+        }
+
+        if (checkbox) {
+          checkbox.checked = store.enabled !== false;
+          checkbox.setAttribute('aria-label', `Aktiver ${labelText}`);
+          checkbox.addEventListener('change', async () => {
+            checkbox.disabled = true;
+            await toggleStore(store.id, checkbox.checked);
+            checkbox.disabled = false;
+          });
+        }
+
+        if (editArea) {
+          editArea.addEventListener('click', async () => {
+            const current = storeSettings[index].name || '';
+            const newName = prompt('Nytt navn på butikk:', current);
+            if (!newName) return;
+            const trimmed = newName.trim();
+            if (!trimmed || trimmed === current.trim()) return;
+            if (!store.id || !storeService?.updateStoreName) {
+              storeSettings[index].name = trimmed;
+              if (storeService?.saveStoreSettings) {
+                storeService.saveStoreSettings(storeSettings);
+              }
+              renderStores();
+              return;
+            }
+            await renameStore(store.id, trimmed);
+          });
+        }
+
+        list.appendChild(row);
+      });
     }
 
-    storeSettings.forEach((store, index) => {
-      const div = document.createElement('div');
-      div.className = 'store-item';
-      div.dataset.index = String(index);
-      div.dataset.id = store.id || '';
-      div.innerHTML = `
-        <input type="checkbox">
-        <span class="store-name"></span>
-      `;
-
-      const checkbox = div.querySelector('input[type="checkbox"]');
-      const nameEl = div.querySelector('.store-name');
-
-      if (checkbox) {
-        checkbox.checked = store.enabled !== false;
-        checkbox.addEventListener('change', async () => {
-          checkbox.disabled = true;
-          await toggleStore(store.id, checkbox.checked);
-          checkbox.disabled = false;
-        });
-      }
-
-      if (nameEl) {
-        nameEl.textContent = store.name;
-      }
-
-      list.appendChild(div);
-    });
+    const addRow = document.createElement('button');
+    addRow.type = 'button';
+    addRow.className = 'list-row add-row';
+    addRow.innerHTML = `
+      <span class="add-plus">+</span>
+      <span class="row-label">Legg til ny butikk</span>
+    `;
+    addRow.addEventListener('click', () => promptNewStore());
+    list.appendChild(addRow);
   }
 
   function showToast(message, type = 'info') {
@@ -738,6 +941,34 @@
     el.textContent = message;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 3000);
+  }
+
+  function clearBudgetSaveTimer() {
+    if (budgetSaveTimeout) {
+      clearTimeout(budgetSaveTimeout);
+      budgetSaveTimeout = null;
+    }
+  }
+
+  function scheduleBudgetSave() {
+    budgetDirty = true;
+    const indicator = document.getElementById('budget-save-indicator');
+    indicator?.classList.remove('show');
+    clearBudgetSaveTimer();
+    const input = document.getElementById('weekly-budget');
+    const currentValue = input ? String(input.value).trim() : '';
+    if (!currentValue) return;
+    budgetSaveTimeout = setTimeout(() => {
+      budgetDirty = false;
+      saveBudget();
+    }, BUDGET_SAVE_DELAY);
+  }
+
+  function flushBudgetSave() {
+    if (!budgetDirty) return;
+    clearBudgetSaveTimer();
+    budgetDirty = false;
+    saveBudget();
   }
 
   async function loadSettings() {
@@ -777,10 +1008,14 @@
       const nameEl = document.getElementById('household-name');
 
       const defaultBudget = household?.default_weekly_budget ?? 3000;
-      budgetInput.value = defaultBudget;
+      if (budgetInput) {
+        budgetInput.value = defaultBudget;
+      }
       localStorage.setItem('weeklyBudget', String(defaultBudget));
+      budgetDirty = false;
+      clearBudgetSaveTimer();
 
-      if (household?.name) {
+      if (household?.name && nameEl) {
         nameEl.textContent = household.name;
       }
     } catch (err) {
@@ -796,6 +1031,8 @@
     }
 
     const input = document.getElementById('weekly-budget');
+    if (!input) return;
+
     let value = parseInt(input.value, 10);
     if (!isFinite(value) || value <= 0) {
       value = 3000;
@@ -817,22 +1054,37 @@
       }
 
       localStorage.setItem('weeklyBudget', String(value));
-      indicator.classList.add('show');
+      budgetDirty = false;
+      clearBudgetSaveTimer();
+      indicator?.classList.add('show');
       showToast('Budsjett lagret for husstanden.', 'success');
 
-      setTimeout(() => indicator.classList.remove('show'), 2000);
+      setTimeout(() => indicator?.classList.remove('show'), 2000);
     } catch (err) {
       console.error(err);
       showToast('Ukjent feil ved lagring.', 'error');
     }
   }
 
-  async function addCategory() {
+  function promptNewCategory() {
+    const name = prompt('Navn på ny kategori:');
+    if (!name) return;
+    addCategory(name);
+  }
+
+  function promptNewStore() {
+    const name = prompt('Navn på ny butikk:');
+    if (!name) return;
+    addStore(name);
+  }
+
+  async function addCategory(nameFromPrompt = null) {
     const input = document.getElementById('new-category');
-    const name = input.value.trim();
+    const rawName = nameFromPrompt !== null ? nameFromPrompt : (input?.value || '');
+    const name = rawName.trim();
     if (!name) return;
 
-    const fullName = `📦 ${name}`;
+    const fullName = name.startsWith('📦') ? name : `📦 ${name}`;
     try {
       if (categoryService?.addCategory) {
         categorySettings = await categoryService.addCategory(supa, fullName);
@@ -843,7 +1095,9 @@
         }
       }
       renderCategories();
-      input.value = '';
+      if (!nameFromPrompt && input) {
+        input.value = '';
+      }
       showToast('Kategori lagt til.', 'success');
     } catch (err) {
       console.error(err);
@@ -851,13 +1105,14 @@
     }
   }
 
-  async function addStore() {
+  async function addStore(nameFromPrompt = null) {
     const input = document.getElementById('new-store');
-    const name = input.value.trim();
+    const rawName = nameFromPrompt !== null ? nameFromPrompt : (input?.value || '');
+    const name = rawName.trim();
     if (!name) return;
 
     const alreadyExists = storeSettings.some(
-      (store) => store.name.toLowerCase() === name.toLowerCase()
+      (store) => (store.name || '').toLowerCase() === name.toLowerCase()
     );
     if (alreadyExists) {
       showToast('Butikken finnes allerede.', 'error');
@@ -874,7 +1129,9 @@
         }
       }
       renderStores();
-      input.value = '';
+      if (!nameFromPrompt && input) {
+        input.value = '';
+      }
       showToast('Butikk lagret.', 'success');
     } catch (err) {
       console.error(err);
@@ -923,10 +1180,10 @@
     const categoryList = document.getElementById('category-list');
     const storeList = document.getElementById('store-list');
     if (categoryList) {
-      categoryList.innerHTML = '<div class="loading-text">Laster kategorier…</div>';
+      categoryList.innerHTML = '<div class="list-row note-row loading-text">Laster kategorier…</div>';
     }
     if (storeList) {
-      storeList.innerHTML = '<div class="loading-text">Laster butikker…</div>';
+      storeList.innerHTML = '<div class="list-row note-row loading-text">Laster butikker…</div>';
     }
 
     await fetchCategories();
@@ -936,26 +1193,47 @@
     renderStores();
 
     // Knapper
-    document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
-    document.getElementById('add-category-btn').addEventListener('click', addCategory);
-    document.getElementById('add-store-btn').addEventListener('click', addStore);
-    document.getElementById('logout-btn').addEventListener('click', doLogout);
-    document.getElementById('back-button').addEventListener('click', goBack);
+    const saveBudgetBtn = document.getElementById('save-budget-btn');
+    if (saveBudgetBtn) {
+      saveBudgetBtn.addEventListener('click', saveBudget);
+    }
 
-    // Enter-key i input-feltene
-    document.getElementById('new-category').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addCategory();
-      }
-    });
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', doLogout);
+    }
 
-    document.getElementById('new-store').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        addStore();
-      }
-    });
+    const backBtn = document.getElementById('back-button');
+    if (backBtn) {
+      backBtn.addEventListener('click', goBack);
+    }
+
+    const budgetInput = document.getElementById('weekly-budget');
+    if (budgetInput) {
+      budgetInput.addEventListener('input', scheduleBudgetSave);
+      budgetInput.addEventListener('blur', flushBudgetSave);
+    }
+
+    // Legacy inputs (om vi vil bruke Enter-tasten via skjult felt)
+    const newCategoryInput = document.getElementById('new-category');
+    if (newCategoryInput) {
+      newCategoryInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addCategory();
+        }
+      });
+    }
+
+    const newStoreInput = document.getElementById('new-store');
+    if (newStoreInput) {
+      newStoreInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addStore();
+        }
+      });
+    }
   }
 
   document.addEventListener('DOMContentLoaded', init);
