@@ -133,8 +133,6 @@
       overlay.style.cssText = [
         'position: fixed',
         'inset: 0',
-        'background: rgba(17, 24, 39, 0.55)',
-        'backdrop-filter: blur(2px)',
         'z-index: 9998',
         'display: none',
         'opacity: 0',
@@ -146,13 +144,12 @@
       highlight.className = 'coach-v2-highlight';
       highlight.style.cssText = [
         'position: absolute',
-        'border-radius: 24px',
-        'background: #ffffff',
-        'box-shadow: 0 22px 60px rgba(0, 0, 0, 0.14)',
-        'transition: all 0.35s ease-out',
-        'opacity: 0',
+        'border-radius: 12px',
+        'box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55)',
+        'z-index: 9999',
         'pointer-events: none',
-        'transform: translate3d(0,0,0)',
+        'transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        'opacity: 0',
       ].join(';');
 
       const tooltip = document.createElement('div');
@@ -424,17 +421,20 @@
         return;
       }
 
-      const padding = 12;
+      const padding = 8;
       const rect = target.getBoundingClientRect();
-      const left = rect.left + window.scrollX - padding;
-      const top = rect.top + window.scrollY - padding;
-      const width = rect.width + padding * 2;
-      const height = rect.height + padding * 2;
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
 
-      this.elements.highlight.style.left = `${left}px`;
-      this.elements.highlight.style.top = `${top}px`;
-      this.elements.highlight.style.width = `${width}px`;
-      this.elements.highlight.style.height = `${height}px`;
+      const hLeft = rect.left + scrollX - padding;
+      const hTop = rect.top + scrollY - padding;
+      const hWidth = rect.width + padding * 2;
+      const hHeight = rect.height + padding * 2;
+
+      this.elements.highlight.style.width = `${hWidth}px`;
+      this.elements.highlight.style.height = `${hHeight}px`;
+      this.elements.highlight.style.left = `${hLeft}px`;
+      this.elements.highlight.style.top = `${hTop}px`;
       this.elements.highlight.style.opacity = '1';
 
       this.elements.tooltip.style.visibility = 'hidden';
@@ -446,17 +446,17 @@
 
         const viewportW = window.innerWidth || document.documentElement.clientWidth;
         const viewportH = window.innerHeight || document.documentElement.clientHeight;
-        const minLeft = window.scrollX + 12;
-        const maxLeft = window.scrollX + viewportW - ttRect.width - 12;
-        const centeredLeft = rect.left + window.scrollX + rect.width / 2 - ttRect.width / 2;
+        const minLeft = scrollX + 12;
+        const maxLeft = scrollX + viewportW - ttRect.width - 12;
+        const centeredLeft = rect.left + scrollX + rect.width / 2 - ttRect.width / 2;
         const clampedLeft = Math.max(minLeft, Math.min(maxLeft, centeredLeft));
 
         let tooltipTop = placement === 'top'
-          ? rect.top + window.scrollY - ttRect.height - 18
-          : rect.bottom + window.scrollY + 18;
+          ? rect.top + scrollY - ttRect.height - 18
+          : rect.bottom + scrollY + 18;
 
-        const minTop = window.scrollY + 12;
-        const maxTop = window.scrollY + viewportH - ttRect.height - 12;
+        const minTop = scrollY + 12;
+        const maxTop = scrollY + viewportH - ttRect.height - 12;
         tooltipTop = Math.max(minTop, Math.min(maxTop, tooltipTop));
 
         this.elements.tooltip.style.left = `${clampedLeft}px`;
