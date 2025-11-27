@@ -1,18 +1,15 @@
 .driver-overlay {
   transition: background-color 0.3s ease;
-}
-
-/* Blur the background, but keep spotlight + popover sharp */
-body.driver-active * {
-  filter: blur(3px);
+  /* Blur bakgrunnen via overlay, ikke hele body */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 body.driver-active .driver-active-element,
 body.driver-active .driver-active-element *,
 body.driver-active .driver-popover,
-body.driver-active .driver-popover *,
-body.driver-active .driver-overlay,
-body.driver-active .driver-overlay * {
+body.driver-active .driver-popover * {
   filter: none !important;
   backdrop-filter: none !important;
 }
