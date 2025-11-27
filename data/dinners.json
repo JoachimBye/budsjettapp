@@ -1,0 +1,2165 @@
+[
+  {
+    "id": "norwegian-taco-friday",
+    "title": "Taco fredag",
+    "emoji": "🌮",
+    "short_description": "Klassisk norsk tacofredag med krydret kjøttdeig, sprø grønnsaker og varme lefser.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 55,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fredagskos",
+      "kjøtt",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 400,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Tacokrydder",
+        "amount": 1,
+        "unit": "pk",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Tortillalefser",
+        "amount": 8,
+        "unit": "stk",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Revet ost",
+        "amount": 150,
+        "unit": "g",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Isbergsalat",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Tomat",
+        "amount": 3,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Agurk",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Mais på boks",
+        "amount": 150,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Rømme",
+        "amount": 1,
+        "unit": "beger",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Olje til steking",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Kutt salat, tomat og agurk i små biter.",
+      "Varm en stekepanne med litt olje.",
+      "Stek kjøttdeigen til den er gjennomstekt og smuldret.",
+      "Tilsett tacokrydder og litt vann etter anvisning på posen og la det småkoke noen minutter.",
+      "Varm tortillalefser etter anvisning på pakken.",
+      "Sett frem kjøtt, grønnsaker, mais, ost og rømme på bordet.",
+      "La alle fylle sine egne lefser og server med en gang."
+    ],
+    "tips": "Server med salsa og guacamole hvis du vil gjøre det ekstra digg."
+  },
+  {
+    "id": "norwegian-meatballs-brown-sauce",
+    "title": "Kjøttkaker i brun saus",
+    "emoji": "🥘",
+    "short_description": "Saftige kjøttkaker i hjemmelaget brun saus med poteter og grønnsaker.",
+    "default_servings": 4,
+    "time_minutes": 45,
+    "price_per_person": 50,
+    "difficulty": "middels",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "kjøtt",
+      "tradisjon"
+    ],
+    "ingredients": [
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 600,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Egg",
+        "amount": 1,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Hvetemel",
+        "amount": 5,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Melk",
+        "amount": 4,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Smør",
+        "amount": 3,
+        "unit": "ss",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": true
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 400,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Kjøttbuljongterning",
+        "amount": 1,
+        "unit": "stk",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Skrell og kok poteter og gulrøtter i lettsaltet vann til de er møre.",
+      "Finhakk løk og bland med kjøttdeig, egg, 2 ss hvetemel, salt og pepper til en fast farse.",
+      "Form farsen til kjøttkaker og brun dem i en stekepanne med smør.",
+      "Ta kjøttkakene ut av panna og lag brun saus ved å smelte 2 ss smør og røre inn 3 ss hvetemel til det er gyllent.",
+      "Spe med melk litt etter litt under omrøring til du får en jevn saus.",
+      "Smuldre i buljongterning, smak til med salt og pepper og legg kjøttkakene tilbake i sausen.",
+      "La kjøttkakene småkoke i sausen i 10–15 minutter.",
+      "Server kjøttkakene med kokte poteter og gulrøtter."
+    ],
+    "tips": "Server gjerne med ertestuing eller tyttebærsyltetøy for ekstra tradisjonsfølelse."
+  },
+  {
+    "id": "fish-gratin",
+    "title": "Fiskegrateng",
+    "emoji": "🐟",
+    "short_description": "Hjemmelaget fiskegrateng med makaroni, torsk og sprø topping.",
+    "default_servings": 4,
+    "time_minutes": 40,
+    "price_per_person": 40,
+    "difficulty": "middels",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fisk",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Torskefilet",
+        "amount": 500,
+        "unit": "g",
+        "category": "fisk",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Makaroni",
+        "amount": 200,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Melk",
+        "amount": 5,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Smør",
+        "amount": 3,
+        "unit": "ss",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": true
+      },
+      {
+        "name": "Hvetemel",
+        "amount": 3,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Egg",
+        "amount": 2,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Strøkavring",
+        "amount": 4,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Kok makaroni etter anvisning på pakken og sil av vannet.",
+      "Skjær torskefilet i terninger og la dem trekke i lettsaltet vann i 5–6 minutter.",
+      "Smelt smør i en kjele, rør inn hvetemel og spe med melk til en tykk hvit saus.",
+      "Ta kjelen av varmen og rør inn eggene ett og ett.",
+      "Bland inn makaroni og fisk, og smak til med salt og pepper.",
+      "Hell blandingen i en smurt ildfast form og strø over strøkavring.",
+      "Stek i ovnen i ca. 20 minutter til gratengen er gyllen.",
+      "Server med revne gulrøtter eller råkostsalat."
+    ],
+    "tips": "Tilsett litt revet ost i sausen for ekstra fyldig smak."
+  },
+  {
+    "id": "fish-cakes-with-potatoes",
+    "title": "Fiskekaker med poteter",
+    "emoji": "🍽️",
+    "short_description": "Enkel hverdagsfavoritt med stekte fiskekaker, poteter og råkost.",
+    "default_servings": 4,
+    "time_minutes": 25,
+    "price_per_person": 40,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fisk",
+      "barnevennlig",
+      "lett"
+    ],
+    "ingredients": [
+      {
+        "name": "Fiskekaker",
+        "amount": 8,
+        "unit": "stk",
+        "category": "fisk",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Sitron",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Smør eller olje til steking",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Skrell og kok poteter i lettsaltet vann til de er møre.",
+      "Rasp gulrøtter grovt til råkost og smak til med litt sitronsaft og salt.",
+      "Varm en stekepanne med smør eller olje.",
+      "Stek fiskekakene på middels varme til de er gylne og gjennomvarme.",
+      "Smak til potetene med litt smør og eventuelt pepper.",
+      "Server fiskekaker med kokte poteter og råkost."
+    ],
+    "tips": "Server gjerne med litt remulade eller rømme ved siden av."
+  },
+  {
+    "id": "spaghetti-bolognese",
+    "title": "Spaghetti bolognese",
+    "emoji": "🍝",
+    "short_description": "Klassisk pasta med kjøttdeig i tomatsaus, hele familiens favoritt.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 35,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "pasta",
+      "kjøtt",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Spaghetti",
+        "amount": 350,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 400,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Hvitløksfedd",
+        "amount": 2,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": true
+      },
+      {
+        "name": "Hakkede tomater på boks",
+        "amount": 400,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Tomatpuré",
+        "amount": 2,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Olje til steking",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Tørket oregano",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Kok spaghetti etter anvisning på pakken.",
+      "Finhakk løk og hvitløk.",
+      "Varm olje i en stekepanne og stek løk og hvitløk mykt.",
+      "Tilsett kjøttdeig og stek til den er gjennomstekt.",
+      "Rør inn tomatpuré og la det surre et minutt.",
+      "Tilsett hakkede tomater, oregano, salt og pepper og la sausen småkoke i 10–15 minutter.",
+      "Smak til sausen og juster krydder om nødvendig.",
+      "Server kjøttsaus over nykokt spaghetti."
+    ],
+    "tips": "Topp med revet parmesan eller annen ost hvis du ønsker."
+  },
+  {
+    "id": "oven-baked-salmon-potatoes-veg",
+    "title": "Laks i ovn med poteter og grønnsaker",
+    "emoji": "🐟",
+    "short_description": "Enkel og sunn laksemiddag med ovnsbakte poteter og grønnsaker.",
+    "default_servings": 4,
+    "time_minutes": 35,
+    "price_per_person": 60,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fisk",
+      "sunn"
+    ],
+    "ingredients": [
+      {
+        "name": "Laksefilet",
+        "amount": 600,
+        "unit": "g",
+        "category": "fisk",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Brokkoli",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Olje",
+        "amount": 3,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Sitron",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Skjær poteter i båter og gulrøtter i skiver.",
+      "Legg poteter og gulrøtter på et stekebrett, ringle over halvparten av oljen og krydre med salt og pepper.",
+      "Forstek grønnsakene i ovnen i 15 minutter.",
+      "Del brokkoli i små buketter.",
+      "Ta ut brettet, legg laks og brokkoli oppå grønnsakene og ringle over resten av oljen.",
+      "Krydre laksen med salt, pepper og litt sitronsaft.",
+      "Stek videre i 12–15 minutter til laksen er gjennomstekt.",
+      "Server med ekstra sitronbåter ved siden av."
+    ],
+    "tips": "Kan også serveres med en klatt rømme eller enkel yoghurtdressing."
+  },
+  {
+    "id": "chicken-wok-rice",
+    "title": "Kyllingwok med grønnsaker og ris",
+    "emoji": "🍜",
+    "short_description": "Rask kyllingwok med fargerike grønnsaker og ris.",
+    "default_servings": 4,
+    "time_minutes": 25,
+    "price_per_person": 45,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "kylling",
+      "sunn",
+      "gryte"
+    ],
+    "ingredients": [
+      {
+        "name": "Kyllingfilet",
+        "amount": 500,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Wokblanding grønnsaker",
+        "amount": 500,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Ris",
+        "amount": 3,
+        "unit": "dl",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Soyasaus",
+        "amount": 3,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Olje",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Hvitløksfedd",
+        "amount": 2,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": true
+      },
+      {
+        "name": "Ingefær, frisk",
+        "amount": 2,
+        "unit": "cm",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Kok ris etter anvisning på pakken.",
+      "Skjær kyllingfilet i strimler.",
+      "Finhakk hvitløk og ingefær.",
+      "Varm olje i en stor stekepanne eller wok.",
+      "Stek kyllingstrimlene til de er gjennomstekte og legg dem til side.",
+      "Ha hvitløk, ingefær og wokgrønnsaker i panna og stek på høy varme i noen minutter.",
+      "Legg kyllingen tilbake i panna og tilsett soyasaus, salt og pepper.",
+      "Vend alt godt sammen og varm opp.",
+      "Server kyllingwok over nykokt ris."
+    ],
+    "tips": "Dryss over sesamfrø eller hakket koriander for ekstra smak."
+  },
+  {
+    "id": "lasagne-classic",
+    "title": "Lasagne",
+    "emoji": "🧀",
+    "short_description": "Ovnsbakt lasagne med kjøttsaus og ostesaus, perfekt til både hverdag og helg.",
+    "default_servings": 4,
+    "time_minutes": 50,
+    "price_per_person": 45,
+    "difficulty": "middels",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "pasta",
+      "kjøtt",
+      "fredagskos"
+    ],
+    "ingredients": [
+      {
+        "name": "Lasagneplater",
+        "amount": 9,
+        "unit": "stk",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 400,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Hakkede tomater på boks",
+        "amount": 400,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Tomatpuré",
+        "amount": 2,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Revet ost",
+        "amount": 200,
+        "unit": "g",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Melk",
+        "amount": 5,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Smør",
+        "amount": 3,
+        "unit": "ss",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": true
+      },
+      {
+        "name": "Hvetemel",
+        "amount": 3,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Tørket oregano",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Finhakk løk og stek den myk i litt smør.",
+      "Tilsett kjøttdeig og stek til den er gjennomstekt.",
+      "Rør inn tomatpuré, hakkede tomater, oregano, salt og pepper og la sausen småkoke i 10–15 minutter.",
+      "Lag ostesaus ved å smelte smør, røre inn hvetemel og spe med melk under omrøring til en jevn saus.",
+      "Tilsett halvparten av osten i sausen og smak til med salt og pepper.",
+      "Legg lagvis kjøttsaus, lasagneplater og ostesaus i en ildfast form.",
+      "Avslutt med ostesaus og resten av den revne osten på toppen.",
+      "Stek i ovnen i ca. 30 minutter til lasagnen er gjennomstekt og gyllen.",
+      "La lasagnen hvile noen minutter før servering."
+    ],
+    "tips": "Server med en enkel grønn salat ved siden av."
+  },
+  {
+    "id": "sausages-mashed-potatoes",
+    "title": "Pølser med potetmos",
+    "emoji": "🌭",
+    "short_description": "Enkel klassiker med pølser, kremet potetmos og grønnsaker.",
+    "default_servings": 4,
+    "time_minutes": 25,
+    "price_per_person": 30,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "kjøtt",
+      "barnevennlig",
+      "billig"
+    ],
+    "ingredients": [
+      {
+        "name": "Middags- eller grillpølser",
+        "amount": 8,
+        "unit": "stk",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Melk",
+        "amount": 2.5,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Smør",
+        "amount": 2,
+        "unit": "ss",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": true
+      },
+      {
+        "name": "Frosne erter eller blandede grønnsaker",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Skrell og kok poteter i lettsaltet vann til de er helt møre.",
+      "Varm opp melk og smør i en liten kjele.",
+      "Hell av vannet på potetene og mos dem godt.",
+      "Tilsett den varme melkeblandingen og rør til en glatt potetmos, smak til med salt og pepper.",
+      "Varm pølsene etter anvisning på pakken (i vann eller stekt i panne).",
+      "Kok eller damp frosne grønnsaker raskt.",
+      "Server pølser med potetmos og grønnsaker."
+    ],
+    "tips": "Tilsett litt hvitløk eller revet ost i potetmosen for mer smak."
+  },
+  {
+    "id": "light-lapskaus-stew",
+    "title": "Lys lapskaus",
+    "emoji": "🥣",
+    "short_description": "Deilig lapskaus med kjøttpølse og rotgrønnsaker, varmende og mettende.",
+    "default_servings": 4,
+    "time_minutes": 40,
+    "price_per_person": 35,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "gryte",
+      "kjøtt",
+      "billig"
+    ],
+    "ingredients": [
+      {
+        "name": "Røkt kjøttpølse",
+        "amount": 400,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 700,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Kålrot",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Grønnsaks- eller kjøttbuljongterning",
+        "amount": 2,
+        "unit": "stk",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Vann",
+        "amount": 1.2,
+        "unit": "l",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Olje eller smør",
+        "amount": 1,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Skrell og kutt poteter, gulrøtter og kålrot i terninger.",
+      "Hakk løk og skjær kjøttpølse i biter.",
+      "Varm olje eller smør i en stor gryte og stek løken blank.",
+      "Tilsett rotgrønnsaker, vann og buljongterninger.",
+      "La lapskausen småkoke i 20–25 minutter til grønnsakene er møre.",
+      "Ha i pølsebiter de siste 5–10 minuttene av koketiden.",
+      "Smak til med salt og pepper før servering."
+    ],
+    "tips": "Server med grovt brød eller flatbrød ved siden av."
+  },
+  {
+    "id": "tomato-soup-egg-pasta",
+    "title": "Tomatsuppe med egg og pasta",
+    "emoji": "🍲",
+    "short_description": "Rask og enkel tomatsuppe med makaroni og kokt egg.",
+    "default_servings": 4,
+    "time_minutes": 20,
+    "price_per_person": 25,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": true,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "suppe",
+      "vegetar",
+      "billig"
+    ],
+    "ingredients": [
+      {
+        "name": "Hakkede tomater på boks",
+        "amount": 800,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Grønnsaksbuljongterning",
+        "amount": 2,
+        "unit": "stk",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Vann",
+        "amount": 1,
+        "unit": "l",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Makaroni",
+        "amount": 150,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Egg",
+        "amount": 4,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Olje",
+        "amount": 1,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Kok egg i 8–10 minutter, avkjøl og skrell dem.",
+      "Finhakk løk og stek den myk i olje i en kjele.",
+      "Tilsett hakkede tomater, vann og buljongterninger.",
+      "Kok opp og la suppen småkoke i 5 minutter.",
+      "Tilsett makaroni og la den koke mørt i suppen.",
+      "Smak til med salt og pepper.",
+      "Del eggene i to og legg dem i suppen ved servering."
+    ],
+    "tips": "Server med grovt brød eller ostesmørbrød ved siden av."
+  },
+  {
+    "id": "homemade-pizza-minced-meat",
+    "title": "Hjemmelaget pizza med kjøttdeig",
+    "emoji": "🍕",
+    "short_description": "Tynn bunn med tomatsaus, kjøttdeig og ost – perfekt til fredagskosen.",
+    "default_servings": 4,
+    "time_minutes": 45,
+    "price_per_person": 45,
+    "difficulty": "middels",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "fredagskos",
+      "hverdagsmiddag",
+      "kjøtt",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Hvetemel",
+        "amount": 400,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Tørrgjær",
+        "amount": 0.5,
+        "unit": "pk",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Vann",
+        "amount": 2.5,
+        "unit": "dl",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Olje",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 300,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Pizzasaus eller hakkede tomater",
+        "amount": 200,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Revet ost",
+        "amount": 200,
+        "unit": "g",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Paprika",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Mais på boks",
+        "amount": 100,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Tørket oregano",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Rør sammen lunkent vann, tørrgjær, olje og salt i en bolle.",
+      "Tilsett hvetemel og elt til en smidig deig.",
+      "La deigen heve under plast eller klede i ca. 30 minutter.",
+      "Sett ovnen på 225 grader over- og undervarme.",
+      "Kjevle ut deigen på et stekebrett med bakepapir.",
+      "Stek kjøttdeig i en stekepanne og krydre lett med salt og oregano.",
+      "Smør pizzasaus over bunnen og fordel kjøttdeig, paprika i strimler og mais utover.",
+      "Dryss over revet ost og litt ekstra oregano.",
+      "Stek pizzaen midt i ovnen i 12–15 minutter til osten er gyllen."
+    ],
+    "tips": "Topp gjerne med fersk ruccola eller jalapeños etter steking."
+  },
+  {
+    "id": "creamy-chicken-potato-bake",
+    "title": "Kylling i form med poteter",
+    "emoji": "🍗",
+    "short_description": "Alt-i-ett-form med kylling, poteter og grønnsaker i kremet saus.",
+    "default_servings": 4,
+    "time_minutes": 45,
+    "price_per_person": 50,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "kylling",
+      "gryte"
+    ],
+    "ingredients": [
+      {
+        "name": "Kyllingfilet",
+        "amount": 500,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Brokkoli",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Matfløte",
+        "amount": 3,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Hvitløksfedd",
+        "amount": 2,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": true
+      },
+      {
+        "name": "Revet ost",
+        "amount": 100,
+        "unit": "g",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Olje",
+        "amount": 1,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Skrell og skjær poteter i tynne skiver.",
+      "Del brokkoli i små buketter.",
+      "Skjær kyllingfilet i biter og brun dem raskt i en stekepanne med olje.",
+      "Finhakk hvitløk.",
+      "Legg potetskiver, kylling og brokkoli lagvis i en ildfast form.",
+      "Bland matfløte med hvitløk, salt og pepper og hell over i formen.",
+      "Dryss revet ost på toppen.",
+      "Stek i ovnen i 30–35 minutter til potetene er møre og osten er gyllen."
+    ],
+    "tips": "Bytt ut brokkoli med paprika eller purre for variasjon."
+  },
+  {
+    "id": "chicken-curry-rice",
+    "title": "Kylling i karri med ris",
+    "emoji": "🍛",
+    "short_description": "Mild kyllinggryte i kremet karrisaus, servert med ris.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 45,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "kylling",
+      "gryte"
+    ],
+    "ingredients": [
+      {
+        "name": "Kyllingfilet",
+        "amount": 500,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Eple",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Matfløte eller creme fraîche",
+        "amount": 3,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Karri",
+        "amount": 2,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Smør eller olje",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Ris",
+        "amount": 3,
+        "unit": "dl",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Kok ris etter anvisning på pakken.",
+      "Skjær kyllingfilet i biter.",
+      "Hakk løk og skjær eple i små terninger.",
+      "Varm smør eller olje i en gryte og stek løk og eple mykt.",
+      "Tilsett karri og la det frese et minutt.",
+      "Ha i kyllingbitene og stek til de er gjennomstekte.",
+      "Hell over matfløte og la gryten småkoke i 5–10 minutter.",
+      "Smak til med salt og pepper.",
+      "Server kylling i karri over ris."
+    ],
+    "tips": "Dryss over litt frisk koriander eller persille før servering."
+  },
+  {
+    "id": "cod-traybake-vegetables",
+    "title": "Torsk i form med grønnsaker",
+    "emoji": "🐟",
+    "short_description": "Mild og sunn torskerett bakt i ovn med grønnsaker.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 55,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fisk",
+      "sunn"
+    ],
+    "ingredients": [
+      {
+        "name": "Torskefilet",
+        "amount": 600,
+        "unit": "g",
+        "category": "fisk",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 600,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Purreløk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Olje",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Sitron",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Skrell poteter og gulrøtter og skjær dem i skiver.",
+      "Skjær purreløk i ringer.",
+      "Legg poteter og gulrøtter i en ildfast form, ringle over olje og krydre med litt salt og pepper.",
+      "Forstek grønnsakene i 10 minutter.",
+      "Del torskefileten i porsjonsstykker og legg dem over grønnsakene sammen med purreløk.",
+      "Krydre fisken med salt, pepper og litt sitronsaft.",
+      "Stek videre i 12–15 minutter til fisken er gjennomstekt.",
+      "Server retten som den er, gjerne med litt ekstra sitron."
+    ],
+    "tips": "Server med en enkel yoghurt- eller rømmedressing ved siden av."
+  },
+  {
+    "id": "vegetarian-pasta-gratin",
+    "title": "Vegetarisk pastagrateng",
+    "emoji": "🧆",
+    "short_description": "Kremet pastagrateng med grønnsaker og ost, uten kjøtt.",
+    "default_servings": 4,
+    "time_minutes": 35,
+    "price_per_person": 35,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": true,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "pasta",
+      "vegetar",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Pasta (penne eller tilsvarende)",
+        "amount": 300,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Brokkoli",
+        "amount": 250,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Paprika",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Matfløte eller melk",
+        "amount": 3,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Revet ost",
+        "amount": 150,
+        "unit": "g",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Hvitløksfedd",
+        "amount": 2,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": true
+      },
+      {
+        "name": "Olje",
+        "amount": 1,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Sett ovnen på 200 grader over- og undervarme.",
+      "Kok pasta etter anvisning på pakken, men kort ned koketiden med 2 minutter.",
+      "Del brokkoli i små buketter og paprika i terninger.",
+      "Finhakk hvitløk.",
+      "Bland kokt pasta, grønnsaker, hvitløk og olje i en ildfast form.",
+      "Hell over matfløte eller melk og krydre med salt og pepper.",
+      "Dryss revet ost på toppen.",
+      "Stek i ovnen i 15–20 minutter til osten er gyllen og retten bobler."
+    ],
+    "tips": "Tilsett en boks kikerter for mer protein."
+  },
+  {
+    "id": "fish-balls-white-sauce",
+    "title": "Fiskeboller i hvit saus",
+    "emoji": "🍲",
+    "short_description": "Klassisk fiskebollerett i mild hvit saus med poteter og gulrøtter.",
+    "default_servings": 4,
+    "time_minutes": 25,
+    "price_per_person": 40,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "fisk",
+      "barnevennlig"
+    ],
+    "ingredients": [
+      {
+        "name": "Fiskeboller i kraft",
+        "amount": 800,
+        "unit": "g",
+        "category": "fisk",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Poteter",
+        "amount": 800,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Smør",
+        "amount": 2,
+        "unit": "ss",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": true
+      },
+      {
+        "name": "Hvetemel",
+        "amount": 2,
+        "unit": "ss",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Melk",
+        "amount": 4,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Skrell og kok poteter og gulrøtter i lettsaltet vann til de er møre.",
+      "Smelt smør i en kjele og rør inn hvetemel.",
+      "Spe med melk og litt av kraften fra fiskebollene under omrøring til en jevn saus.",
+      "Smak til sausen med salt og pepper.",
+      "Tilsett fiskebollene og la dem bli varme i sausen.",
+      "Server fiskebollene med kokte poteter og gulrøtter."
+    ],
+    "tips": "Dryss gjerne litt frisk persille over ved servering."
+  },
+  {
+    "id": "norwegian-pancakes-bacon-jam",
+    "title": "Pannekaker med bacon og syltetøy",
+    "emoji": "🥞",
+    "short_description": "Tynne norske pannekaker servert med sprøstekt bacon og syltetøy.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 25,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": false,
+      "lactose_free": false
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "barnevennlig",
+      "tradisjon"
+    ],
+    "ingredients": [
+      {
+        "name": "Hvetemel",
+        "amount": 3,
+        "unit": "dl",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Melk",
+        "amount": 6,
+        "unit": "dl",
+        "category": "meieri",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Egg",
+        "amount": 3,
+        "unit": "stk",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Smør eller olje til steking",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Bacon",
+        "amount": 200,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Syltetøy",
+        "amount": 150,
+        "unit": "g",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Salt",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Visp sammen hvetemel, melk, egg og salt til en glatt røre.",
+      "La røren svelle i minst 10 minutter.",
+      "Stek bacon sprøtt i en stekepanne og legg det på kjøkkenpapir.",
+      "Varm en panne med litt smør eller olje.",
+      "Stek tynne pannekaker på begge sider til de er gylne.",
+      "Server pannekakene med bacon og syltetøy."
+    ],
+    "tips": "Server gjerne med ertesuppe først for en ekstra mettende middag."
+  },
+  {
+    "id": "minced-meat-vegetable-stew",
+    "title": "Kjøttdeiggryte med grønnsaker",
+    "emoji": "🥘",
+    "short_description": "Enkel gryterett med kjøttdeig, grønnsaker og tomatsaus.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 40,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": false,
+      "vegan": false,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "gryte",
+      "kjøtt",
+      "billig"
+    ],
+    "ingredients": [
+      {
+        "name": "Kjøttdeig av storfe",
+        "amount": 400,
+        "unit": "g",
+        "category": "kjøtt",
+        "shopping_category": "Kjøl & frys",
+        "is_staple": false
+      },
+      {
+        "name": "Løk",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Paprika",
+        "amount": 1,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 200,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Hakkede tomater på boks",
+        "amount": 400,
+        "unit": "g",
+        "category": "tørrvare",
+        "shopping_category": "Tørrvarer",
+        "is_staple": false
+      },
+      {
+        "name": "Vann",
+        "amount": 1,
+        "unit": "dl",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Olje",
+        "amount": 2,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Paprikapulver",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 1,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      }
+    ],
+    "steps": [
+      "Hakk løk og skjær paprika og gulrøtter i biter.",
+      "Varm olje i en gryte og stek løken myk.",
+      "Tilsett kjøttdeig og stek til den er gjennomstekt.",
+      "Ha i paprika, gulrøtter og paprikapulver og stek et par minutter.",
+      "Tilsett hakkede tomater og vann.",
+      "La gryten småkoke i 10–15 minutter til grønnsakene er møre.",
+      "Smak til med salt og pepper.",
+      "Server gryten som den er, eller med ris eller brød ved siden av."
+    ],
+    "tips": "Rør inn en boks bønner for mer protein og fiber."
+  },
+  {
+    "id": "vegetable-soup-bread",
+    "title": "Grønnsakssuppe med brød",
+    "emoji": "🥦",
+    "short_description": "Enkel grønnsakssuppe med rotgrønnsaker, perfekt på kalde dager.",
+    "default_servings": 4,
+    "time_minutes": 30,
+    "price_per_person": 25,
+    "difficulty": "lett",
+    "diet": {
+      "vegetarian": true,
+      "vegan": true,
+      "gluten_free": true,
+      "lactose_free": true
+    },
+    "tags": [
+      "hverdagsmiddag",
+      "suppe",
+      "vegetar",
+      "sunn",
+      "billig"
+    ],
+    "ingredients": [
+      {
+        "name": "Poteter",
+        "amount": 400,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Gulrøtter",
+        "amount": 300,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Kålrot",
+        "amount": 200,
+        "unit": "g",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Purre",
+        "amount": 0.5,
+        "unit": "stk",
+        "category": "grønnsaker",
+        "shopping_category": "Frukt & grønt",
+        "is_staple": false
+      },
+      {
+        "name": "Grønnsaksbuljongterning",
+        "amount": 2,
+        "unit": "stk",
+        "category": "krydder",
+        "shopping_category": "Tørrvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Vann",
+        "amount": 1.2,
+        "unit": "l",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Olje",
+        "amount": 1,
+        "unit": "ss",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Salt",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Pepper",
+        "amount": 0.5,
+        "unit": "ts",
+        "category": "krydder",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": true
+      },
+      {
+        "name": "Brød til servering",
+        "amount": 8,
+        "unit": "skiver",
+        "category": "annet",
+        "shopping_category": "Mat & dagligvarer",
+        "is_staple": false
+      }
+    ],
+    "steps": [
+      "Skrell og kutt poteter, gulrøtter og kålrot i terninger.",
+      "Skjær purre i ringer.",
+      "Varm olje i en stor kjele og stek purre lett.",
+      "Tilsett resten av grønnsakene, vann og buljongterninger.",
+      "Kok opp og la suppen småkoke i 15–20 minutter til grønnsakene er møre.",
+      "Smak til med salt og pepper.",
+      "Server grønnsakssuppen rykende varm med brød ved siden av."
+    ],
+    "tips": "Mos deler av suppen med en stavmikser for en fyldigere konsistens."
+  }
+]

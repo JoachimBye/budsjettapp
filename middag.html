@@ -10,6 +10,7 @@
   <script src="/auth-helpers.js"></script>
   <script src="/js/services/household-context.js"></script>
   <script src="/js/services/date-utils.js"></script>
+  <script src="/js/services/shopping-list-service.js"></script>
   <script src="/js/services/budget-utils.js"></script>
   <script src="/js/services/budget-service.js"></script>
   <script src="/js/ui/toast.js"></script>
@@ -361,6 +362,7 @@
         <div>
           <h2 class="modal-title" id="modalTitle">Oppskrift</h2>
           <div class="recipe-chips" id="modalChips"></div>
+          <p class="modal-note" id="modalDescription" style="margin-bottom:8px;"></p>
           <div class="modal-price" id="modalPrice">Pris for 2 personer: – kr</div>
           <div class="modal-note">Fjern avkrysning på ingredienser du allerede har – kun krysset blir lagt til i handlelista.</div>
         </div>
@@ -381,6 +383,8 @@
         <ol class="steps-list" id="stepsList"></ol>
       </div>
 
+      <div class="modal-note" id="modalTips" style="display:none;"></div>
+
       <div class="modal-actions">
         <button class="btn btn-primary" id="addToShoppingBtn">Legg til i handlelista</button>
         <button class="link-button" id="goToListBtn">Åpne handlelista</button>
@@ -391,7 +395,6 @@
 
   <script>
     const supa = window.supaClient?.getClient();
-    const householdCtx = window.householdContext;
     const showToast = (message, type = 'info') => {
       if (window.toast?.show) {
         window.toast.show(message, { type });
@@ -493,45 +496,13 @@
     }
 
     /* =========================
-       Mock oppskrifter
-       ========================= */
-    const mockRecipes = [
-      { navn:"Kylling i form", prisPerMåltid:65, porsjoner:4, tidMin:45, vanskelighetsgrad:"Lett", kalorier:420, kategori:"kylling", allergener:["ingen"], bilde:"🍗",
-        ingredienser:["4 kyllingfileter","2 paprika","1 løk","400g poteter","2 ss olivenolje","Salt og pepper"],
-        steg:["Forvarm ovnen til 200°C","Skjær poteter og grønnsaker i biter","Legg alt i ildfast form med olje og krydder","Stek i 35–40 minutter","Sjekk at kyllingen er gjennomstekt"] },
-      { navn:"Kjøttdeigpasta", prisPerMåltid:45, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:520, kategori:"kjøttdeig", allergener:["gluten"], bilde:"🍝",
-        ingredienser:["400g kjøttdeig","400g pasta","1 boks hakkede tomater","1 løk","2 fedd hvitløk","Oregano"],
-        steg:["Kok pasta","Stek løk/hvitløk","Tilsett kjøttdeig","Hell i tomater/krydder 10 min","Bland med pasta"] },
-      { navn:"Laks med ris", prisPerMåltid:85, porsjoner:2, tidMin:25, vanskelighetsgrad:"Lett", kalorier:450, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
-        ingredienser:["2 laksebiter","2 dl ris","1 brokkoli","1 sitron","2 ss smør","Salt og pepper"],
-        steg:["Kok ris","Damp brokkoli 8–10 min","Stek laks i smør 3–4 min pr side","Krydre og server"] },
-      { navn:"Vegetar chili", prisPerMåltid:35, porsjoner:6, tidMin:30, vanskelighetsgrad:"Lett", kalorier:320, kategori:"vegetar", allergener:["ingen"], bilde:"🌶️",
-        ingredienser:["2 bokser kidneybønner","1 boks hakkede tomater","1 paprika","1 løk","2 ss tomatpuré","Chili og cumin"],
-        steg:["Stek løk/paprika","Tilsett tomatpuré 1 min","Ha i tomater og bønner","Krydre og putre 20 min"] },
-      { navn:"Kyllingwok", prisPerMåltid:55, porsjoner:3, tidMin:15, vanskelighetsgrad:"Lett", kalorier:380, kategori:"kylling", allergener:["ingen"], bilde:"🥘",
-        ingredienser:["300g kyllingstriper","1 pose wokgrønnsaker","3 ss soyasaus","2 ss olje","1 ts ingefær","Ris til servering"],
-        steg:["Varm olje","Stek kylling gyllen","Wok grønnsaker 3–4 min","Tilsett kylling+saus","Server med ris"] },
-      { navn:"Fiskekaker med potetmos", prisPerMåltid:50, porsjoner:4, tidMin:30, vanskelighetsgrad:"Lett", kalorier:420, kategori:"fisk", allergener:["gluten","egg"], bilde:"🐠",
-        ingredienser:["8 fiskekaker","800g poteter","1 dl melk","2 ss smør","Ertestuing","Salt"],
-        steg:["Kok poteter 20 min","Stek fiskekaker","Mos poteter med melk/smør","Varm ertestuing","Server"] },
-      { navn:"Tacoskjell", prisPerMåltid:60, porsjoner:4, tidMin:20, vanskelighetsgrad:"Lett", kalorier:480, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🌮",
-        ingredienser:["400g kjøttdeig","1 pakke tacokrydder","8 tacoskjell","1 tomat","1 agurk","Ost og rømme"],
-        steg:["Stek kjøttdeig","Tilsett krydder + litt vann","Varm tacoskjell","Kutt grønnsaker","Server"] },
-      { navn:"Vegetar curry", prisPerMåltid:40, porsjoner:4, tidMin:35, vanskelighetsgrad:"Moderat", kalorier:350, kategori:"vegetar", allergener:["laktose"], bilde:"🍛",
-        ingredienser:["1 søtpotet","1 aubergine","400ml kokosmelk","2 ss currypasta","1 løk","Ris"],
-        steg:["Kutt grønnsaker","Stek løk","Rør inn currypasta","Tilsett kokosmelk/grønnsaker","La putre til mørt","Server med ris"] },
-      { navn:"Karbonadedeig", prisPerMåltid:48, porsjoner:4, tidMin:25, vanskelighetsgrad:"Lett", kalorier:460, kategori:"kjøttdeig", allergener:["gluten","laktose"], bilde:"🥩",
-        ingredienser:["400g kjøttdeig","2 ss mel","5 dl melk","1 løk","Smør","Poteter"],
-        steg:["Form karbonader","Stek karbonader","Stek løk","Jevn saus med mel/melk","La putre 10 min"] },
-      { navn:"Torsk med grønnsaker", prisPerMåltid:75, porsjoner:2, tidMin:20, vanskelighetsgrad:"Lett", kalorier:320, kategori:"fisk", allergener:["ingen"], bilde:"🐟",
-        ingredienser:["2 torskebiter","300g brokkoli","2 gulrøtter","2 ss olivenolje","1 sitron","Timian"],
-        steg:["Forvarm ovn 200°C","Kutt grønnsaker","Legg alt på brett + olje/krydder","Stek 15–18 min"] },
-    ];
-
-    /* =========================
-       State
+       Oppskrift-data
        ========================= */
     const dateUtils = window.dateUtils || {};
+    const shoppingListService = window.shoppingListService || null;
+    let allRecipes = [];
+    let filteredRecipes = [];
+    let currentServings = 2;
 
     const state = {
       filters: {
@@ -653,6 +624,7 @@
       const raw = (localStorage.getItem('householdCount') || '2').replace('+','');
       const n = Math.max(1, parseInt(raw, 10) || 2);
       state.filters.people = n;
+      currentServings = n;
       document.getElementById('peopleCount').textContent = String(n);
     }
 
@@ -693,6 +665,7 @@
         chip.classList.toggle('active');
         const i = state.filters.categories.indexOf(cat);
         if (i >= 0) state.filters.categories.splice(i,1); else state.filters.categories.push(cat);
+        applyFilters();
       });
 
       allergyChips.addEventListener('click', (e) => {
@@ -702,11 +675,13 @@
         chip.classList.toggle('active');
         const i = state.filters.allergies.indexOf(a);
         if (i >= 0) state.filters.allergies.splice(i,1); else state.filters.allergies.push(a);
+        applyFilters();
       });
 
       quickToggle.addEventListener('click', () => {
         quickToggle.classList.toggle('active');
         state.filters.quickOnly = !state.filters.quickOnly;
+        applyFilters();
       });
 
       maxPriceInput.addEventListener('input', (e) => {
@@ -714,15 +689,20 @@
         state.filters.maxPrice = v;
         e.target.value = String(v);
         updateMaxPriceLabel(v);
+        applyFilters();
       });
 
       decBtn.addEventListener('click', () => {
         state.filters.people = clamp(state.filters.people - 1, 1, 12);
         peopleCount.textContent = String(state.filters.people);
+        currentServings = state.filters.people;
+        if (state.currentRecipe) updateModalForServings(state.currentRecipe);
       });
       incBtn.addEventListener('click', () => {
         state.filters.people = clamp(state.filters.people + 1, 1, 12);
         peopleCount.textContent = String(state.filters.people);
+        currentServings = state.filters.people;
+        if (state.currentRecipe) updateModalForServings(state.currentRecipe);
       });
 
       document.addEventListener('keydown', (e) => {
@@ -735,61 +715,120 @@
       });
     }
 
-    function filterRecipes() {
+    function deriveCategory(recipe) {
+      const tags = (recipe.tags || []).map(t => (t || '').toLowerCase());
+      const title = (recipe.title || '').toLowerCase();
+      const ingredientNames = (recipe.ingredients || []).map((ing) => (ing.name || '').toLowerCase());
+      if (recipe.diet?.vegetarian) return 'vegetar';
+      if (tags.includes('vegetar')) return 'vegetar';
+      if (tags.includes('fisk') || title.includes('laks') || title.includes('torsk') || ingredientNames.some((n) => n.includes('fisk') || n.includes('laks') || n.includes('torsk'))) {
+        return 'fisk';
+      }
+      if (tags.includes('kylling') || title.includes('kylling') || ingredientNames.some((n) => n.includes('kylling'))) {
+        return 'kylling';
+      }
+      if (tags.includes('kjøtt') || ingredientNames.some((n) => n.includes('kjøttdeig'))) {
+        return 'kjøttdeig';
+      }
+      return 'annet';
+    }
+
+    function getScaledIngredients(recipe, servings) {
+      const base = recipe.default_servings || 4;
+      const factor = servings / base;
+
+      return (recipe.ingredients || []).map((ing) => ({
+        ...ing,
+        amount:
+          typeof ing.amount === 'number'
+            ? Number((ing.amount * factor).toFixed(1))
+            : ing.amount
+      }));
+    }
+
+    async function loadRecipes() {
+      try {
+        const res = await fetch('/data/dinners.json');
+        if (!res.ok) {
+          console.error('Kunne ikke hente middager');
+          return;
+        }
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          allRecipes = data;
+          filteredRecipes = data;
+          renderRecipeList();
+        }
+      } catch (err) {
+        console.error('Kunne ikke laste middager', err);
+      }
+    }
+
+    function applyFilters() {
+      const maxPrice = state.filters.maxPrice;
+      const quickOnly = state.filters.quickOnly;
       const selCats = state.filters.categories;
       const selAllergies = state.filters.allergies;
-      const maxPrice = state.filters.maxPrice;
-      const quick = state.filters.quickOnly;
 
-      return mockRecipes.filter(r => {
-        if (r.prisPerMåltid > maxPrice) return false;
-        if (selCats.length && !selCats.includes(r.kategori)) return false;
-        if (quick && r.tidMin > 25) return false;
+      if (!allRecipes.length) return;
+
+      filteredRecipes = (allRecipes || []).filter((r) => {
+        if (maxPrice != null && Number(r.price_per_person) > maxPrice) return false;
+        if (quickOnly && Number(r.time_minutes) > 25) return false;
         if (selAllergies.length) {
-          if (!r.allergener.includes('ingen')) {
-            if (selAllergies.some(a => r.allergener.includes(a))) return false;
-          }
+          if (selAllergies.includes('gluten') && r.diet?.gluten_free === false) return false;
+          if (selAllergies.includes('laktose') && r.diet?.lactose_free === false) return false;
+        }
+        if (selCats.length) {
+          const cat = deriveCategory(r);
+          if (!selCats.includes(cat)) return false;
         }
         return true;
       });
+
+      renderRecipeList();
+    }
+
+    function formatTags(recipe) {
+      return (recipe.tags || []).slice(0, 3);
     }
 
     function createRecipeCard(recipe) {
       const card = document.createElement('article');
       card.className = 'recipe-card';
-      card.dataset.name = recipe.navn;
+      card.dataset.id = recipe.id;
       card.setAttribute('tabindex', '0');
 
-      const description = `
-        ${recipe.kategori.charAt(0).toUpperCase() + recipe.kategori.slice(1)}rett for
-        ${state.filters.people} ${state.filters.people === 1 ? 'person' : 'personer'} — enkel, hverdagsvennlig og budsjett-smart.
-      `;
+      const tags = formatTags(recipe)
+        .map((tag) => `<span class="recipe-chip">${tag}</span>`)
+        .join('');
 
       card.innerHTML = `
         <div class="recipe-card-inner">
-          <div class="recipe-card-emoji-wrap"><span class="recipe-emoji">${recipe.bilde}</span></div>
+          <div class="recipe-card-emoji-wrap"><span class="recipe-emoji">${recipe.emoji || '🍽️'}</span></div>
           <div class="recipe-card-body">
             <div class="recipe-card-top">
-              <h3 class="recipe-title">${recipe.navn}</h3>
-              <button class="open-icon" type="button" data-action="open" data-name="${recipe.navn}" aria-label="Se oppskrift for ${recipe.navn}">›</button>
+              <h3 class="recipe-title">${recipe.title}</h3>
+              <button class="open-icon" type="button" data-action="open" data-id="${recipe.id}" aria-label="Se oppskrift for ${recipe.title}">›</button>
             </div>
             <div class="recipe-meta">
-              <span class="meta-item">${recipe.prisPerMåltid} kr/pers</span>
+              <span class="meta-item">ca. ${formatKr(recipe.price_per_person)} kr/pers</span>
               <span class="meta-dot"></span>
-              <span class="meta-item">${recipe.tidMin} min</span>
+              <span class="meta-item">${recipe.time_minutes} min</span>
               <span class="meta-dot"></span>
-              <span class="meta-item">${recipe.vanskelighetsgrad}</span>
+              <span class="meta-item">${recipe.difficulty || 'lett'}</span>
             </div>
-            <p class="recipe-description">${description}</p>
-            <div class="recipe-actions">
-              <button class="btn btn-primary" data-action="open" data-name="${recipe.navn}">Se oppskrift</button>
-              <button class="btn btn-secondary" data-action="resuggest">Ny anbefaling</button>
+            <p class="recipe-description">${recipe.short_description || ''}</p>
+            <div class="recipe-chips">${tags}</div>
+            <div class="recipe-actions" style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn btn-primary" data-action="open" data-id="${recipe.id}">Se oppskrift</button>
+              <button class="btn btn-secondary" data-action="add" data-id="${recipe.id}">Legg til i handlelista</button>
             </div>
           </div>
         </div>
       `;
 
-      const openRecipe = () => openRecipeModalByName(recipe.navn);
+      const openRecipe = () => openRecipeModalById(recipe.id);
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -799,77 +838,118 @@
       return card;
     }
 
-    function displayRecipes(recipes) {
+    function renderRecipeList() {
       const resultsSection = document.getElementById('resultsSection');
       const recipeGrid = document.getElementById('recipeGrid');
       const emptyState = document.getElementById('emptyState');
 
+      const recipes = filteredRecipes || [];
       if (!recipes.length) {
         resultsSection.style.display = 'none';
         emptyState.style.display = 'block';
         return;
       }
+
       emptyState.style.display = 'none';
       resultsSection.style.display = 'block';
 
       recipeGrid.innerHTML = '';
-      recipes
+      const sorted = recipes
         .slice()
-        .sort((a,b) => (a.prisPerMåltid - b.prisPerMåltid) || (a.tidMin - b.tidMin))
-        .slice(0, 5)
-        .forEach(r => recipeGrid.appendChild(createRecipeCard(r)));
+        .sort((a, b) => (a.price_per_person - b.price_per_person) || (a.time_minutes - b.time_minutes));
+      sorted.forEach((r) => recipeGrid.appendChild(createRecipeCard(r)));
     }
 
     /* =========================
        Modal & handleliste
        ========================= */
-    function openRecipeModalByName(name) {
-      const recipe = mockRecipes.find(r => r.navn === name);
+    function renderIngredients(recipe, servings) {
+      const ingredientsList = document.getElementById('ingredientsList');
+      if (!ingredientsList) return;
+      ingredientsList.innerHTML = '';
+      const header = document.querySelector('#ingredientsAccordion .accordion-header span');
+      if (header) header.textContent = `Ingredienser for ${servings} ${servings === 1 ? 'person' : 'personer'}`;
+      const scaled = getScaledIngredients(recipe, servings);
+      scaled.forEach((ing) => {
+        const amountText = ing.amount ? `${ing.amount} ${ing.unit || ''}`.trim() : '';
+        const stapleText = ing.is_staple ? ' (basisvare)' : '';
+        const checkedAttr = ing.is_staple ? '' : 'checked';
+        const li = document.createElement('li');
+        li.className = 'ingredient-item';
+        li.dataset.ingName = ing.name || '';
+        li.innerHTML = `
+          <input type="checkbox" class="ingredient-checkbox" ${checkedAttr} aria-label="Merk ${ing.name}">
+          <span class="ingredient-text">${amountText ? `${ing.name} – ${amountText}` : ing.name}${stapleText}</span>
+        `;
+        ingredientsList.appendChild(li);
+      });
+    }
+
+    function renderSteps(recipe) {
+      const stepsList = document.getElementById('stepsList');
+      if (!stepsList) return;
+      stepsList.innerHTML = '';
+      (recipe.steps || []).forEach((step, i) => {
+        const li = document.createElement('li');
+        li.className = 'step-item';
+        li.innerHTML = `<div class="step-number">${i + 1}</div><div class="step-text">${step}</div>`;
+        stepsList.appendChild(li);
+      });
+    }
+
+    function updateModalForServings(recipe) {
+      if (!recipe) return;
+      // Skalerer ingrediensene etter valgt antall personer
+      renderIngredients(recipe, currentServings);
+      const modalPrice = document.getElementById('modalPrice');
+      if (modalPrice) {
+        const totalPrice = (Number(recipe.price_per_person) || 0) * currentServings;
+        modalPrice.textContent = `Pris for ${currentServings} ${currentServings === 1 ? 'person' : 'personer'}: ${formatKr(totalPrice)} kr`;
+      }
+    }
+
+    function openRecipeModalById(id) {
+      const recipe = allRecipes.find((r) => r.id === id);
       if (!recipe) return;
 
       state.currentRecipe = recipe;
+      currentServings = state.filters.people;
 
       const modal = document.getElementById('modalOverlay');
       const modalTitle = document.getElementById('modalTitle');
       const modalChips = document.getElementById('modalChips');
-      const modalPrice = document.getElementById('modalPrice');
-      const ingredientsList = document.getElementById('ingredientsList');
-      const stepsList = document.getElementById('stepsList');
+      const modalDesc = document.getElementById('modalDescription');
+      const modalTips = document.getElementById('modalTips');
 
-      modalTitle.textContent = recipe.navn;
+      if (modalTitle) modalTitle.textContent = `${recipe.emoji || ''} ${recipe.title}`.trim();
+      const tags = formatTags(recipe).map((tag) => `<span class="recipe-chip">${tag}</span>`).join('');
       modalChips.innerHTML = `
         <div class="modal-meta">
-          <span>${recipe.prisPerMåltid} kr/pers</span>
+          <span>${recipe.time_minutes} min</span>
           <span class="modal-meta-dot"></span>
-          <span>${recipe.tidMin} min</span>
+          <span>${recipe.difficulty || 'lett'}</span>
           <span class="modal-meta-dot"></span>
-          <span>${recipe.vanskelighetsgrad}</span>
-          <span class="modal-meta-dot"></span>
-          <span>${recipe.kalorier} kcal</span>
+          <span>${formatKr(recipe.price_per_person)} kr/pers</span>
         </div>
+        ${tags}
       `;
+      if (modalDesc) {
+        modalDesc.style.display = recipe.short_description ? 'block' : 'none';
+        modalDesc.textContent = recipe.short_description || '';
+      }
 
-      const totalPrice = recipe.prisPerMåltid * state.filters.people;
-      modalPrice.textContent = `Pris for ${state.filters.people} ${state.filters.people === 1 ? 'person' : 'personer'}: ${formatKr(totalPrice)} kr`;
+      renderSteps(recipe);
+      updateModalForServings(recipe);
 
-      ingredientsList.innerHTML = '';
-      recipe.ingredienser.forEach(ing => {
-        const li = document.createElement('li');
-        li.className = 'ingredient-item';
-        li.innerHTML = `
-          <input type="checkbox" class="ingredient-checkbox" checked aria-label="Merk ${ing}">
-          <span class="ingredient-text">${ing}</span>
-        `;
-        ingredientsList.appendChild(li);
-      });
-
-      stepsList.innerHTML = '';
-      recipe.steg.forEach((step, i) => {
-        const li = document.createElement('li');
-        li.className = 'step-item';
-        li.innerHTML = `<div class="step-number">${i+1}</div><div class="step-text">${step}</div>`;
-        stepsList.appendChild(li);
-      });
+      if (modalTips) {
+        if (recipe.tips) {
+          modalTips.style.display = 'block';
+          modalTips.textContent = recipe.tips;
+        } else {
+          modalTips.style.display = 'none';
+          modalTips.textContent = '';
+        }
+      }
 
       modal.classList.add('open');
       document.getElementById('modalClose').focus();
@@ -880,56 +960,77 @@
       state.currentRecipe = null;
     }
 
-    // Legg valgte (krysset av) ingredienser i INBOX for aktiv uke – samme nøkkel som handleliste.html forventer
-    function addCurrentRecipeToShoppingList() {
-      const recipe = state.currentRecipe;
+    async function addRecipeToShoppingList(recipe, servings, selectedNames = null) {
       if (!recipe) return;
+      let scaled = getScaledIngredients(recipe, servings).filter((ing) => !ing.is_staple);
+      if (selectedNames && selectedNames.length) {
+        const selectedSet = new Set(selectedNames.filter(Boolean).map((n) => n.toLowerCase()));
+        scaled = scaled.filter((ing) => selectedSet.has((ing.name || '').toLowerCase()));
+      }
+      if (!scaled.length) {
+        showToast('Ingen ingredienser å legge til.', 'info');
+        return;
+      }
 
       const weekISO = state.activeWeekISO;
-      const inboxKey = `shoppingList_inbox_${weekISO}`;
 
+      if (shoppingListService?.addItem && supa) {
+        try {
+          for (const ing of scaled) {
+            const amountLabel = ing.amount ? `${ing.amount} ${ing.unit || ''}`.trim() : '';
+            const nameWithUnit = amountLabel ? `${ing.name} (${amountLabel})` : ing.name;
+            const qty = typeof ing.amount === 'number' ? Math.max(1, Math.round(ing.amount * 10) / 10) : 1;
+            // gjenbruker handleliste-tjenesten slik at Supabase/ UI oppdateres riktig
+            await shoppingListService.addItem(supa, {
+              weekISO,
+              name: nameWithUnit,
+              category: ing.shopping_category || ing.category || 'Mat & dagligvarer',
+              quantity: qty
+            });
+          }
+          showToast(`${recipe.title} ble lagt til i handlelista 🍽️`, 'success');
+          return;
+        } catch (err) {
+          console.warn('Kunne ikke lagre til Supabase, prøver lokalt', err);
+        }
+      }
+
+      // Fallback til lokal inbox dersom Supabase ikke er tilgjengelig
+      const inboxKey = `shoppingList_inbox_${weekISO}`;
       let inbox = [];
       try {
         const raw = localStorage.getItem(inboxKey);
         if (raw) inbox = JSON.parse(raw);
         if (!Array.isArray(inbox)) inbox = [];
-      } catch { inbox = []; }
+      } catch {
+        inbox = [];
+      }
 
-      // hvilke ingredienser er valgt?
-      const chosen = Array.from(document.querySelectorAll('#ingredientsList .ingredient-item'))
-        .filter(li => li.querySelector('.ingredient-checkbox')?.checked)
-        .map(li => li.querySelector('.ingredient-text')?.textContent?.trim())
+      const existing = new Set(inbox.map((x) => String(x || '').trim().toLowerCase()));
+      scaled.forEach((ing) => {
+        const amountLabel = ing.amount ? `${ing.amount} ${ing.unit || ''}`.trim() : '';
+        const nameWithUnit = amountLabel ? `${ing.name} (${amountLabel})` : ing.name;
+        const key = nameWithUnit.toLowerCase();
+        if (!existing.has(key)) {
+          inbox.push(nameWithUnit);
+          existing.add(key);
+        }
+      });
+      localStorage.setItem(inboxKey, JSON.stringify(inbox));
+      showToast(`${recipe.title} ble lagt til i handlelista 🍽️`, 'success');
+    }
+
+    async function addCurrentRecipeToShoppingList() {
+      if (!state.currentRecipe) return;
+      const selected = Array.from(document.querySelectorAll('#ingredientsList .ingredient-item'))
+        .filter((li) => li.querySelector('.ingredient-checkbox')?.checked)
+        .map((li) => li.dataset.ingName)
         .filter(Boolean);
-
-      if (!chosen.length) {
+      if (!selected.length) {
         showToast('Ingen ingredienser valgt.', 'error');
         return;
       }
-
-      // unngå duplikater (case-insensitive på streng)
-      const existing = new Set(inbox.map(x => String(x || '').trim().toLowerCase()));
-      let added = 0;
-      chosen.forEach(ing => {
-        const key = ing.toLowerCase();
-        if (!existing.has(key)) {
-          inbox.push(ing);
-          existing.add(key);
-          added++;
-        }
-      });
-
-      localStorage.setItem(inboxKey, JSON.stringify(inbox));
-
-      const btn = document.getElementById('addToShoppingBtn');
-      const old = btn.textContent;
-      btn.textContent = added > 0 ? `Lagt til ${added}` : 'Alt fantes fra før';
-      btn.disabled = true;
-      setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1200);
-
-      showToast(
-        added > 0 ? `La til ${added} varer i handleliste` : 'Ingen nye varer lagt til',
-        added > 0 ? 'success' : 'info'
-      );
+      await addRecipeToShoppingList(state.currentRecipe, currentServings, selected);
     }
 
     /* =========================
@@ -942,15 +1043,14 @@
     });
 
     document.getElementById('suggestBtn').addEventListener('click', () => {
-      const filtered = filterRecipes();
-      displayRecipes(filtered);
+      applyFilters();
     });
 
     document.getElementById('randomFab').addEventListener('click', () => {
-      const filtered = filterRecipes();
-      if (!filtered.length) return;
-      const r = filtered[Math.floor(Math.random() * filtered.length)];
-      openRecipeModalByName(r.navn);
+      const pool = (filteredRecipes && filteredRecipes.length) ? filteredRecipes : allRecipes;
+      if (!pool.length) return;
+      const r = pool[Math.floor(Math.random() * pool.length)];
+      openRecipeModalById(r.id);
     });
 
     document.getElementById('resetFiltersBtn').addEventListener('click', () => {
@@ -960,18 +1060,20 @@
       document.getElementById('peopleCount').textContent = '2';
       document.querySelectorAll('.chip.active').forEach(chip => chip.classList.remove('active'));
       document.getElementById('quickToggle').classList.remove('active');
-      displayRecipes(filterRecipes());
+      currentServings = state.filters.people;
+      applyFilters();
     });
 
     // Modal
     document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    // Knytter "Legg til i handlelista"-knappen til handleliste-tjenesten
     document.getElementById('addToShoppingBtn').addEventListener('click', addCurrentRecipeToShoppingList);
 
     // Åpne handleliste med toast-parameter (brukes av handleliste.html for å vise "la til X varer fra …")
     document.getElementById('goToListBtn').addEventListener('click', () => {
-      const name = encodeURIComponent(state.currentRecipe?.navn || 'oppskrift');
+      const name = encodeURIComponent(state.currentRecipe?.title || 'oppskrift');
       location.href = `handleliste.html?added=${name}`;
     });
 
@@ -987,12 +1089,15 @@
       const btn = e.target.closest('button[data-action]');
       if (btn) {
         const action = btn.dataset.action;
-        if (action === 'open') openRecipeModalByName(btn.dataset.name);
-        if (action === 'resuggest') displayRecipes(filterRecipes().sort(() => 0.5 - Math.random()).slice(0, 5));
+        if (action === 'open') openRecipeModalById(btn.dataset.id);
+        if (action === 'add') {
+          const recipe = allRecipes.find((r) => r.id === btn.dataset.id);
+          if (recipe) addRecipeToShoppingList(recipe, state.filters.people);
+        }
         return;
       }
       const card = e.target.closest('.recipe-card');
-      if (card?.dataset.name) openRecipeModalByName(card.dataset.name);
+      if (card?.dataset.id) openRecipeModalById(card.dataset.id);
     });
 
     /* =========================
@@ -1015,7 +1120,8 @@
       initPeopleFromHousehold();
       await loadBudgetData();
       setupFilters();
-      displayRecipes(filterRecipes());
+      await loadRecipes(); // henter middager fra JSON når siden starter
+      applyFilters();
       applyConfig(defaultConfig);
     }
 
