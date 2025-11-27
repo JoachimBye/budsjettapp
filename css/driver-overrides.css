@@ -1,63 +1,102 @@
+/* Stacking-context reset er nødvendig for at Driver.js skal kunne løfte
+   fokus-elementet foran overlayet. Uten dette kan transform/animation/filter
+   på containere lage nye stacking contexts som tvinger spotlighten bak blur-laget. */
+
 .driver-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.35);
+  /* Her ligger magien for bakgrunnen: */
+  background-color: rgba(0, 0, 0, 0.5); /* Litt mørkere for bedre kontrast */
   transition: background-color 0.3s ease;
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(4px);          /* Blurrer alt BAK overlayet */
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100000 !important;
 }
 
+/* VIKTIG FIX: Stacking Context Reset 
+   Når body har 'driver-active', fjerner vi animasjoner, transforms og filter
+   fra containerne i appen. Dette gjør at fokus-elementet (som har høy z-index)
+   faktisk klarer å "poppe ut" foran overlayet, i stedet for å bli fanget 
+   inne i forelderens stacking context bak blur-laget.
+*/
+body.driver-active .hero-card,
+body.driver-active .nav-card,
+body.driver-active .recent-section,
+body.driver-active .container,
+body.driver-active .app-shell,
+body.driver-active .amount-hero,
+body.driver-active .field-group-card,
+body.driver-active .budget-card,
+body.driver-active .filter-panel,
+body.driver-active .recipe-card {
+  transform: none !important;
+  animation: none !important;
+  filter: none !important;
+  perspective: none !important;
+  will-change: auto !important;
+  z-index: auto !important; 
+}
+
+/* Sikre at selve elementet som er i fokus er sylskarpt og ligger øverst */
 body.driver-active .driver-active-element,
 body.driver-active .driver-active-element *,
 body.driver-active .driver-highlighted-element,
-body.driver-active .driver-highlighted-element *,
-body.driver-active .driver-popover,
-body.driver-active .driver-popover * {
+body.driver-active .driver-highlighted-element * {
   filter: none !important;
   backdrop-filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  /* Driver.js setter z-index, men vi kan tvinge den for sikkerhets skyld hvis nødvendig: */
+  z-index: 1000000004 !important; 
 }
 
+/* Popover-styling (uendret, men sikret mot blur) */
 .driver-popover {
   border-radius: 20px;
   background: #ffffff;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
   color: #1c1c1e;
-  padding: 18px 20px;
+  padding: 20px 24px;
   max-width: 360px;
   line-height: 1.55;
   border: 1px solid rgba(0, 0, 0, 0.04);
+  filter: none !important;
+  backdrop-filter: none !important;
+  z-index: 1000000010 !important; /* Alltid over overlay og element */
 }
 
 .driver-popover-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
   color: #1c1c1e;
 }
 
 .driver-popover-description {
-  font-size: 14px;
+  font-size: 15px;
   color: #636366;
   margin: 0;
 }
 
 .driver-popover-footer {
-  margin-top: 16px;
+  margin-top: 20px;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .driver-popover-progress-text {
   font-size: 13px;
   font-weight: 600;
   color: #8e8e93;
+  margin-right: auto; /* Skyver knappene til høyre */
 }
 
 .driver-popover-footer button {
   border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 600;
   border: 1px solid transparent;
   background: #f2f2f7;
@@ -65,6 +104,7 @@ body.driver-active .driver-popover * {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   transition: transform 0.12s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   text-shadow: none;
+  cursor: pointer;
 }
 
 .driver-popover-footer button:hover,
@@ -89,6 +129,8 @@ body.driver-active .driver-popover * {
 .driver-popover-close-btn {
   color: #c7c7cc;
   transition: color 0.2s ease;
+  top: 16px;
+  right: 16px;
 }
 
 .driver-popover-close-btn:hover,
