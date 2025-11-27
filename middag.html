@@ -137,12 +137,13 @@
     .recipe-card:focus, .recipe-card:focus-within { outline: 2px solid #4caf50; outline-offset: 3px; }
     .recipe-card-inner { display: flex; gap: 16px; align-items: center; }
     .recipe-card-emoji-wrap {
-      width: 84px; height: 84px; border-radius: 999px;
-      background: rgba(76,175,80,.08);
-      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
+      width: 88px; height: 88px; border-radius: 24px;
+      background: radial-gradient(circle at 30% 30%, rgba(76,175,80,.12) 0%, rgba(76,175,80,.05) 50%, #f9fdfa 100%);
+      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 10px 24px rgba(44,96,70,.12);
       flex-shrink: 0;
+      border-radius: 50%;
     }
-    .recipe-emoji { font-size: 50px; }
+    .recipe-emoji { font-size: 56px; }
     .recipe-card-body { display: flex; flex-direction: column; gap: 10px; flex: 1; }
     .recipe-card-top { display: flex; align-items: center; gap: 10px; }
     .recipe-title { font-size: 18px; font-weight: 700; color: #1f3a2d; flex: 1; margin: 0; }
@@ -154,7 +155,13 @@
     .recipe-chip { padding: 6px 10px; background: #f2f7f3; color: #2e4b3b; font-size: 12px; border-radius: 10px; font-weight: 600; }
     .recipe-chip.price { background: #4caf50; color: #fff; }
     .recipe-actions { display: none; }
-    .open-icon { display: none; }
+    .open-icon {
+      width: 28px; height: 28px; border: none; background: transparent;
+      color: #6c8276; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 20px; transition: all .2s ease; flex-shrink: 0;
+    }
+    .open-icon:hover { transform: translateX(2px); color: #3b5d4a; }
+    .open-icon:focus { outline: 2px solid #4caf50; outline-offset: 2px; }
     .meta-inline { display: inline-flex; align-items: center; gap: 10px; }
     .muted { color: #738679; }
     .btn { padding: 10px 16px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; flex: 1; }
