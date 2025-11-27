@@ -119,6 +119,15 @@
     .toggle-chip.active { background: rgba(76,175,80,.12); color: #1f3a2d; border-color: rgba(76,175,80,.35); box-shadow: 0 12px 26px rgba(76,175,80,.16); }
 
     .suggest-row { display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+    .suggest-btn {
+      width: 100%;
+      height: 54px;
+      border-radius: 14px;
+      font-size: 16px;
+      flex: none;
+      box-shadow: 0 14px 34px rgba(76,175,80,.24);
+      letter-spacing: 0.01em;
+    }
 
     /* ------ Tips ------ */
     .tip-card { background: linear-gradient(135deg, #f9fbe7 0%, #f5ffe9 100%); border: 1px solid #e6f0d3; border-radius: 16px; padding: 14px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 12px 30px rgba(163,190,140,.15); }
@@ -128,29 +137,29 @@
     /* ------ Results ------ */
     .results-section { margin-bottom: 16px; }
     .results-title { font-size: 22px; font-weight: 700; color: #1f3a2d; margin-bottom: 16px; }
-    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 16px; }
+    .recipe-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 14px; align-items: stretch; }
     .recipe-card {
-      background: #fff; border-radius: 22px; padding: 16px; box-shadow: 0 18px 40px rgba(45,95,77,.12);
-      border: 1px solid #e5efe6; transition: all .2s ease; cursor: pointer;
+      background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 12px 32px rgba(45,95,77,.12);
+      border: 1px solid #e5efe6; transition: all .2s ease; cursor: pointer; min-height: 110px;
+      display: flex; align-items: center;
     }
-    .recipe-card:hover { transform: translateY(-3px); box-shadow: 0 20px 48px rgba(45,95,77,.15); }
+    .recipe-card:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(45,95,77,.14); }
     .recipe-card:focus, .recipe-card:focus-within { outline: 2px solid #4caf50; outline-offset: 3px; }
-    .recipe-card-inner { display: flex; gap: 16px; align-items: center; }
+    .recipe-card-inner { display: flex; gap: 12px; align-items: center; width: 100%; }
     .recipe-card-emoji-wrap {
-      width: 88px; height: 88px; border-radius: 24px;
-      background: radial-gradient(circle at 30% 30%, rgba(76,175,80,.12) 0%, rgba(76,175,80,.05) 50%, #f9fdfa 100%);
-      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 10px 24px rgba(44,96,70,.12);
+      width: 64px; height: 64px; border-radius: 18px;
+      background: radial-gradient(circle at 30% 30%, rgba(76,175,80,.14) 0%, rgba(76,175,80,.06) 50%, #f9fdfa 100%);
+      display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 8px 20px rgba(44,96,70,.1);
       flex-shrink: 0;
-      border-radius: 50%;
     }
-    .recipe-emoji { font-size: 56px; }
-    .recipe-card-body { display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .recipe-card-top { display: flex; align-items: center; gap: 10px; }
-    .recipe-title { font-size: 18px; font-weight: 700; color: #1f3a2d; flex: 1; margin: 0; }
-    .recipe-meta { display: flex; align-items: center; gap: 10px; color: #5e7467; font-size: 14px; font-weight: 600; flex-wrap: wrap; }
+    .recipe-emoji { font-size: 42px; }
+    .recipe-card-body { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+    .recipe-title { font-size: 17px; font-weight: 700; color: #1f3a2d; margin: 0; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .recipe-meta { display: inline-flex; align-items: center; gap: 10px; color: #5e7467; font-size: 13px; font-weight: 600; flex-wrap: wrap; }
     .meta-item { color: inherit; }
     .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: #c8d7ce; display: inline-block; }
     .recipe-grid .recipe-description { display: none; }
+    .recipe-grid .recipe-chips { display: none; }
     .recipe-chips { display: flex; gap: 8px; flex-wrap: wrap; }
     .recipe-chip { padding: 6px 10px; background: #f2f7f3; color: #2e4b3b; font-size: 12px; border-radius: 10px; font-weight: 600; }
     .recipe-chip.price { background: #4caf50; color: #fff; }
@@ -327,6 +336,7 @@
 
       <div class="suggest-row">
         <div class="toggle-chip" id="quickToggle" tabindex="0" role="button"><span>⚡</span><span>Rask (≤ 25 min)</span></div>
+        <button class="btn btn-primary suggest-btn" id="suggestBtn" type="button">Foreslå middager</button>
       </div>
     </section>
 
@@ -639,6 +649,7 @@
       const quickToggle   = document.getElementById('quickToggle');
       const maxPriceInput = document.getElementById('maxPrice');
       const maxPriceValue = document.getElementById('maxPriceValue');
+      const suggestBtn    = document.getElementById('suggestBtn');
       const decBtn = document.getElementById('decrementPeople');
       const incBtn = document.getElementById('incrementPeople');
       const peopleCount = document.getElementById('peopleCount');
@@ -692,6 +703,10 @@
         peopleCount.textContent = String(state.filters.people);
         currentServings = state.filters.people;
         if (state.currentRecipe) updateModalForServings(state.currentRecipe);
+      });
+
+      suggestBtn?.addEventListener('click', () => {
+        applyFilters();
       });
 
       document.addEventListener('keydown', (e) => {
@@ -788,18 +803,11 @@
       card.dataset.id = recipe.id;
       card.setAttribute('tabindex', '0');
 
-      const tags = formatTags(recipe)
-        .map((tag) => `<span class="recipe-chip">${tag}</span>`)
-        .join('');
-
       card.innerHTML = `
         <div class="recipe-card-inner">
           <div class="recipe-card-emoji-wrap"><span class="recipe-emoji">${recipe.emoji || '🍽️'}</span></div>
           <div class="recipe-card-body">
-            <div class="recipe-card-top">
-              <h3 class="recipe-title">${recipe.title}</h3>
-              <button class="open-icon" type="button" data-action="open" data-id="${recipe.id}" aria-label="Se oppskrift for ${recipe.title}">›</button>
-            </div>
+            <h3 class="recipe-title">${recipe.title}</h3>
             <div class="recipe-meta">
               <span class="meta-item">ca. ${formatKr(recipe.price_per_person)} kr/pers</span>
               <span class="meta-dot"></span>
@@ -807,17 +815,12 @@
               <span class="meta-dot"></span>
               <span class="meta-item">${recipe.difficulty || 'lett'}</span>
             </div>
-            <p class="recipe-description">${recipe.short_description || ''}</p>
-            <div class="recipe-chips">${tags}</div>
-            <div class="recipe-actions" style="display:flex;gap:8px;margin-top:8px;">
-              <button class="btn btn-primary" data-action="open" data-id="${recipe.id}">Se oppskrift</button>
-              <button class="btn btn-secondary" data-action="add" data-id="${recipe.id}">Legg til i handlelista</button>
-            </div>
           </div>
         </div>
       `;
 
       const openRecipe = () => openRecipeModalById(recipe.id);
+      card.addEventListener('click', openRecipe);
       card.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -1057,23 +1060,6 @@
     });
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-    // Accordion
-    // Delegert klikk for kort-knapper
-    document.getElementById('recipeGrid').addEventListener('click', (e) => {
-      const btn = e.target.closest('button[data-action]');
-      if (btn) {
-        const action = btn.dataset.action;
-        if (action === 'open') openRecipeModalById(btn.dataset.id);
-        if (action === 'add') {
-          const recipe = allRecipes.find((r) => r.id === btn.dataset.id);
-          if (recipe) addRecipeToShoppingList(recipe, state.filters.people);
-        }
-        return;
-      }
-      const card = e.target.closest('.recipe-card');
-      if (card?.dataset.id) openRecipeModalById(card.dataset.id);
-    });
 
     /* =========================
        Init
