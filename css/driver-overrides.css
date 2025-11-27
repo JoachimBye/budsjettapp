@@ -1,13 +1,16 @@
 .driver-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
   transition: background-color 0.3s ease;
-  /* Blur bakgrunnen via overlay, ikke hele body */
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
-  background-color: rgba(0, 0, 0, 0.2);
 }
 
 body.driver-active .driver-active-element,
 body.driver-active .driver-active-element *,
+body.driver-active .driver-highlighted-element,
+body.driver-active .driver-highlighted-element *,
 body.driver-active .driver-popover,
 body.driver-active .driver-popover * {
   filter: none !important;
