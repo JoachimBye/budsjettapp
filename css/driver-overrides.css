@@ -1,0 +1,82 @@
+.driver-overlay {
+  backdrop-filter: blur(2px);
+  transition: background-color 0.3s ease;
+}
+
+.driver-popover {
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  color: #1c1c1e;
+  padding: 18px 20px;
+  max-width: 360px;
+  line-height: 1.55;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.driver-popover-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: #1c1c1e;
+}
+
+.driver-popover-description {
+  font-size: 14px;
+  color: #636366;
+  margin: 0;
+}
+
+.driver-popover-footer {
+  margin-top: 16px;
+  align-items: center;
+  gap: 10px;
+}
+
+.driver-popover-progress-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8e8e93;
+}
+
+.driver-popover-footer button {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.driver-popover-footer button:hover,
+.driver-popover-footer button:focus-visible {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.driver-popover-footer button.driver-popover-next-btn,
+.driver-popover-footer button.driver-popover-done-btn {
+  background: #2d5c45;
+  color: #ffffff;
+  border-color: #2d5c45;
+}
+
+.driver-popover-footer button.driver-popover-prev-btn {
+  background: transparent;
+  color: #2d5c45;
+  border-color: #d6e2d9;
+}
+
+.driver-popover-close-btn {
+  color: #c7c7cc;
+  transition: color 0.2s ease;
+}
+
+.driver-popover-close-btn:hover,
+.driver-popover-close-btn:focus-visible {
+  color: #2d5c45;
+}
