@@ -495,7 +495,7 @@
         <button class="nav-card" id="mealPlanBtn">
           <div class="nav-card-icon">🍽️</div>
           <div class="nav-card-label">Middagsforslag</div>
-          <div class="nav-card-subtitle" id="mealPlanSubtitle">Rimelige middager denne uka</div>
+          <div class="nav-card-subtitle" id="mealPlanSubtitle">Se forslag som passer budsjettet deres</div>
         </button>
         <button class="nav-card" id="settingsBtn">
           <div class="nav-card-icon">⚙️</div>
@@ -979,9 +979,7 @@ function updateBudgetDisplay() {
   }
 
   if (mealSubtitle) {
-    mealSubtitle.textContent = (state.remaining < 0)
-      ? `Billige middagsforslag`
-      : `Middag for ${formatAmount(state.remaining)} kr – vis forslag`;
+    mealSubtitle.textContent = 'Se forslag som passer budsjettet deres';
   }
 
   if (total > 0) {
