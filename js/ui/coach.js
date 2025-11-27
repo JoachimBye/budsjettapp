@@ -64,6 +64,16 @@
         skipBtn: null,
       };
       this.listenersAttached = false;
+      this.startDelayTimeoutId = null;
+      this.repositionRafId = null;
+      this.startDelayMs =
+        typeof options.startDelayMs === 'number' && options.startDelayMs >= 0
+          ? options.startDelayMs
+          : 400;
+      this.positionDelayMs =
+        typeof options.positionDelayMs === 'number' && options.positionDelayMs >= 0
+          ? options.positionDelayMs
+          : 700;
 
       this.boundHandleOverlayClick = this.handleOverlayClick.bind(this);
       this.boundHandleKeydown = this.handleKeydown.bind(this);
@@ -79,9 +89,19 @@
       if (!Array.isArray(steps) || steps.length === 0) {
         return;
       }
+      if (this.active) {
+        this.finish(false);
+      }
       this.pageId = pageId || this.pageId;
       this.version = version;
-      this.steps = steps;
+      this.steps = steps.filter(
+        (s) => s && typeof s.selector === 'string' && s.selector.trim().length > 0
+      );
+      if (!this.steps.length) {
+        return;
+      }
+      this.currentStepIndex = 0;
+      this.currentTarget = null;
 
       if (this.hasSeenCurrentVersion()) {
         return;
@@ -99,13 +119,19 @@
 
       this.active = true;
       this.showOverlay();
-      this.goToStep(0);
+
+      this.clearStartDelay();
+      this.startDelayTimeoutId = window.setTimeout(() => {
+        if (!this.active) return;
+        this.goToStep(0);
+      }, this.startDelayMs);
     }
 
     hasSeenCurrentVersion() {
       if (!this.pageId) return false;
       const state = readCoachState();
-      return state[this.pageId]?.version === this.version;
+      const storedVersion = state[this.pageId]?.version || 0;
+      return storedVersion >= (this.version || 0);
     }
 
     markSeen() {
@@ -145,7 +171,10 @@
         'z-index: 9998',
         'display: none',
         'opacity: 0',
-        'transition: opacity 0.2s ease',
+        'transition: opacity 0.25s ease',
+        'pointer-events: auto',
+        'overflow: visible',
+        'background: transparent',
       ].join(';');
 
       const highlight = document.createElement('div');
@@ -153,12 +182,13 @@
       highlight.className = 'coach-v2-highlight';
       highlight.style.cssText = [
         'position: absolute',
-        'border-radius: 12px',
+        'border-radius: 14px',
         'box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55)',
         'z-index: 9999',
         'pointer-events: none',
-        'transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        'transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         'opacity: 0',
+        'background: transparent',
       ].join(';');
 
       const tooltip = document.createElement('div');
@@ -171,18 +201,24 @@
         'background: #ffffff',
         'border-radius: 20px',
         'box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15)',
-        'padding: 16px 18px 14px',
+        'padding: 18px 20px 16px',
         'color: #111827',
         'opacity: 0',
         'display: flex',
         'flex-direction: column',
-        'gap: 10px',
+        'gap: 14px',
         'z-index: 10000',
         'transition: opacity 0.25s ease',
+        'visibility: hidden',
       ].join(';');
+
+      const body = document.createElement('div');
+      body.className = 'coach-body';
+      body.style.cssText = ['display: flex', 'flex-direction: column', 'gap: 8px'].join(';');
 
       const stepLabelEl = document.createElement('div');
       stepLabelEl.id = 'coachStepLabel';
+      stepLabelEl.className = 'coach-step-label';
       stepLabelEl.style.cssText = [
         'font-size: 12px',
         'font-weight: 700',
@@ -194,6 +230,7 @@
 
       const titleEl = document.createElement('h3');
       titleEl.id = 'coachTitle';
+      titleEl.className = 'coach-title';
       titleEl.style.cssText = [
         'margin: 0',
         'font-size: 18px',
@@ -203,6 +240,7 @@
 
       const textEl = document.createElement('p');
       textEl.id = 'coachText';
+      textEl.className = 'coach-text';
       textEl.style.cssText = [
         'margin: 4px 0 0',
         'font-size: 15px',
@@ -210,30 +248,37 @@
         'color: #4b5563',
       ].join(';');
 
-      const buttons = document.createElement('div');
-      buttons.className = 'coach-v2-buttons';
-      buttons.style.cssText = [
+      body.appendChild(stepLabelEl);
+      body.appendChild(titleEl);
+      body.appendChild(textEl);
+
+      const footer = document.createElement('div');
+      footer.className = 'coach-footer';
+      footer.style.cssText = [
         'display: flex',
+        'align-items: center',
         'gap: 10px',
-        'margin-top: 6px',
-        'justify-content: flex-end',
+        'margin-top: 4px',
         'flex-wrap: wrap',
       ].join(';');
 
       const skipBtn = this.buildButton('Hopp over', 'ghost');
       skipBtn.id = 'coachSkipBtn';
-      const prevBtn = this.buildButton('Tilbake', 'secondary');
+      const spacer = document.createElement('div');
+      spacer.className = 'coach-footer-spacer';
+      spacer.style.cssText = ['flex: 1 1 auto', 'min-width: 8px'].join(';');
+      const prevBtn = this.buildButton('Forrige', 'secondary');
       prevBtn.id = 'coachPrevBtn';
       const nextBtn = this.buildButton('Neste', 'primary');
       nextBtn.id = 'coachNextBtn';
 
-      tooltip.appendChild(stepLabelEl);
-      tooltip.appendChild(titleEl);
-      tooltip.appendChild(textEl);
-      buttons.appendChild(skipBtn);
-      buttons.appendChild(prevBtn);
-      buttons.appendChild(nextBtn);
-      tooltip.appendChild(buttons);
+      footer.appendChild(skipBtn);
+      footer.appendChild(spacer);
+      footer.appendChild(prevBtn);
+      footer.appendChild(nextBtn);
+
+      tooltip.appendChild(body);
+      tooltip.appendChild(footer);
 
       tooltip.addEventListener('click', (evt) => evt.stopPropagation());
 
@@ -268,6 +313,10 @@
         'transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease',
         'font-size: 14px',
         'line-height: 1',
+        'display: inline-flex',
+        'align-items: center',
+        'justify-content: center',
+        'min-height: 38px',
       ];
 
       if (variant === 'secondary') {
@@ -342,6 +391,13 @@
       }
     }
 
+    clearStartDelay() {
+      if (this.startDelayTimeoutId) {
+        clearTimeout(this.startDelayTimeoutId);
+        this.startDelayTimeoutId = null;
+      }
+    }
+
     async goToStep(index) {
       if (!this.active) return;
       if (!Array.isArray(this.steps) || this.steps.length === 0) {
@@ -357,12 +413,30 @@
 
       this.clearPositionTimeout();
       this.currentStepIndex = index;
+      this.currentTarget = null;
 
-      const step = this.steps[this.currentStepIndex] || {};
-      const { waitCondition } = step;
+      const step = this.steps[index];
+      if (!step) {
+        this.finish(false);
+        return;
+      }
 
-      if (typeof waitCondition === 'function') {
-        await waitForCondition(waitCondition);
+      // Empty tooltip while we wait to avoid stale content flashes
+      if (this.elements.tooltip) {
+        this.elements.tooltip.style.visibility = 'hidden';
+        this.elements.tooltip.style.opacity = '0';
+      }
+      if (this.elements.highlight) {
+        this.elements.highlight.style.opacity = '0';
+      }
+
+      if (typeof step.waitCondition === 'function') {
+        const ok = await waitForCondition(step.waitCondition, 3000, 130);
+        if (!ok) {
+          console.warn('CoachEngine: waitCondition timeout for step', step.id || index);
+          this.goToStep(index + 1);
+          return;
+        }
       }
 
       let target = null;
@@ -378,7 +452,7 @@
 
       if (!target) {
         console.warn('CoachEngine: Fant ikke element for steg', step.id || step.selector || index);
-        this.goToStep(this.currentStepIndex + 1);
+        this.goToStep(index + 1);
         return;
       }
 
@@ -397,7 +471,19 @@
       this.positionTimeoutId = window.setTimeout(() => {
         if (!this.active || scheduledStep !== this.currentStepIndex) return;
         this.positionElements(target, step);
-      }, 700);
+      }, this.positionDelayMs);
+    }
+
+    next() {
+      this.goToStep(this.currentStepIndex + 1);
+    }
+
+    prev() {
+      this.goToStep(this.currentStepIndex - 1);
+    }
+
+    skip() {
+      this.finish(true);
     }
 
     updateTooltipContent(step) {
@@ -451,6 +537,7 @@
       this.elements.tooltip.style.opacity = '0';
 
       requestAnimationFrame(() => {
+        if (!this.active || !this.elements.tooltip || !this.elements.highlight) return;
         const ttRect = this.elements.tooltip.getBoundingClientRect();
         const placement = this.getPlacement(step, rect, ttRect);
 
@@ -477,27 +564,28 @@
     }
 
     getPlacement(step, rect, ttRect) {
-      if (step.placement === 'top' || step.placement === 'bottom') {
+      if (step && (step.placement === 'top' || step.placement === 'bottom')) {
         return step.placement;
       }
-      const hasSpaceAbove = rect.top > ttRect.height + 32;
+      const ttHeight = ttRect?.height || 0;
+      const hasSpaceAbove = rect.top > ttHeight + 32;
       if (hasSpaceAbove && rect.top > 200) return 'top';
       return 'bottom';
     }
 
     handleNext(evt) {
       evt?.stopPropagation();
-      this.goToStep(this.currentStepIndex + 1);
+      this.next();
     }
 
     handlePrev(evt) {
       evt?.stopPropagation();
-      this.goToStep(this.currentStepIndex - 1);
+      this.prev();
     }
 
     handleSkip(evt) {
       evt?.stopPropagation();
-      this.finish(true);
+      this.skip();
     }
 
     handleOverlayClick(evt) {
@@ -512,10 +600,10 @@
         this.finish(true);
       }
       if (evt.key === 'ArrowRight') {
-        this.goToStep(this.currentStepIndex + 1);
+        this.next();
       }
       if (evt.key === 'ArrowLeft') {
-        this.goToStep(this.currentStepIndex - 1);
+        this.prev();
       }
     }
 
@@ -528,16 +616,26 @@
     }
 
     repositionCurrentStep() {
-      if (!this.active || !this.currentTarget) return;
-      if (!document.body.contains(this.currentTarget)) {
-        this.goToStep(this.currentStepIndex);
-        return;
-      }
-      this.positionElements(this.currentTarget, this.steps[this.currentStepIndex] || {});
+      if (this.repositionRafId) return;
+      this.repositionRafId = window.requestAnimationFrame(() => {
+        this.repositionRafId = null;
+        if (!this.active || !this.currentTarget) return;
+        if (this.positionTimeoutId) return; // let scheduled positioning finish after scroll
+        if (!document.body.contains(this.currentTarget)) {
+          this.goToStep(this.currentStepIndex);
+          return;
+        }
+        this.positionElements(this.currentTarget, this.steps[this.currentStepIndex] || {});
+      });
     }
 
     finish(markSeen = true) {
       this.clearPositionTimeout();
+      this.clearStartDelay();
+      if (this.repositionRafId) {
+        cancelAnimationFrame(this.repositionRafId);
+        this.repositionRafId = null;
+      }
       this.active = false;
 
       try {
