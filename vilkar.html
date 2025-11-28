@@ -340,48 +340,66 @@
      <div class="section-header">
       <svg class="section-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
-      <h2 class="section-title" id="section1-title">1. Om tjenesten</h2>
+      <h2 class="section-title" id="section1-title">1. Om tjenesten (beta og "som den er")</h2>
      </div>
      <div class="section-content">
-      <p>Vår app er laget for familier og husholdninger som ønsker å holde orden på budsjett, middagsplanlegging og handlelister. Vi hjelper deg med å planlegge måltider, lage handlelister basert på middagsmenyen, og holde oversikt over utgifter – alt på ett sted.</p>
-      <p>Tjenesten er utviklet med familier i tankene, og vi jobber kontinuerlig for å gjøre hverdagen enklere og mer oversiktlig for deg og dine.</p>
+      <p>Appen er et verktøy for husholdninger: budsjett, kjøpshistorikk, handleliste og middagsplaner på ett sted.</p>
+      <p>Tjenesten er i beta og leveres "som den er". Vi kan ikke garantere oppetid eller mot tap av data, og løsningen kan endres underveis.</p>
+      <div class="warning-stripe">
+       <svg class="warning-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /> <line x1="12" y1="8" x2="12" y2="12" /> <line x1="12" y1="16" x2="12.01" y2="16" />
+       </svg>
+       <p class="warning-text">Bruk ikke appen som eneste kilde for kritisk økonomisk historikk. Ta egen kopi av viktige tall.</p>
+      </div>
      </div>
     </div>
     <div class="section">
      <div class="section-header">
       <svg class="section-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" />
       </svg>
-      <h2 class="section-title" id="section2-title">2. Hva vi lagrer</h2>
+      <h2 class="section-title" id="section2-title">2. Personvern og databehandling</h2>
      </div>
      <div class="section-content">
-      <p>For at appen skal fungere, lagrer vi følgende informasjon om deg og din husholdning:</p>
+      <p>Behandlingsansvarlig er Joachim Bye (utvikler). Data lagres i Supabase (database og autentisering) som databehandler.</p>
+      <p>Vi kan bruke sikkerhetstjenester (f.eks. Cloudflare/CDN) for å beskytte mot angrep. IP-adresse og nettleserinformasjon kan derfor ligge i sikkerhetslogger.</p>
+      <p>Vi behandler disse dataene for å levere tjenesten:</p>
       <div class="data-grid">
        <div class="data-item">
         <svg class="data-item-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /> <polyline points="22,6 12,13 2,6" />
         </svg>
         <div class="data-item-content">
          <p class="data-item-title">E-postadresse</p>
-         <p class="data-item-desc">For innlogging med magisk lenke</p>
+         <p class="data-item-desc">For innlogging med magisk lenke og identifikasjon.</p>
         </div>
        </div>
        <div class="data-item">
         <svg class="data-item-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /> <circle cx="12" cy="7" r="4" />
         </svg>
         <div class="data-item-content">
-         <p class="data-item-title">Navn (valgfritt)</p>
-         <p class="data-item-desc">For å vise hvem som har lagt inn kjøp og middager</p>
+         <p class="data-item-title">Husholdningsdata</p>
+         <p class="data-item-desc">Budsjetter, handlelister, middagsplaner, og kjøpshistorikk (dato, butikk, beløp, kategori).</p>
         </div>
        </div>
        <div class="data-item">
         <svg class="data-item-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /> <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
         <div class="data-item-content">
-         <p class="data-item-title">Husholdningsdata</p>
-         <p class="data-item-desc">Budsjett, kjøp, handleliste og middagsforslag</p>
+         <p class="data-item-title">Teknisk informasjon</p>
+         <p class="data-item-desc">IP-adresse, nettleser og tekniske logger som kan brukes til sikkerhet og feilsøking.</p>
         </div>
        </div>
       </div>
-      <div class="info-notice"><strong>Viktig:</strong> Vi selger ikke dataene dine videre. Vi bruker dem kun for å drifte appen og gi deg den beste opplevelsen i din husholdning.
+      <div class="info-box">
+       <div class="info-box-header">
+        <svg class="info-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /> <line x1="12" y1="16" x2="12" y2="12" /> <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <p class="info-box-title">Slik bruker vi lagring og sikkerhet</p>
+       </div>
+       <ul>
+        <li>Supabase lagrer data og håndterer autentisering som databehandler.</li>
+        <li>LocalStorage brukes i nettleseren til å cache budsjett, handleliste og meny for raskere opplevelse (ingen reklamesporing).</li>
+        <li>Sikkerhetstjenester som CDN/Cloudflare kan se IP-adresse for å hindre misbruk.</li>
+        <li>Vi selger aldri data til tredjeparter eller annonsører.</li>
+       </ul>
       </div>
      </div>
     </div>
@@ -389,7 +407,7 @@
      <div class="section-header">
       <svg class="section-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
-      <h2 class="section-title" id="section3-title">3. Dine rettigheter</h2>
+      <h2 class="section-title" id="section3-title">3. Dine rettigheter (innsyn, retting, sletting)</h2>
      </div>
      <div class="section-content">
       <div class="info-box">
@@ -399,10 +417,10 @@
         <p class="info-box-title">Du har full kontroll over dine data</p>
        </div>
        <ul>
-        <li>Du kan når som helst be om innsyn i alle data vi har lagret om deg og din husholdning.</li>
-        <li>Du kan be om at vi retter eventuelle feil i dataene dine, slik at informasjonen alltid er korrekt.</li>
-        <li>Du kan be om at vi sletter alle dine personopplysninger og husholdningsdata innen rimelig tid.</li>
-        <li>Hvis du har spørsmål eller ønsker å utøve disse rettighetene, ta kontakt med oss (se kontaktinformasjon nederst).</li>
+        <li>Du kan be om innsyn i hvilke data vi har lagret om deg og husholdningen.</li>
+        <li>Du kan be om retting av feil, slik at informasjonen er oppdatert.</li>
+        <li>Du kan be om sletting av konto, budsjett, kjøpshistorikk, handlelister og middagsplaner. Per nå gjøres dette manuelt.</li>
+        <li>Vi svarer og gjennomfører innen rimelig tid. Kontakt oss via e-posten nederst.</li>
        </ul>
       </div>
      </div>
@@ -414,20 +432,21 @@
       <h2 class="section-title" id="section4-title">4. Sletting av konto og data</h2>
      </div>
      <div class="section-content">
-      <p>Dersom du ønsker å avslutte bruken av appen og få slettet kontoen din, kan du enkelt kontakte oss. Vi vil da slette all informasjon knyttet til deg og din husholdning innen rimelig tid.</p>
-      <p>Husholdningsdata som budsjett, kjøpshistorikk og middagsplaner vil bli permanent slettet eller anonymisert, slik at de ikke lenger kan knyttes til deg.</p>
+      <p>Ønsker du å avslutte bruken? Send oss en e-post, så sletter vi kontoen din og all tilhørende husholdningsdata. Prosessen er manuell per i dag.</p>
+      <p>Husholdningsdata (budsjetter, kjøpshistorikk, handlelister, middagsplaner) slettes permanent eller anonymiseres slik at de ikke kan knyttes til deg.</p>
       <div class="warning-stripe">
        <svg class="warning-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" /> <line x1="12" y1="8" x2="12" y2="12" /> <line x1="12" y1="16" x2="12.01" y2="16" />
        </svg>
-       <p class="warning-text">Merk: Når kontoen er slettet, kan ikke dataene gjenopprettes. Sørg for å ta backup av viktig informasjon før du ber om sletting.</p>
+       <p class="warning-text">Når kontoen er slettet, kan ikke dataene gjenopprettes. Ta gjerne egen backup før du ber om sletting.</p>
       </div>
+      <!-- TODO: Implementer fremtidig "Slett konto"-knapp som kaller en Supabase-funksjon -->
      </div>
     </div>
     <div class="section">
      <div class="section-header">
       <svg class="section-icon" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /> <polyline points="22,6 12,13 2,6" />
       </svg>
-      <h2 class="section-title" id="section5-title">5. Kontakt oss</h2>
+      <h2 class="section-title" id="section5-title">5. Kontakt og innsyn</h2>
      </div>
      <div class="section-content">
       <div class="contact-box">
@@ -435,14 +454,19 @@
        </svg>
        <div class="contact-content">
         <p><strong>Har du spørsmål om vilkår eller personvern?</strong></p>
+<<<<<<< HEAD
         <p>Vi hjelper deg gjerne! Kontakt oss på:</p>
         <p><a href="mailto:support@dittdomene.no" class="contact-email">joachimbye2@gmail.com</a></p>
+=======
+        <p>Bruk e-posten under for innsyn, retting eller sletting:</p>
+        <p><a href="mailto:joachimbye2@gmail.com" class="contact-email">joachimbye2@gmail.com</a></p>
+>>>>>>> 64ae03b (Lover og personvern oppdatering)
        </div>
       </div>
      </div>
     </div>
     <div class="footer">
-     <p class="footer-text" id="footer-text">Sist oppdatert: 2025</p><a href="#" class="back-link" id="back-link">← <span id="back-link-text">Tilbake til innlogging</span></a>
+     <p class="footer-text" id="footer-text">Sist oppdatert: november 2025</p><a href="innlogging.html" class="back-link" id="back-link">← <span id="back-link-text">Tilbake til innlogging</span></a>
     </div>
    </div>
   </div>
@@ -451,12 +475,17 @@
       chip_text: 'Trygghet & personvern',
       main_title: 'Vilkår og personvern',
       subtitle: 'Her forklarer vi, med enkle ord, hva vi lagrer og hvorfor.',
-      section1_title: '1. Om tjenesten',
-      section2_title: '2. Hva vi lagrer',
-      section3_title: '3. Dine rettigheter',
+      section1_title: '1. Om tjenesten (beta og "som den er")',
+      section2_title: '2. Personvern og databehandling',
+      section3_title: '3. Dine rettigheter (innsyn, retting, sletting)',
       section4_title: '4. Sletting av konto og data',
+<<<<<<< HEAD
       section5_title: '5. Kontakt oss',
       footer_text: 'Sist oppdatert: 28/11/2025',
+=======
+      section5_title: '5. Kontakt og innsyn',
+      footer_text: 'Sist oppdatert: november 2025',
+>>>>>>> 64ae03b (Lover og personvern oppdatering)
       back_link_text: 'Tilbake til innlogging',
       background_color: '#f0f9f4',
       card_background: '#ffffff',

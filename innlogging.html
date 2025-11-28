@@ -330,15 +330,16 @@
       </div>
 
       <div class="terms-row" style="margin-top: 8px; margin-bottom: 12px;">
-        <label class="terms-checkbox" style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px;">
+        <div class="terms-checkbox" style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px;">
           <input type="checkbox" id="accept-terms" style="margin-top: 3px;">
-          <span>
-            Jeg har lest og aksepterer
+          <label for="accept-terms" style="cursor: pointer;">
+            Jeg godtar vilkår og personvern og forstår at tjenesten er i testfase (beta) og leveres "som den er".
             <a href="vilkar.html" target="_blank" rel="noopener noreferrer">
-              vilkår og personvern
+              Les vilkår og personvern
             </a>.
-          </span>
-        </label>
+          </label>
+        </div>
+        <p class="error-hint" id="terms-error" style="display:none; text-align:left; margin-top:6px;">Du må godta vilkår og personvern før du kan logge inn.</p>
       </div>
 
       <button type="submit" class="submit-btn auth-button-primary" id="magic-link-button">
@@ -461,9 +462,22 @@
     };
     let inviteCodeFromUrl = null;
     const termsCheckbox = document.getElementById('accept-terms');
+    const termsError = document.getElementById('terms-error');
     const magicLinkButton = document.getElementById('magic-link-button');
     const shouldDisableMagicButton = (isLoading) =>
-      Boolean(isLoading || (termsCheckbox && !termsCheckbox.checked));
+      Boolean(
+        isLoading ||
+        (state.step === 'email' && termsCheckbox && !termsCheckbox.checked)
+      );
+    const hideTermsError = () => {
+      if (termsError) termsError.style.display = 'none';
+    };
+    const showTermsError = (message) => {
+      if (termsError) {
+        termsError.textContent = message;
+        termsError.style.display = 'block';
+      }
+    };
 
     if (magicLinkButton) {
       magicLinkButton.disabled = shouldDisableMagicButton(state.isLoading);
@@ -472,6 +486,9 @@
     if (termsCheckbox && magicLinkButton) {
       termsCheckbox.addEventListener('change', () => {
         magicLinkButton.disabled = shouldDisableMagicButton(state.isLoading);
+        if (termsCheckbox.checked) {
+          hideTermsError();
+        }
       });
     }
 
@@ -519,6 +536,9 @@
         if (el.errorHint) {
           el.errorHint.textContent = error || '';
           el.errorHint.style.display = error ? 'block' : 'none';
+        }
+        if (termsError && (step !== 'email' || (termsCheckbox && termsCheckbox.checked))) {
+          hideTermsError();
         }
 
         // Loading-state
@@ -763,6 +783,16 @@
 
     function onFormSubmit(e) {
       e.preventDefault();
+      if (
+        state.step === 'email' &&
+        termsCheckbox &&
+        !termsCheckbox.checked
+      ) {
+        showTermsError('Du må godta vilkår og personvern før du kan logge inn.');
+        termsCheckbox.focus();
+        setState({ error: null, isLoading: false });
+        return;
+      }
       if (state.step === 'otp') {
         handleOtpSubmit();
       } else {
