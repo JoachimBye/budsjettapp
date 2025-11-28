@@ -1,380 +1,462 @@
 <!doctype html>
 <html lang="no">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slett konto - Budsjettapp</title>
-  <style>
-    body {
-      box-sizing: border-box;
-    }
-
-    *, *::before, *::after {
-      box-sizing: inherit;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #e8f0e8 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      line-height: 1.6;
-      color: #2d3748;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 520px;
-    }
-
-    .danger-card {
-      background: white;
-      border-radius: 24px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-      padding: 40px;
-      animation: fadeIn 0.4s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .icon-wrapper {
-      width: 64px;
-      height: 64px;
-      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-    }
-
-    .icon-wrapper svg {
-      width: 32px;
-      height: 32px;
-      color: #dc2626;
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 700;
-      text-align: center;
-      color: #1a202c;
-      margin-bottom: 12px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      font-size: 15px;
-      margin-bottom: 32px;
-      line-height: 1.5;
-    }
-
-    .info-box {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-
-    .info-box h2 {
-      font-size: 16px;
-      font-weight: 600;
-      color: #1a202c;
-      margin-bottom: 16px;
-    }
-
-    .info-box ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .info-box li {
-      font-size: 14px;
-      color: #475569;
-      padding-left: 24px;
-      position: relative;
-      margin-bottom: 12px;
-      line-height: 1.5;
-    }
-
-    .info-box li:last-child {
-      margin-bottom: 0;
-    }
-
-    .info-box li::before {
-      content: '•';
-      position: absolute;
-      left: 8px;
-      color: #5fa05f;
-      font-weight: bold;
-    }
-
-    .warning-box {
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border: 1px solid #fbbf24;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 32px;
-      display: flex;
-      gap: 12px;
-      align-items: start;
-    }
-
-    .warning-icon {
-      flex-shrink: 0;
-      width: 24px;
-      height: 24px;
-      color: #d97706;
-    }
-
-    .warning-box p {
-      font-size: 14px;
-      color: #92400e;
-      line-height: 1.5;
-      margin: 0;
-    }
-
-    .delete-form {
-      margin-bottom: 0;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #1a202c;
-      margin-bottom: 8px;
-    }
-
-    input[type="email"] {
-      width: 100%;
-      padding: 12px 16px;
-      font-size: 15px;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    input[type="email"]:focus {
-      outline: none;
-      border-color: #5fa05f;
-      box-shadow: 0 0 0 3px rgba(95, 160, 95, 0.1);
-    }
-
-    .checkbox-group {
-      display: flex;
-      align-items: start;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      border: 2px solid #cbd5e1;
-      border-radius: 6px;
-      cursor: pointer;
-      flex-shrink: 0;
-      margin-top: 2px;
-      accent-color: #5fa05f;
-    }
-
-    .checkbox-group label {
-      margin: 0;
-      font-weight: 500;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .form-note {
-      font-size: 13px;
-      color: #64748b;
-      margin-top: 8px;
-      padding-left: 32px;
-    }
-
-    .button-row {
-      display: flex;
-      flex-direction: column-reverse;
-      gap: 12px;
-      margin-top: 32px;
-    }
-
-    .danger-button {
-      width: 100%;
-      padding: 14px 24px;
-      font-size: 16px;
-      font-weight: 600;
-      color: white;
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    .danger-button:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-
-    .danger-button:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
-    .danger-button:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    .cancel-button {
-      width: 100%;
-      padding: 14px 24px;
-      font-size: 16px;
-      font-weight: 600;
-      color: #5fa05f;
-      background: transparent;
-      border: 2px solid #5fa05f;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-      text-decoration: none;
-      display: inline-block;
-      text-align: center;
-    }
-
-    .cancel-button:hover {
-      background: #f0f9f0;
-    }
-
-    @media (min-width: 640px) {
-      .danger-card {
-        padding: 48px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Slett konto - Budsjettapp</title>
+    <style>
+      body {
+        box-sizing: border-box;
       }
 
-      .button-row {
-        flex-direction: row;
-        justify-content: space-between;
+      *,
+      *::before,
+      *::after {
+        box-sizing: inherit;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8f0e8 100%);
+        min-height: 100vh;
+        display: flex;
         align-items: center;
+        justify-content: center;
+        padding: 16px;
+        line-height: 1.6;
+        color: #2d3748;
       }
 
-      .cancel-button {
-        width: auto;
-        flex: 0 0 auto;
+      .container {
+        width: 100%;
+        max-width: 520px;
       }
 
-      .danger-button {
-        width: auto;
-        flex: 1;
-        max-width: 280px;
-      }
-    }
-
-    @media (max-width: 480px) {
       .danger-card {
-        padding: 28px 20px;
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        padding: 40px;
+        animation: fadeIn 0.4s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+      }
+
+      .icon-wrapper svg {
+        width: 32px;
+        height: 32px;
+        color: #dc2626;
       }
 
       h1 {
-        font-size: 24px;
+        font-size: 28px;
+        font-weight: 700;
+        text-align: center;
+        color: #1a202c;
+        margin-bottom: 12px;
       }
 
       .subtitle {
+        text-align: center;
+        color: #64748b;
+        font-size: 15px;
+        margin-bottom: 32px;
+        line-height: 1.5;
+      }
+
+      .info-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+
+      .info-box h2 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 16px;
+      }
+
+      .info-box ul {
+        list-style: none;
+        padding: 0;
+      }
+
+      .info-box li {
         font-size: 14px;
+        color: #475569;
+        padding-left: 24px;
+        position: relative;
+        margin-bottom: 12px;
+        line-height: 1.5;
       }
-    }
-  </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
-  <main class="container">
-   <div class="danger-card"><!-- Ikon i toppen -->
-    <div class="icon-wrapper">
-     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-     </svg>
-    </div><!-- Tittel og undertekst -->
-    <h1>Slett konto</h1>
-    <p class="subtitle">Når du sletter kontoen din, fjerner vi budsjett, handlelister og kjøpshistorikk for husholdningen din fra den aktive databasen.</p><!-- Informasjonsboks -->
-    <section class="info-box">
-     <h2>Hva skjer når du sletter?</h2>
-     <ul>
-      <li>Tilgang til kontoen din blir fjernet umiddelbart.</li>
-      <li>Budsjett, kjøpshistorikk og handlelister blir slettet fra den aktive databasen innen 30 dager.</li>
-      <li>Data kan fortsatt finnes i krypterte sikkerhetskopier i opptil 30 dager før de overskrives automatisk.</li>
-     </ul>
-    </section><!-- Advarselsboks -->
-    <div class="warning-box">
-     <svg class="warning-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewbox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-     </svg>
-     <p><strong>Denne handlingen kan ikke angres.</strong> Sørg for at du har tatt vare på eventuell informasjon du trenger før du fortsetter.</p>
-    </div><!-- Bekreftelsesskjema -->
-    <form class="delete-form">
-     <div class="form-group"><label for="confirm-email">Bekreft med e-post</label> <input type="email" id="confirm-email" name="confirm-email" placeholder="din@epost.no" required aria-label="Bekreft e-postadresse">
-     </div>
-     <div class="form-group">
-      <div class="checkbox-group"><input type="checkbox" id="confirm-checkbox" class="confirm-checkbox" name="confirm-delete" required> <label for="confirm-checkbox"> Jeg forstår at kontoen min og tilknyttede data slettes permanent og at dette ikke kan angres. </label>
+
+      .info-box li:last-child {
+        margin-bottom: 0;
+      }
+
+      .info-box li::before {
+        content: "•";
+        position: absolute;
+        left: 8px;
+        color: #5fa05f;
+        font-weight: bold;
+      }
+
+      .warning-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #fbbf24;
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
+      .warning-icon {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        color: #d97706;
+      }
+
+      .warning-box p {
+        font-size: 14px;
+        color: #92400e;
+        line-height: 1.5;
+        margin: 0;
+      }
+
+      .delete-form {
+        margin-bottom: 0;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 8px;
+      }
+
+      input[type="email"] {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 15px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #5fa05f;
+        box-shadow: 0 0 0 3px rgba(95, 160, 95, 0.1);
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #cbd5e1;
+        border-radius: 6px;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-top: 2px;
+        accent-color: #5fa05f;
+      }
+
+      .checkbox-group label {
+        margin: 0;
+        font-weight: 500;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .form-note {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 8px;
+        padding-left: 32px;
+      }
+
+      .button-row {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 12px;
+        margin-top: 32px;
+      }
+
+      .danger-button {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        color: white;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+
+      .danger-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+      }
+
+      .danger-button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .danger-button:disabled {
+        background: #cbd5e1;
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+
+      .cancel-button {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #5fa05f;
+        background: transparent;
+        border: 2px solid #5fa05f;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+      }
+
+      .cancel-button:hover {
+        background: #f0f9f0;
+      }
+
+      @media (min-width: 640px) {
+        .danger-card {
+          padding: 48px;
+        }
+
+        .button-row {
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .cancel-button {
+          width: auto;
+          flex: 0 0 auto;
+        }
+
+        .danger-button {
+          width: auto;
+          flex: 1;
+          max-width: 280px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .danger-card {
+          padding: 28px 20px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .subtitle {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <div class="danger-card">
+        <!-- Ikon i toppen -->
+        <div class="icon-wrapper">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
+          </svg>
+        </div>
+
+        <!-- Tittel og undertekst -->
+        <h1>Slett konto</h1>
+        <p class="subtitle">
+          Når du sletter kontoen din, fjerner vi budsjett, handlelister og
+          kjøpshistorikk for husholdningen din fra den aktive databasen.
+        </p>
+
+        <!-- Informasjonsboks -->
+        <section class="info-box">
+          <h2>Hva skjer når du sletter?</h2>
+          <ul>
+            <li>Tilgang til kontoen din blir fjernet umiddelbart.</li>
+            <li>
+              Budsjett, kjøpshistorikk og handlelister blir slettet fra den
+              aktive databasen innen 30 dager.
+            </li>
+            <li>
+              Data kan fortsatt finnes i krypterte sikkerhetskopier i opptil 30
+              dager før de overskrives automatisk.
+            </li>
+          </ul>
+        </section>
+
+        <!-- Advarselsboks -->
+        <div class="warning-box">
+          <svg
+            class="warning-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p>
+            <strong>Denne handlingen kan ikke angres.</strong> Sørg for at du
+            har tatt vare på eventuell informasjon du trenger før du
+            fortsetter.
+          </p>
+        </div>
+
+        <!-- Bekreftelsesskjema -->
+        <form class="delete-form">
+          <div class="form-group">
+            <label for="confirm-email">Bekreft med e-post</label>
+            <input
+              type="email"
+              id="confirm-email"
+              name="confirm-email"
+              placeholder="din@epost.no"
+              required
+              aria-label="Bekreft e-postadresse"
+            />
+          </div>
+
+          <div class="form-group">
+            <div class="checkbox-group">
+              <input
+                type="checkbox"
+                id="confirm-checkbox"
+                class="confirm-checkbox"
+                name="confirm-delete"
+                required
+              />
+              <label for="confirm-checkbox">
+                Jeg forstår at kontoen min og tilknyttede data slettes
+                permanent og at dette ikke kan angres.
+              </label>
+            </div>
+            <p class="form-note">
+              Sletting kan ta inntil 30 dager i våre systemer.
+            </p>
+          </div>
+
+          <!-- Knapperad -->
+          <div class="button-row">
+            <a href="innstillinger.html" class="cancel-button">
+              Avbryt og gå tilbake
+            </a>
+
+            <!-- Her kaller vi API for å slette konto når knappen trykkes -->
+            <button type="submit" class="danger-button" disabled>
+              Slett konto permanent
+            </button>
+          </div>
+        </form>
       </div>
-      <p class="form-note">Sletting kan ta inntil 30 dager i våre systemer.</p>
-     </div><!-- Knapperad -->
-     <div class="button-row"><a href="#" class="cancel-button">Avbryt og gå tilbake</a> <!-- Her kaller vi API for å slette konto når knappen trykkes --> <button type="submit" class="danger-button" disabled> Slett konto permanent </button>
-     </div>
-    </form>
-   </div>
-  </main>
-  <script>
-    // Enkel validering for å aktivere slett-knappen
-    // (Du kan erstatte dette med din egen logikk senere)
-    const checkbox = document.querySelector('.confirm-checkbox');
-    const emailInput = document.querySelector('#confirm-email');
-    const deleteButton = document.querySelector('.danger-button');
-    const form = document.querySelector('.delete-form');
+    </main>
 
-    function updateButtonState() {
-      const isChecked = checkbox.checked;
-      const hasEmail = emailInput.value.trim().length > 0;
-      deleteButton.disabled = !(isChecked && hasEmail);
-    }
+    <script>
+      // Enkel validering for å aktivere slett-knappen
+      const checkbox = document.querySelector(".confirm-checkbox");
+      const emailInput = document.querySelector("#confirm-email");
+      const deleteButton = document.querySelector(".danger-button");
+      const form = document.querySelector(".delete-form");
 
-    checkbox.addEventListener('change', updateButtonState);
-    emailInput.addEventListener('input', updateButtonState);
-
-    // Her kan du legge til faktisk slettelogikk
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      if (checkbox.checked && emailInput.value) {
-        // TODO: Her kaller du API for å slette kontoen
-        console.log('Konto skal slettes for:', emailInput.value);
-        // Eksempel: await fetch('/api/delete-account', { method: 'DELETE', ... })
+      function updateButtonState() {
+        const isChecked = checkbox.checked;
+        const hasEmail = emailInput.value.trim().length > 0;
+        deleteButton.disabled = !(isChecked && hasEmail);
       }
-    });
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5632c9f0ad2678',t:'MTc2NDI5NDQ1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+      checkbox.addEventListener("change", updateButtonState);
+      emailInput.addEventListener("input", updateButtonState);
+
+      // TODO: Koble på faktisk slettelogikk mot Supabase / backend her
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        if (!checkbox.checked || !emailInput.value.trim()) return;
+
+        const email = emailInput.value.trim();
+        console.log("Konto skal slettes for:", email);
+
+        // Eksempel på videre flyt:
+        // 1. Kall en edge function / RPC i Supabase som:
+        //    - verifiserer at email tilhører innlogget bruker
+        //    - sletter user + tilknyttede rader (members, purchases, etc.)
+        // 2. Vis en bekreftelsesmelding / redirect til "konto slettet"-side.
+      });
+    </script>
+  </body>
 </html>
