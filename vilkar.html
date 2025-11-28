@@ -331,29 +331,29 @@
  <div class="page-wrapper">
   <div class="hero-section">
     <div class="security-chip"><span>🔒</span> <span id="chip-text">Trygghet &amp; personvern</span>
-    </div>
-    <h1 class="hero-title" id="main-title">Vilkår og personvern</h1>
-    <p class="hero-subtitle" id="subtitle">Her forklarer vi, med enkle ord, hva vi lagrer og hvorfor.</p>
    </div>
-   <div class="content-card">
-    <div class="section">
-     <div class="section-header">
+   <h1 class="hero-title" id="main-title">Vilkår og personvern</h1>
+   <p class="hero-subtitle" id="subtitle">Her forklarer vi, med enkle ord, hva vi lagrer og hvorfor.</p>
+  </div>
+  <div class="content-card">
+   <div class="section">
+    <div class="section-header">
       <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <circle cx="12" cy="12" r="10" />
        <line x1="12" y1="8" x2="12" y2="12" />
        <line x1="12" y1="16" x2="12.01" y2="16" />
       </svg>
-      <h2 class="section-title" id="section1-title">1. Ansvarsfraskrivelse (viktig!)</h2>
+      <h2 class="section-title" id="section1-title">1. Ansvarsfraskrivelse (Beta)</h2>
      </div>
      <div class="section-content">
       <div class="warning-stripe">
-       <p class="warning-text" style="font-weight:600;">Tjenesten er i en testfase (BETA) og leveres "som den er" (as-is).</p>
+       <p class="warning-text" style="font-weight:600;">Tjenesten leveres "som den er" (as-is) uten noen form for garanti.</p>
       </div>
-      <p>Ved å bruke denne appen godtar du at:</p>
+      <p>Dette er et hobbyprosjekt under utvikling. Tallene er et hjelpemiddel/underholdning, ikke økonomisk rådgivning. Ved å bruke appen aksepterer du at:</p>
       <ul style="list-style:disc; margin-left:20px; margin-bottom:16px; color:#4a4a4a; font-size:15px;">
-       <li><strong>Ingen økonomisk rådgivning:</strong> Tallene i appen er kun hjelpemidler. Utvikler tar intet ansvar for faktiske økonomiske tap, overtrekk av konto eller feil i budsjettberegninger som følge av programvarefeil.</li>
-       <li><strong>Ingen garanti for data:</strong> Vi tar backup, men kan ikke garantere mot datatap. Ikke bruk appen som eneste lagring for viktig historikk.</li>
-       <li><strong>Nedetid og endringer:</strong> Tjenesten kan bli utilgjengelig, endres eller avvikles uten forvarsel.</li>
+       <li><strong>Ingen erstatningsansvar:</strong> Utvikler er ikke ansvarlig for økonomiske tap, overtrekk av konto, feil i budsjettberegninger eller andre konsekvenser. Tallene er kun en indikasjon.</li>
+       <li><strong>Datatap kan forekomme:</strong> Data kan gå tapt ved oppdateringer eller feil. Ikke bruk appen som eneste lagring for viktig historikk.</li>
+       <li><strong>Ingen oppetidsgaranti:</strong> Tjenesten kan bli utilgjengelig, endres eller legges ned uten forvarsel.</li>
       </ul>
      </div>
     </div>
@@ -364,38 +364,52 @@
        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
        <circle cx="12" cy="7" r="4" />
       </svg>
-      <h2 class="section-title" id="section2-title">2. Dine data og personvern</h2>
+      <h2 class="section-title" id="section2-title">2. Personvern og dine data</h2>
      </div>
      <div class="section-content">
-      <p>Vi behandler dine personopplysninger i henhold til GDPR (personvernforordningen). Behandlingsansvarlig er Joachim Bye.</p>
+      <p>Behandlingsansvarlig er Joachim Bye. Vi behandler data for å levere tjenesten basert på samtykke (GDPR art. 6.1.a) og for å oppfylle avtalen om bruk av appen (GDPR art. 6.1.b).</p>
 
-      <h3 style="font-size:17px; margin-top:16px; margin-bottom:8px;">Hvilke data samler vi inn?</h3>
-      <div class="data-grid">
-       <div class="data-item">
-        <div class="data-item-content">
-         <p class="data-item-title">Konto-informasjon</p>
-         <p class="data-item-desc">E-postadresse (for innlogging med magisk lenke) og intern bruker-ID.</p>
-        </div>
+      <h3 style="font-size:16px; font-weight:600; margin-top:16px;">Hva lagres?</h3>
+      <ul style="list-style:disc; margin-left:20px; color:#4a4a4a; font-size:15px;">
+       <li><strong>Identifikasjon:</strong> E-postadresse (for innlogging) og bruker-ID.</li>
+       <li><strong>Brukergenerert innhold:</strong> Budsjettall, kjøpshistorikk, varelinjer, middagsplaner og navn på husholdning.</li>
+       <li><strong>Tekniske spor:</strong> IP-adresse og nettleserinfo brukt til sikkerhetsfiltre og misbruksvern.</li>
+      </ul>
+      <p style="margin-top:8px;">Meny/allergifilter skjer i nettleseren. Vi lagrer ikke allergiopplysninger i databasen per i dag.</p>
+
+      <h3 style="font-size:16px; font-weight:600; margin-top:16px;">Tredjeparter og lagring</h3>
+      <div class="info-box">
+       <div class="info-box-header">
+        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+         <circle cx="12" cy="12" r="10" />
+         <line x1="12" y1="16" x2="12" y2="12" />
+         <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        <p class="info-box-title">Databehandlere</p>
        </div>
-       <div class="data-item">
-        <div class="data-item-content">
-         <p class="data-item-title">Husholdningsdata</p>
-         <p class="data-item-desc">Budsjett, kjøpshistorikk, datoer, butikkvalg, handlelister og middagsplaner du legger inn selv.</p>
-        </div>
-       </div>
-       <div class="data-item">
-        <div class="data-item-content">
-         <p class="data-item-title">Tekniske logger</p>
-         <p class="data-item-desc">IP-adresse, nettlesertype og lignende teknisk informasjon som brukes til sikkerhet og svindelbeskyttelse.</p>
-        </div>
-       </div>
+       <ul>
+        <li><strong>Supabase (database og innlogging):</strong> Lagrer alle data. Supabase Inc. er amerikansk; selv med EU/EØS-region kan support-tilgang/metadata innebære overføring til USA under gjeldende overføringsmekanismer (Data Privacy Framework).</li>
+        <li><strong>Cloudflare (sikkerhet):</strong> Trafikk rutes via Cloudflare for å hindre angrep. De behandler IP-adresse og nettleserfingeravtrykk midlertidig i sine logger.</li>
+       </ul>
       </div>
 
-      <h3 style="font-size:17px; margin-top:16px; margin-bottom:8px;">Dine rettigheter</h3>
-      <p>Du har rett til innsyn, retting, sletting, begrensning av behandling og dataportabilitet. Du kan også klage til Datatilsynet dersom du mener at vi bryter personvernreglene.</p>
-      <p>For å utøve dine rettigheter, send en e-post til:
-       <a href="mailto:joachimbye2@gmail.com" class="contact-email">joachimbye2@gmail.com</a>.
-      </p>
+      <h3 style="font-size:16px; font-weight:600; margin-top:16px;">Lokal lagring (localStorage)</h3>
+      <p>Vi bruker lokal lagring for fart og offline-støtte. På delte/offentlige PC-er må du manuelt tømme nettleserdata etter bruk, ellers kan andre se budsjett og handlelister.</p>
+      <p style="margin-top:8px;">Utloggingen sletter kjente nøkler, men hvis nye nøkler legges til i fremtiden kan rester bli igjen. Tøm nettleserdata etter bruk på delte enheter.</p>
+      <div class="info-notice">Vi selger eller deler ikke data med annonsører.</div>
+     </div>
+    </div>
+
+    <div class="section">
+     <div class="section-header">
+      <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+      <h2 class="section-title" id="section3-title">3. Sletting og rettigheter</h2>
+     </div>
+     <div class="section-content">
+      <p>Du eier dine data. Du har rett til innsyn, korrigering, sletting, begrensning av behandling, dataportabilitet og til å klage til Datatilsynet.</p>
+      <p><strong>Sletting:</strong> Send e-post til <a href="mailto:joachimbye2@gmail.com" class="contact-email">joachimbye2@gmail.com</a>. Vi sletter fra aktiv database innen 30 dager. Data kan ligge i krypterte sikkerhetskopier i inntil 30 dager etter sletting før de overskrives automatisk.</p>
      </div>
     </div>
 
@@ -405,65 +419,33 @@
        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
        <polyline points="22,6 12,13 2,6" />
       </svg>
-      <h2 class="section-title" id="section3-title">3. Tredjeparter, lagring og lokal data</h2>
+      <h2 class="section-title" id="section4-title">4. Lovvalg og målgruppe</h2>
      </div>
      <div class="section-content">
-      <div class="info-box">
-       <div class="info-box-header">
-        <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-         <circle cx="12" cy="12" r="10" />
-         <line x1="12" y1="16" x2="12" y2="12" />
-         <line x1="12" y1="8" x2="12.01" y2="8" />
-        </svg>
-        <p class="info-box-title">Vi bruker følgende databehandlere</p>
+      <p>Tjenesten reguleres av norsk rett. Verneting er Nord-Troms tingrett.</p>
+      <p>Tjenesten er ikke tillatt for barn under 13 år.</p>
+     </div>
+    </div>
+
+    <div class="section">
+     <div class="section-header">
+      <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+       <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+       <polyline points="22,6 12,13 2,6" />
+      </svg>
+      <h2 class="section-title" id="section5-title">5. Kontakt</h2>
+     </div>
+     <div class="section-content">
+      <div class="contact-box">
+       <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+        <polyline points="22,6 12,13 2,6" />
+       </svg>
+       <div class="contact-content">
+        <p><strong>Kontakt utvikler:</strong></p>
+        <p><a href="mailto:joachimbye2@gmail.com" class="contact-email">joachimbye2@gmail.com</a></p>
        </div>
-       <ul>
-        <li><strong>Supabase (database og innlogging):</strong> Lagrer all bruker- og husholdningsdata. Supabase kan bruke servere utenfor Norge/EØS, og data kan derfor overføres til andre land under gjeldende rammeverk for dataoverføring.</li>
-        <li><strong>Cloudflare (sikkerhet og beskyttelse):</strong> Brukes til å beskytte tjenesten mot angrep og misbruk. Cloudflare behandler blant annet IP-adresse og nettleserinformasjon for å skille ekte brukere fra roboter.</li>
-       </ul>
       </div>
-
-      <p style="margin-top:16px;">
-       <strong>Lokal lagring i nettleseren:</strong> Appen bruker lokal lagring (<code>localStorage</code>) for å gjøre appen raskere og mer responsiv. Dette betyr at enkelte data kan bli liggende igjen i nettleseren din selv etter utlogging.
-      </p>
-      <p style="margin-top:8px;">
-       <em>Viktig dersom du bruker delt enhet:</em> På offentlige eller delte PC-er anbefaler vi at du ikke bruker appen, eller at du både logger ut og tømmer nettleserdata i etterkant, slik at andre ikke kan se handlelister eller budsjettinformasjon.
-      </p>
-
-      <div class="info-notice">
-       Vi selger aldri dataene dine til tredjeparter eller annonsører.
-      </div>
-     </div>
-    </div>
-
-    <div class="section">
-     <div class="section-header">
-      <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2z" />
-       <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-      <h2 class="section-title" id="section4-title">4. Sletting, backup og varighet</h2>
-     </div>
-     <div class="section-content">
-      <p>Du kan når som helst be om at vi sletter kontoen din og tilhørende data. Vi vil da slette dataene fra den aktive databasen innen rimelig tid.</p>
-      <p>Sikkerhetskopier (backups) hos vår leverandør kan inneholde dine data i en begrenset periode etter sletting (typisk 7–30 dager), men disse er kun tilgjengelige for gjenoppretting ved alvorlige hendelser.</p>
-      <p>For å be om sletting, ta kontakt på:
-       <a href="mailto:joachimbye2@gmail.com" class="contact-email">joachimbye2@gmail.com</a>.
-      </p>
-     </div>
-    </div>
-
-    <div class="section">
-     <div class="section-header">
-      <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <path d="M9 12l2 2 4-4" />
-       <circle cx="12" cy="12" r="10" />
-      </svg>
-      <h2 class="section-title" id="section5-title">5. Lovvalg og målgruppe</h2>
-     </div>
-     <div class="section-content">
-      <p>Tjenesten reguleres av norsk rett. Eventuelle tvister som ikke løses i minnelighet, hører inn under vernetinget der utvikler er bosatt (for tiden Tromsø/Nord-Troms tingrett).</p>
-      <p>Tjenesten er ikke ment for barn under 13 år.</p>
      </div>
     </div>
     <div class="footer">
