@@ -129,6 +129,42 @@
       line-height: 1.5;
     }
 
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .terms-row input[type="checkbox"] {
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .terms-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 14px;
+      color: var(--text-main);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .terms-text label {
+      cursor: pointer;
+    }
+
+    .terms-link {
+      color: var(--brand-green);
+      font-weight: 500;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
     .submit-btn,
     .auth-button-primary {
       width: 100%;
@@ -329,6 +365,7 @@
         </p>
       </div>
 
+<<<<<<< HEAD
       <div class="terms-row" style="margin-top: 8px; margin-bottom: 12px;">
         <div class="terms-checkbox" style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px;">
           <input type="checkbox" id="accept-terms" style="margin-top: 3px;">
@@ -338,9 +375,16 @@
               Les vilkår og personvern
             </a>.
           </label>
+=======
+      <div class="terms-row">
+        <input type="checkbox" id="accept-terms">
+        <div class="terms-text">
+          <label for="accept-terms">Jeg godtar vilkår og personvern og forstår at tjenesten er i testfase (beta) og leveres "som den er".</label>
+          <a href="vilkar.html" target="_blank" rel="noopener noreferrer" class="terms-link">Les vilkår og personvern</a>
+>>>>>>> d2b9bf2 (Liten visuell tweak inlog)
         </div>
-        <p class="error-hint" id="terms-error" style="display:none; text-align:left; margin-top:6px;">Du må godta vilkår og personvern før du kan logge inn.</p>
       </div>
+      <p class="error-hint" id="terms-error" style="display:none; text-align:left; margin-top:6px;">Du må godta vilkår og personvern før du kan logge inn.</p>
 
       <button type="submit" class="submit-btn auth-button-primary" id="magic-link-button">
         <span class="spinner" aria-hidden="true"></span>
