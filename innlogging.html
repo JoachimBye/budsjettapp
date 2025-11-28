@@ -130,39 +130,34 @@
     }
 
     .terms-row {
+      margin-top: 16px;
+    }
+
+    .terms-label {
       display: flex;
       align-items: flex-start;
       gap: 8px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-    }
-
-    .terms-row input[type="checkbox"] {
-      margin-top: 4px;
-      flex-shrink: 0;
-    }
-
-    .terms-text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
       font-size: 14px;
-      color: var(--text-main);
-      line-height: 1.5;
-      flex: 1;
+      line-height: 1.4;
     }
 
-    .terms-text label {
-      cursor: pointer;
+    .terms-label input[type="checkbox"] {
+      margin-top: 2px;
+    }
+
+    .terms-link-row {
+      margin: 4px 0 0 26px;
+      font-size: 14px;
     }
 
     .terms-link {
-      color: var(--brand-green);
-      font-weight: 500;
+      color: #166534;
       text-decoration: underline;
       cursor: pointer;
-      margin-top: 4px;
-      display: inline-block;
+    }
+
+    .terms-link:hover {
+      text-decoration: none;
     }
 
     .submit-btn,
@@ -365,24 +360,19 @@
         </p>
       </div>
 
-<<<<<<< HEAD
-      <div class="terms-row" style="margin-top: 8px; margin-bottom: 12px;">
-        <div class="terms-checkbox" style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px;">
-          <input type="checkbox" id="accept-terms" style="margin-top: 3px;">
-          <label for="accept-terms" style="cursor: pointer;">
-            Jeg godtar vilkår og personvern og forstår at tjenesten er i testfase og leveres "som den er".
-            <a href="vilkar.html" target="_blank" rel="noopener noreferrer">
-              Les vilkår og personvern
-            </a>.
-          </label>
-=======
       <div class="terms-row">
-        <input type="checkbox" id="accept-terms">
-        <div class="terms-text">
-          <label for="accept-terms">Jeg godtar vilkår og personvern og forstår at tjenesten er i testfase (beta) og leveres "som den er".</label>
-          <a href="vilkar.html" target="_blank" rel="noopener noreferrer" class="terms-link">Les vilkår og personvern</a>
->>>>>>> d2b9bf2 (Liten visuell tweak inlog)
-        </div>
+        <label class="terms-label">
+          <input type="checkbox" id="accept-terms" />
+          <span>
+            Jeg godtar vilkår og personvern og forstår at tjenesten er i testfase (beta)
+            og leveres "som den er".
+          </span>
+        </label>
+        <p class="terms-link-row">
+          <a href="vilkar.html" class="terms-link" target="_blank" rel="noopener noreferrer">
+            Les vilkår og personvern
+          </a>
+        </p>
       </div>
       <p class="error-hint" id="terms-error" style="display:none; text-align:left; margin-top:6px;">Du må godta vilkår og personvern før du kan logge inn.</p>
 
