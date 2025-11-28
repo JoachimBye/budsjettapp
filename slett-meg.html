@@ -426,37 +426,66 @@
       </div>
     </main>
 
-    <script>
-      // Enkel validering for å aktivere slett-knappen
-      const checkbox = document.querySelector(".confirm-checkbox");
-      const emailInput = document.querySelector("#confirm-email");
-      const deleteButton = document.querySelector(".danger-button");
-      const form = document.querySelector(".delete-form");
+    <script type="module">
+  import { supabase } from "./js/supa-client.js"; // tilpass sti hvis nødvendig
 
-      function updateButtonState() {
-        const isChecked = checkbox.checked;
-        const hasEmail = emailInput.value.trim().length > 0;
-        deleteButton.disabled = !(isChecked && hasEmail);
-      }
+  const checkbox = document.querySelector(".confirm-checkbox");
+  const emailInput = document.querySelector("#confirm-email");
+  const deleteButton = document.querySelector(".danger-button");
+  const form = document.querySelector(".delete-form");
 
-      checkbox.addEventListener("change", updateButtonState);
-      emailInput.addEventListener("input", updateButtonState);
+  function updateButtonState() {
+    const isChecked = checkbox.checked;
+    const hasEmail = emailInput.value.trim().length > 0;
+    deleteButton.disabled = !(isChecked && hasEmail);
+  }
 
-      // TODO: Koble på faktisk slettelogikk mot Supabase / backend her
-      form.addEventListener("submit", async function (e) {
-        e.preventDefault();
+  checkbox.addEventListener("change", updateButtonState);
+  emailInput.addEventListener("input", updateButtonState);
 
-        if (!checkbox.checked || !emailInput.value.trim()) return;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-        const email = emailInput.value.trim();
-        console.log("Konto skal slettes for:", email);
+    if (!checkbox.checked || !emailInput.value.trim()) return;
 
-        // Eksempel på videre flyt:
-        // 1. Kall en edge function / RPC i Supabase som:
-        //    - verifiserer at email tilhører innlogget bruker
-        //    - sletter user + tilknyttede rader (members, purchases, etc.)
-        // 2. Vis en bekreftelsesmelding / redirect til "konto slettet"-side.
-      });
-    </script>
+    // 1. Sjekk at bruker er innlogget
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      alert("Du er ikke innlogget. Logg inn på nytt og prøv igjen.");
+      return;
+    }
+
+    // 2. Kall edge function i Supabase
+    deleteButton.disabled = true;
+    deleteButton.textContent = "Sletter konto...";
+
+    const { data, error } = await supabase.functions.invoke("delete-account", {
+      body: {
+        // valgfritt: send med e-posten de skrev, kun til logging/ekstra sjekk
+        confirmEmail: emailInput.value.trim(),
+      },
+    });
+
+    if (error || (data && data.error)) {
+      console.error(error || data.error);
+      alert("Noe gikk galt ved sletting av konto. Prøv igjen senere.");
+      deleteButton.disabled = false;
+      deleteButton.textContent = "Slett konto permanent";
+      return;
+    }
+
+    // 3. Logg ut lokalt
+    await supabase.auth.signOut();
+
+    // 4. Redirect til en "konto slettet"-side eller forsiden
+    window.location.href = "konto-slettet.html"; // lag evt. en enkel bekreftelsesside
+  });
+</script>
+
+   
   </body>
 </html>
