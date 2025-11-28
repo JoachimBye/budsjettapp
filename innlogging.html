@@ -329,7 +329,19 @@
         </p>
       </div>
 
-      <button type="submit" class="submit-btn auth-button-primary" id="submitBtn">
+      <div class="terms-row" style="margin-top: 8px; margin-bottom: 12px;">
+        <label class="terms-checkbox" style="display: flex; align-items: flex-start; gap: 8px; font-size: 14px;">
+          <input type="checkbox" id="accept-terms" style="margin-top: 3px;">
+          <span>
+            Jeg har lest og aksepterer
+            <a href="vilkar.html" target="_blank" rel="noopener noreferrer">
+              vilkår og personvern
+            </a>.
+          </span>
+        </label>
+      </div>
+
+      <button type="submit" class="submit-btn auth-button-primary" id="magic-link-button">
         <span class="spinner" aria-hidden="true"></span>
         <span id="button-text">Bli med i betaen</span>
       </button>
@@ -448,6 +460,20 @@
       error: null
     };
     let inviteCodeFromUrl = null;
+    const termsCheckbox = document.getElementById('accept-terms');
+    const magicLinkButton = document.getElementById('magic-link-button');
+    const shouldDisableMagicButton = (isLoading) =>
+      Boolean(isLoading || (termsCheckbox && !termsCheckbox.checked));
+
+    if (magicLinkButton) {
+      magicLinkButton.disabled = shouldDisableMagicButton(state.isLoading);
+    }
+
+    if (termsCheckbox && magicLinkButton) {
+      termsCheckbox.addEventListener('change', () => {
+        magicLinkButton.disabled = shouldDisableMagicButton(state.isLoading);
+      });
+    }
 
     const hasPendingInvite = () => Boolean(localStorage.getItem('pending_invite'));
     const isInviteFlow = () => state.mode === 'register' || hasPendingInvite() || Boolean(inviteCodeFromUrl);
@@ -467,7 +493,7 @@
         otpLabel: qs('#otp-label'),
         otpInput: qs('#otpInput'),
         otpHint: qs('#otp-hint'),
-        submitBtn: qs('#submitBtn'),
+        submitBtn: qs('#magic-link-button'),
         buttonText: qs('#button-text'),
         successBox: qs('#successBox'),
         successText: qs('#successText'),
@@ -497,7 +523,8 @@
 
         // Loading-state
         if (el.submitBtn && el.buttonText) {
-          el.submitBtn.disabled = isLoading;
+          const disableButton = shouldDisableMagicButton(isLoading);
+          el.submitBtn.disabled = disableButton;
           el.submitBtn.classList.toggle('loading', isLoading);
           el.submitBtn.setAttribute('aria-busy', isLoading ? 'true' : 'false');
 
