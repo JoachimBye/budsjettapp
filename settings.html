@@ -576,6 +576,7 @@
     <section class="section-block">
       <div class="inset-card">
         <button class="list-row destructive-row" type="button" id="logout-btn">Logg ut</button>
+        <button class="list-row destructive-row" type="button" id="delete-account-btn">Slett konto</button>
       </div>
     </section>
   </div>
@@ -1207,6 +1208,13 @@
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', doLogout);
+    }
+
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
+    if (deleteAccountBtn) {
+      deleteAccountBtn.addEventListener('click', () => {
+        window.location.href = 'slett-meg.html';
+      });
     }
 
     const backBtn = document.getElementById('back-button');
