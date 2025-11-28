@@ -426,66 +426,78 @@
       </div>
     </main>
 
-    <script type="module">
-  import { supabase } from "./js/supa-client.js"; // tilpass sti hvis nødvendig
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const checkbox = document.querySelector(".confirm-checkbox");
+        const emailInput = document.querySelector("#confirm-email");
+        const deleteButton = document.querySelector(".danger-button");
+        const form = document.querySelector(".delete-form");
+        const supa = window.supaClient?.getClient();
 
-  const checkbox = document.querySelector(".confirm-checkbox");
-  const emailInput = document.querySelector("#confirm-email");
-  const deleteButton = document.querySelector(".danger-button");
-  const form = document.querySelector(".delete-form");
+        function isFormValid() {
+          return checkbox.checked && emailInput.value.trim().length > 0;
+        }
 
-  function updateButtonState() {
-    const isChecked = checkbox.checked;
-    const hasEmail = emailInput.value.trim().length > 0;
-    deleteButton.disabled = !(isChecked && hasEmail);
-  }
+        function updateButtonState() {
+          deleteButton.disabled = !isFormValid();
+        }
 
-  checkbox.addEventListener("change", updateButtonState);
-  emailInput.addEventListener("input", updateButtonState);
+        checkbox.addEventListener("change", updateButtonState);
+        emailInput.addEventListener("input", updateButtonState);
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
 
-    if (!checkbox.checked || !emailInput.value.trim()) return;
+          if (!isFormValid()) {
+            updateButtonState();
+            return;
+          }
 
-    // 1. Sjekk at bruker er innlogget
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+          if (!supa) {
+            alert("Systemfeil: Kunne ikke koble til database.");
+            return;
+          }
 
-    if (authError || !user) {
-      alert("Du er ikke innlogget. Logg inn på nytt og prøv igjen.");
-      return;
-    }
+          deleteButton.disabled = true;
+          const originalText = deleteButton.textContent;
+          deleteButton.textContent = "Sletter konto...";
 
-    // 2. Kall edge function i Supabase
-    deleteButton.disabled = true;
-    deleteButton.textContent = "Sletter konto...";
+          try {
+            const {
+              data: { session },
+            } = await supa.auth.getSession();
 
-    const { data, error } = await supabase.functions.invoke("delete-account", {
-      body: {
-        // valgfritt: send med e-posten de skrev, kun til logging/ekstra sjekk
-        confirmEmail: emailInput.value.trim(),
-      },
-    });
+            if (!session) {
+              alert("Du er ikke innlogget.");
+              window.location.href = "innlogging.html";
+              return;
+            }
 
-    if (error || (data && data.error)) {
-      console.error(error || data.error);
-      alert("Noe gikk galt ved sletting av konto. Prøv igjen senere.");
-      deleteButton.disabled = false;
-      deleteButton.textContent = "Slett konto permanent";
-      return;
-    }
+            const { error } = await supa.functions.invoke("hyper-endpoint", {
+              body: { confirmEmail: emailInput.value.trim() },
+            });
 
-    // 3. Logg ut lokalt
-    await supabase.auth.signOut();
+            if (error) {
+              console.warn("Feil ved sletting:", error);
+            }
 
-    // 4. Redirect til en "konto slettet"-side eller forsiden
-    window.location.href = "konto-slettet.html"; // lag evt. en enkel bekreftelsesside
-  });
-</script>
+            localStorage.clear();
+            await supa.auth.signOut();
 
-   
+            alert(
+              "Kontoen din er nå markert for sletting og du er logget ut."
+            );
+            window.location.href = "innlogging.html";
+          } catch (error) {
+            console.error("Klarte ikke å slette konto:", error);
+            alert("Noe gikk galt. Prøv igjen senere.");
+            deleteButton.textContent = originalText;
+            updateButtonState();
+          }
+        });
+
+        updateButtonState();
+      });
+    </script>
   </body>
 </html>
