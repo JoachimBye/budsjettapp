@@ -152,6 +152,72 @@
       margin-bottom: 12px;
     }
 
+    /* Shopping header */
+    .shopping-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Planleggings-accordion */
+    .planning-accordion {
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(45,95,77,0.08);
+      border: 1px solid rgba(76,175,80,0.15);
+      margin-top: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .planning-summary {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      list-style: none;
+      background: #f8fffe;
+    }
+
+    .planning-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .summary-icon { font-size: 22px; }
+    .summary-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .summary-title { font-weight: 700; font-size: 16px; color: #2d5f4d; }
+    .summary-subtitle { font-size: 13px; color: #5a7a6d; }
+    .summary-chevron { transition: transform 0.2s; font-size: 16px; color: #5a7a6d; }
+    details[open] .summary-chevron { transform: rotate(180deg); }
+
+    .planning-content {
+      padding: 12px 16px 18px;
+      border-top: 1px solid rgba(76,175,80,0.1);
+      background: #ffffff;
+    }
+
+    .planning-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .planning-actions .btn {
+      flex: 0 0 auto;
+    }
+
+    .planning-content .section {
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
     .loading-text,
     .error-text {
       text-align: center;
@@ -488,6 +554,10 @@
   display: none;
 }
 
+.store-mode #planningDetails {
+  display: none;
+}
+
 .store-mode .page-subtitle {
   display: none;
 }
@@ -691,41 +761,65 @@
       </p>
 
       <div class="header-actions">
-        <button class="inbox-button" id="inboxBtn" style="display:none;">
-          📨 Fra middagsplan (<span id="inboxCount">0</span>)
-        </button>
         <button class="mode-toggle" id="modeToggleBtn">Start butikk-modus 🛒</button>
       </div>
     </header>
 
-    <!-- DEL 1: Ukens middager -->
-    <section class="section" id="weeklySection">
-      <h2 class="section-title">Ukens middager</h2>
-      <p class="section-subtitle">
-        Trykk på en dag og skriv inn hva dere skal ha til middag.
-      </p>
-      <div class="weekly-menu-list" id="weeklyMenuList"></div>
-    </section>
-
-    <!-- DEL 2: Faste varer -->
-    <section class="section" id="frequentSection">
-      <h2 class="section-title">Faste varer</h2>
-      <p class="section-subtitle">
-        Her dukker ting opp som dere ofte legger til på handlelisten. Trykk for å legge til.
-      </p>
-      <div class="frequent-grid" id="frequentGrid"></div>
-    </section>
-
-    <!-- DEL 3: Handleliste -->
+    <!-- Handleliste øverst -->
     <section class="section" id="shoppingSection">
-      <h2 class="section-title">Handleliste</h2>
+      <div class="shopping-header-row">
+        <div>
+          <h2 class="section-title">Din handleliste</h2>
+        </div>
+        <button class="inbox-button" id="inboxBtn" style="display:none;">
+          📨 Fra middagsplan (<span id="inboxCount">0</span>)
+        </button>
+      </div>
       <p class="section-subtitle" id="shoppingEmptyText">
-        Handlelisten er tom akkurat nå. Legg til det dere trenger før dere drar på butikken 🛒
+        Handlelisten er tom. Legg til varer med + knappen eller planlegg under.
       </p>
       <div id="categoriesContainer"></div>
 
       <div id="purchasedContainer" style="margin-top:8px;"></div>
     </section>
+
+    <!-- Planlegging: middager + faste varer -->
+    <details id="planningDetails" class="planning-accordion">
+      <summary class="planning-summary">
+        <span class="summary-icon">🧭</span>
+        <span class="summary-text">
+          <span class="summary-title">Planlegg uka & faste varer</span>
+          <span class="summary-subtitle">Ukens middager, faste varer og handleliste</span>
+        </span>
+        <span class="summary-chevron">⌄</span>
+      </summary>
+      <div class="planning-content">
+        <section class="section" id="weeklySection">
+          <h2 class="section-title">Ukens middager</h2>
+          <p class="section-subtitle">
+            Trykk på en dag og skriv inn hva dere skal ha til middag.
+          </p>
+          <div class="weekly-menu-list" id="weeklyMenuList"></div>
+        </section>
+
+        <section class="section" id="frequentSection">
+          <h2 class="section-title">Faste varer</h2>
+          <p class="section-subtitle">
+            Her dukker ting opp som dere ofte legger til på handlelisten. Trykk for å legge til.
+          </p>
+          <div class="frequent-grid" id="frequentGrid"></div>
+        </section>
+
+        <div class="planning-actions">
+          <button type="button" id="generateFromPlanningBtn" class="btn btn-primary full-width">
+            Lag handleliste fra ukeplan & faste varer
+          </button>
+          <button type="button" id="closePlanningBtn" class="btn btn-secondary full-width">
+            Lukk planlegger
+          </button>
+        </div>
+      </div>
+    </details>
   </div>
 
   <!-- Flytende + for å legge til vare -->
@@ -740,7 +834,7 @@
           <label class="form-label" for="itemNameInput">Varenavn</label>
           <input type="text" id="itemNameInput" class="form-input" placeholder="F.eks. Melk 1L" required>
         </div>
-        <div class="form-group">
+        <div class="form-group" style="display:none;" aria-hidden="true">
           <label class="form-label" for="itemCategorySelect">Kategori</label>
           <select id="itemCategorySelect" class="form-select">
             <option value="Matvarer">Matvarer</option>
@@ -1434,7 +1528,11 @@
   async function addItemToCategoryByName(name, categoryName, quantity = 1) {
     const cleanName = String(name || "").trim();
     if (!cleanName) return;
-    const resolvedCategory = resolveCategoryName(categoryName || getDefaultCategoryName());
+    const fallbackCategory = getDefaultCategoryName();
+    const normalizedCategory = categoryName && String(categoryName).trim()
+      ? categoryName
+      : fallbackCategory;
+    const resolvedCategory = resolveCategoryName(normalizedCategory);
     const qty = Math.max(1, Number(quantity) || 1);
 
     try {
@@ -1957,6 +2055,20 @@ function renderCategories() {
     });
   }
 
+  function closePlanningDetails() {
+    const details = $("#planningDetails");
+    if (details) {
+      details.removeAttribute("open");
+    }
+  }
+
+  function focusShoppingList() {
+    const shoppingSection = $("#shoppingSection");
+    if (shoppingSection) {
+      shoppingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
   // ---------- Butikk-modus ----------
 const modeToggleBtn = $("#modeToggleBtn");
 const exitStoreBtn = $("#exitStoreBtn");
@@ -2101,10 +2213,10 @@ if (exitStoreBtn) {
   });
   $("#addItemForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = $("#itemNameInput").value.trim();
-    const cat  = $("#itemCategorySelect").value;
+    const nameInput = $("#itemNameInput");
+    const name = nameInput ? nameInput.value.trim() : "";
     if (!name) return;
-    await addItemToCategoryByName(name, cat, modalQty);
+    await addItemToCategoryByName(name, null, modalQty);
     closeItemModal();
   });
 
@@ -2123,6 +2235,25 @@ if (exitStoreBtn) {
     await saveMenuEntry(currentMenuDayKey, txt);
     renderWeeklyMenu();
     closeMenuModal();
+  });
+
+  $("#generateFromPlanningBtn")?.addEventListener("click", async () => {
+    const added = await mergeInboxItems();
+    const inboxBtn = $("#inboxBtn");
+    if (inboxBtn) {
+      inboxBtn.style.display = "none";
+    }
+    if (added > 0) {
+      renderCategories();
+      showToast(`La til ${added} varer fra middagsplanen ✅`, "success");
+    }
+    closePlanningDetails();
+    focusShoppingList();
+  });
+
+  $("#closePlanningBtn")?.addEventListener("click", () => {
+    closePlanningDetails();
+    focusShoppingList();
   });
 
   // Footer-knapper
